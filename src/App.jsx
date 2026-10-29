@@ -131,6 +131,8 @@ export default function App() {
       paymentSplit: 'Payment Method Breakdown',
       serviceSplit: 'Service Revenue Split',
       bestDaysMeter: 'Performance Meter: Revenue by Day of Week',
+      bestMonthsMeter: 'Performance Meter: Revenue by Month (This Year)',
+      bestYearsMeter: 'Performance Meter: Revenue by Year (Historical)',
       exportCsv: 'Export Excel (CSV)',
       exportPdf: 'Export PDF Report',
       appearanceTitle: 'Appearance & Theme Settings',
@@ -195,6 +197,8 @@ export default function App() {
       paymentSplit: 'Распределение по способам оплаты',
       serviceSplit: 'Выручка по типам услуг',
       bestDaysMeter: 'Сравнение производительности по дням недели',
+      bestMonthsMeter: 'Сравнение производительности по месяцам',
+      bestYearsMeter: 'Сравнение производительности по годам',
       exportCsv: 'Экспорт Excel (CSV)',
       exportPdf: 'Экспорт PDF Отчета',
       appearanceTitle: 'Настройки темы оформления',
@@ -443,6 +447,7 @@ export default function App() {
   const alterationRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'alteration').reduce((acc, o) => acc + o.total, 0);
   const laundryRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'laundry').reduce((acc, o) => acc + o.total, 0);
 
+  // Day of Week Totals
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const dayTotals = [0, 0, 0, 0, 0, 0, 0];
   orders.forEach(o => {
@@ -450,6 +455,30 @@ export default function App() {
     dayTotals[d] += o.total;
   });
   const maxDayRevenue = Math.max(...dayTotals, 1);
+
+  // Monthly Totals (Current Year)
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  orders.forEach(o => {
+    const d = new Date(o.createdAt);
+    if (d.getFullYear() === now.getFullYear()) {
+      monthTotals[d.getMonth()] += o.total;
+    }
+  });
+  const maxMonthRevenue = Math.max(...monthTotals, 1);
+
+  // Yearly Totals (Last 4 Years)
+  const currentYearNum = now.getFullYear();
+  const yearLabels = [currentYearNum - 3, currentYearNum - 2, currentYearNum - 1, currentYearNum];
+  const yearTotals = [0, 0, 0, 0];
+  orders.forEach(o => {
+    const y = new Date(o.createdAt).getFullYear();
+    const idx = yearLabels.indexOf(y);
+    if (idx !== -1) {
+      yearTotals[idx] += o.total;
+    }
+  });
+  const maxYearRevenue = Math.max(...yearTotals, 1);
 
   const exportToCSV = () => {
     const headers = ['Tag ID', 'Date', 'Customer Name', 'Phone', 'Service Type', 'Payment Method', 'Status', 'Total (€)'];
@@ -1047,7 +1076,6 @@ export default function App() {
                     </button>
                   </div>
 
-                  {/* Export Options */}
                   <div className="flex gap-2">
                     <button
                       onClick={exportToCSV}
@@ -1116,6 +1144,7 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Day of Week Performance Meter */}
               <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4 pt-6`}>
                 <h4 className="text-sm font-bold flex items-center gap-2">
                   <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestDaysMeter}
@@ -1135,6 +1164,58 @@ export default function App() {
                         </div>
                         <span className="text-[11px] font-bold opacity-80">{d}</span>
                         <span className="text-[10px] font-mono text-teal-400 font-semibold">€{dayRev.toFixed(0)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Monthly Performance Meter */}
+              <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4 pt-6`}>
+                <h4 className="text-sm font-bold flex items-center gap-2">
+                  <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestMonthsMeter} ({now.getFullYear()})
+                </h4>
+                <div className="grid grid-cols-12 gap-1.5 pt-2">
+                  {monthNames.map((m, index) => {
+                    const monthRev = monthTotals[index];
+                    const percentage = Math.round((monthRev / maxMonthRevenue) * 100);
+                    return (
+                      <div key={m} className="flex flex-col items-center space-y-2">
+                        <div className="w-full bg-slate-950/40 h-32 rounded-xl flex items-end p-1">
+                          <div 
+                            className="w-full bg-emerald-500 rounded-lg transition-all duration-500" 
+                            style={{ height: `${Math.max(percentage, 8)}%` }}
+                            title={`€${monthRev.toFixed(2)}`}
+                          ></div>
+                        </div>
+                        <span className="text-[10px] font-bold opacity-80">{m}</span>
+                        <span className="text-[9px] font-mono text-emerald-400 font-semibold">€{monthRev.toFixed(0)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Yearly Performance Meter */}
+              <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4 pt-6`}>
+                <h4 className="text-sm font-bold flex items-center gap-2">
+                  <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestYearsMeter}
+                </h4>
+                <div className="grid grid-cols-4 gap-4 pt-2">
+                  {yearLabels.map((yr, index) => {
+                    const yrRev = yearTotals[index];
+                    const percentage = Math.round((yrRev / maxYearRevenue) * 100);
+                    return (
+                      <div key={yr} className="flex flex-col items-center space-y-2">
+                        <div className="w-full bg-slate-950/40 h-36 rounded-xl flex items-end p-2">
+                          <div 
+                            className="w-full bg-cyan-500 rounded-lg transition-all duration-500" 
+                            style={{ height: `${Math.max(percentage, 8)}%` }}
+                            title={`€${yrRev.toFixed(2)}`}
+                          ></div>
+                        </div>
+                        <span className="text-xs font-bold opacity-90">{yr}</span>
+                        <span className="text-xs font-mono text-cyan-400 font-semibold">€{yrRev.toFixed(0)}</span>
                       </div>
                     );
                   })}
