@@ -58,7 +58,7 @@ export default function App() {
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
   const [nextTagId, setNextTagId] = useState('ALT-' + Math.floor(7000 + Math.random() * 900));
 
-  // Theme styling mapper with fully adaptive headers, inputs, and text colors
+  // Explicit theme styling configuration
   const themes = {
     'teal-dark': {
       isLight: false,
@@ -81,7 +81,7 @@ export default function App() {
       appBg: 'bg-slate-100 text-slate-900',
       headerBg: 'bg-white border-slate-200 text-slate-900 shadow-sm',
       cardBg: 'bg-white border-slate-200 text-slate-900 shadow-xl',
-      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400',
+      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 font-medium',
       navToggleBg: 'bg-slate-200 border-slate-300 text-slate-800',
       subCardBg: 'bg-slate-100 text-slate-800',
       primary: 'bg-teal-600 hover:bg-teal-500 text-white',
@@ -113,7 +113,7 @@ export default function App() {
       appBg: 'bg-slate-100 text-slate-900',
       headerBg: 'bg-white border-slate-200 text-slate-900 shadow-sm',
       cardBg: 'bg-white border-slate-200 text-slate-900 shadow-xl',
-      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400',
+      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 font-medium',
       navToggleBg: 'bg-slate-200 border-slate-300 text-slate-800',
       subCardBg: 'bg-slate-100 text-slate-800',
       primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
@@ -122,7 +122,7 @@ export default function App() {
       borderFocus: 'focus:border-indigo-600',
       buttonSelected: 'bg-indigo-100 border-indigo-500 text-indigo-900 shadow-sm font-bold',
       tabActive: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20',
-      iconBox: 'bg-indigo-600 text-white shadow-indigo-600/20'
+      iconBox: 'bg-indigo-600 text-white shadow-teal-600/20'
     }
   };
 
@@ -676,7 +676,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setThemeMode('teal-dark')}
-                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'teal-dark' ? 'bg-teal-500/20 border-teal-500 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-30'}`}
+                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'teal-dark' ? 'bg-teal-500/20 border-teal-500 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-35'}`}
               >
                 <div className="w-8 h-8 rounded-full bg-teal-500 shadow-md shrink-0"></div>
                 <div className="text-left">
@@ -688,7 +688,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setThemeMode('teal-light')}
-                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'teal-light' ? 'bg-teal-100 border-teal-500 text-slate-900 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-30'}`}
+                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'teal-light' ? 'bg-teal-100 border-teal-500 text-slate-900 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-35'}`}
               >
                 <div className="w-8 h-8 rounded-full bg-teal-600 shadow-md shrink-0"></div>
                 <div className="text-left">
@@ -700,7 +700,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setThemeMode('indigo-dark')}
-                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'indigo-dark' ? 'bg-indigo-500/20 border-indigo-500 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-30'}`}
+                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'indigo-dark' ? 'bg-indigo-500/20 border-indigo-500 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-35'}`}
               >
                 <div className="w-8 h-8 rounded-full bg-indigo-600 shadow-md shrink-0"></div>
                 <div className="text-left">
@@ -712,7 +712,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setThemeMode('indigo-light')}
-                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'indigo-light' ? 'bg-indigo-100 border-indigo-500 text-slate-900 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-30'}`}
+                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'indigo-light' ? 'bg-indigo-100 border-indigo-500 text-slate-900 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-35'}`}
               >
                 <div className="w-8 h-8 rounded-full bg-indigo-600 shadow-md shrink-0"></div>
                 <div className="text-left">
