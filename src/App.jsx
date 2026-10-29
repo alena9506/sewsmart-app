@@ -49,7 +49,7 @@ export default function App() {
   const [serviceType, setServiceType] = useState('alteration');
   
   const [themeMode, setThemeMode] = useState('teal-dark');
-  const [reportTimeframe, setReportTimeframe] = useState('month'); // 'day', 'week', 'month', 'year'
+  const [reportTimeframe, setReportTimeframe] = useState('month');
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -291,6 +291,50 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    const timer = setTimeout(() => setAuthLoading(false), 1500);
+    return () => {
+      unsubscribeAuth();
+      clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+    const unsubscribeOrders = onSnapshot(q, (snapshot) => {
+      const ordersData = snapshot.docs.map(doc => ({
+        docId: doc.id,
+        ...doc.data()
+      }));
+      setOrders(ordersData);
+    });
+    return () => unsubscribeOrders();
+  }, [user]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    try {
+      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+    } catch (error) {
+      setLoginError('Invalid email or password. Please try again.');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+    } catch (error) {
+      console.error('Error signing out', error);
+    }
+  };
+
   const handleCreateOrder = async (e) => {
     e.preventDefault();
     if (!phone) {
@@ -367,7 +411,6 @@ export default function App() {
     }
   };
 
-  // Filter orders based on selected report timeframe
   const now = new Date();
   const filteredOrdersByTimeframe = orders.filter(o => {
     const orderDate = new Date(o.createdAt);
@@ -389,15 +432,12 @@ export default function App() {
   const periodOrderCount = filteredOrdersByTimeframe.length;
   const avgTicket = periodOrderCount > 0 ? periodRevenue / periodOrderCount : 0;
 
-  // Payment Breakdown
   const cardRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Card')).reduce((acc, o) => acc + o.total, 0);
   const cashRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Cash')).reduce((acc, o) => acc + o.total, 0);
 
-  // Service Breakdown
   const alterationRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'alteration').reduce((acc, o) => acc + o.total, 0);
   const laundryRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'laundry').reduce((acc, o) => acc + o.total, 0);
 
-  // Day of Week Performance Meter
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const dayTotals = [0, 0, 0, 0, 0, 0, 0];
   orders.forEach(o => {
@@ -426,7 +466,12 @@ export default function App() {
         <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6">
           <div className="text-center space-y-3">
             <div className="w-24 h-14 mx-auto flex items-center justify-center">
-              <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-contain" />
+              <img 
+                src={logoImg} 
+                alt="ALiCo Logo" 
+                className="w-full h-full object-contain"
+                onError={(e)=>{e.target.style.display='none'}}
+              />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">ALiCo</h1>
             <p className="text-xs text-slate-400">{text.signInTitle}</p>
@@ -515,7 +560,12 @@ export default function App() {
       <header className={`border-b px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-md ${t.headerBg}`}>
         <div className="flex items-center gap-3">
           <div className="w-16 h-10 flex items-center justify-center">
-            <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-contain" />
+            <img 
+              src={logoImg} 
+              alt="ALiCo Logo" 
+              className="w-full h-full object-contain"
+              onError={(e)=>{e.target.style.display='none'}}
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -937,7 +987,6 @@ export default function App() {
                   <p className="text-xs opacity-75">{text.analyticsDesc}</p>
                 </div>
                 
-                {/* Timeframe Selector */}
                 <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
                   <button
                     onClick={() => setReportTimeframe('day')}
@@ -966,7 +1015,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Top Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
                   <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalRevenue}</p>
@@ -982,7 +1030,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Service & Payment Splits */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
                   <h4 className="text-sm font-bold flex items-center gap-2">
@@ -1017,7 +1064,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Performance Meter by Day of Week */}
               <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4 pt-6`}>
                 <h4 className="text-sm font-bold flex items-center gap-2">
                   <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestDaysMeter}
