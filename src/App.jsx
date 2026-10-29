@@ -454,8 +454,6 @@ export default function App() {
                       >
                         <option>Credit / Debit Card</option>
                         <option>Cash</option>
-                        <option>Revolut</option>
-                        <option>Other</option>
                       </select>
                     </div>
                   </div>
