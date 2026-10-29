@@ -171,6 +171,13 @@ export default function App() {
       addExpenseBtn: 'Record Expense',
       expenseHistory: 'Recorded Expenses Log',
       exportExpensesCsv: 'Export Expenses (CSV)',
+      customRangeLabel: 'Custom Date Range',
+      grossRevenueCard: 'Gross Revenue',
+      totalExpensesCard: 'Total Expenses',
+      netOperatingProfitCard: 'Net Operating Profit',
+      profitMarginCard: 'Profit Margin',
+      spendingByCategory: 'Spending by Category',
+      clearCustomRange: 'Clear Custom Range',
       catSupplies: 'Supplies & Materials',
       catRent: 'Rent & Utilities',
       catEquipment: 'Equipment & Maintenance',
@@ -262,6 +269,13 @@ export default function App() {
       addExpenseBtn: 'Добавить расход',
       expenseHistory: 'Журнал записанных расходов',
       exportExpensesCsv: 'Экспорт расходов (CSV)',
+      customRangeLabel: 'Произвольный диапазон дат',
+      grossRevenueCard: 'Валовая выручка',
+      totalExpensesCard: 'Всего расходов',
+      netOperatingProfitCard: 'Чистая операционная прибыль',
+      profitMarginCard: 'Рентабельность (Маржа)',
+      spendingByCategory: 'Расходы по категориям',
+      clearCustomRange: 'Сбросить диапазон',
       catSupplies: 'Материалы и расходники',
       catRent: 'Аренда и коммунальные услуги',
       catEquipment: 'Оборудование и обслуживание',
@@ -571,7 +585,7 @@ export default function App() {
       return itemDate.toDateString() === now.toDateString();
     } else if (reportTimeframe === 'week') {
       const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday start or adjust as needed
+      startOfWeek.setDate(now.getDate() - now.getDay());
       startOfWeek.setHours(0, 0, 0, 0);
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 6);
@@ -1499,7 +1513,7 @@ export default function App() {
               {/* Custom Date Range Filter Bar */}
               <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
                 <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-teal-400" /> Custom Date Range:
+                  <Calendar className="w-4 h-4 text-teal-400" /> {text.customRangeLabel}:
                 </span>
                 <div className="flex items-center gap-2">
                   <input 
@@ -1521,7 +1535,7 @@ export default function App() {
                     onClick={() => { setStartDateFilter(''); setEndDateFilter(''); }}
                     className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-auto"
                   >
-                    Clear Custom Range
+                    {text.clearCustomRange}
                   </button>
                 )}
               </div>
@@ -1529,21 +1543,21 @@ export default function App() {
               {/* Financial Profit & Loss Header Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-2">
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Gross Revenue</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.grossRevenueCard}</p>
                   <p className={`text-xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Total Expenses</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.totalExpensesCard}</p>
                   <p className="text-xl font-extrabold text-rose-400">€{periodExpenses.toFixed(2)}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Net Operating Profit</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.netOperatingProfitCard}</p>
                   <p className={`text-xl font-extrabold ${periodNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     €{periodNetProfit.toFixed(2)}
                   </p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Profit Margin</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.profitMarginCard}</p>
                   <p className={`text-xl font-extrabold ${profitMargin >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
                     {profitMargin.toFixed(1)}%
                   </p>
@@ -1552,7 +1566,7 @@ export default function App() {
 
               {/* Expense Category Breakdown Summary Cards */}
               <div className="pt-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider opacity-80 mb-3">Spending by Category ({startDateFilter ? 'Custom Range' : reportTimeframe.toUpperCase()})</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider opacity-80 mb-3">{text.spendingByCategory} ({startDateFilter ? text.customRangeLabel : reportTimeframe.toUpperCase()})</h3>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {EXPENSE_CATEGORIES.map(cat => {
                     const catTotal = categoryTotals[cat.key] || 0;
@@ -1636,7 +1650,7 @@ export default function App() {
               {/* Expense History Table */}
               <div className="pt-4 overflow-x-auto">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-bold">{text.expenseHistory} ({startDateFilter ? 'Custom Range' : reportTimeframe.toUpperCase()})</h3>
+                  <h3 className="text-sm font-bold">{text.expenseHistory} ({startDateFilter ? text.customRangeLabel : reportTimeframe.toUpperCase()})</h3>
                   <span className="font-mono text-sm font-extrabold text-rose-400">Total: €{periodExpenses.toFixed(2)}</span>
                 </div>
                 <table className="w-full text-left border-collapse text-xs">
