@@ -1004,9 +1004,10 @@ export default function App() {
         </div>
       )}
 
-      <header className={`border-b px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-md ${t.headerBg}`}>
+      {/* Responsive Header Container */}
+      <header className={`border-b px-4 sm:px-6 py-4 flex flex-wrap justify-between items-center gap-3 sm:gap-4 shadow-md ${t.headerBg}`}>
         <div className="flex items-center gap-3">
-          <div className="w-16 h-10 flex items-center justify-center">
+          <div className="w-14 sm:w-16 h-10 flex items-center justify-center">
             <img 
               src={logoImg} 
               alt="ALiCo Logo" 
@@ -1015,18 +1016,18 @@ export default function App() {
             />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight">ALiCo</h1>
-              <span className={`font-semibold text-sm px-2 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
-              <span className="text-[10px] opacity-70 ml-2 font-mono">({user.email} - {isAdmin ? 'Admin' : 'Employee'})</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight">ALiCo</h1>
+              <span className={`font-semibold text-xs sm:text-sm px-2 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
+              <span className="text-[10px] opacity-70 font-mono hidden md:inline">({user.email} - {isAdmin ? 'Admin' : 'Employee'})</span>
             </div>
-            <p className="text-xs opacity-80 font-medium">{text.subtitle}</p>
+            <p className="text-[11px] sm:text-xs opacity-80 font-medium truncate max-w-[200px] sm:max-w-none">{text.subtitle}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {revenueMultiplier !== 1.00 && (
-            <span className="bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+            <span className="bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1 rounded-xl text-xs font-semibold hidden lg:flex items-center gap-1.5">
               <Sliders className="w-3.5 h-3.5 text-teal-400" /> Scale: {Math.round(revenueMultiplier * 100)}%
             </span>
           )}
@@ -1034,74 +1035,74 @@ export default function App() {
           {/* Terminal Lock Button */}
           <button
             onClick={() => setIsTerminalLocked(true)}
-            className="px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm"
+            className="px-2.5 sm:px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm"
             title="Lock Terminal against accidental clicks"
           >
             <Lock className="w-4 h-4" />
-            <span className="hidden md:inline">Lock Screen</span>
+            <span className="hidden xl:inline">Lock Screen</span>
           </button>
 
           {/* Fullscreen Toggle Button */}
           <button
             onClick={toggleFullscreen}
-            className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
+            className={`px-2.5 sm:px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
             title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
           >
             {isFullscreen ? <Minimize className="w-4 h-4 text-teal-400" /> : <Maximize className="w-4 h-4 text-teal-400" />}
-            <span className="hidden md:inline">{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
+            <span className="hidden xl:inline">{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
           </button>
 
           <button
             onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
-            className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
+            className={`px-2.5 sm:px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
             title="Toggle Language / Сменить язык"
           >
             <Globe className="w-4 h-4 text-teal-400" />
             {lang === 'en' ? '🇷🇺 RU' : '🇬🇧 EN'}
           </button>
 
-          <div className={`flex p-1.5 rounded-2xl border shadow-inner ${t.navToggleBg}`}>
+          <div className={`flex flex-wrap p-1 rounded-2xl border shadow-inner gap-1 ${t.navToggleBg}`}>
             <button 
               onClick={() => setActiveTab('intake')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
             >
-              <PlusCircle className="w-4 h-4" /> {text.newTicket}
+              <PlusCircle className="w-4 h-4" /> <span className="hidden sm:inline">{text.newTicket}</span>
             </button>
             <button 
               onClick={() => setActiveTab('orders')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
             >
-              <Clock className="w-4 h-4" /> {text.orders} <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
+              <Clock className="w-4 h-4" /> <span className="hidden sm:inline">{text.orders}</span> <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
             </button>
             
             {isAdmin && (
               <>
                 <button 
                   onClick={() => setActiveTab('analytics')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                 >
-                  <BarChart3 className="w-4 h-4" /> {text.reports}
+                  <BarChart3 className="w-4 h-4" /> <span className="hidden sm:inline">{text.reports}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('bookkeeping')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                 >
-                  <Wallet className="w-4 h-4" /> {text.bookkeeping}
+                  <Wallet className="w-4 h-4" /> <span className="hidden sm:inline">{text.bookkeeping}</span>
                 </button>
               </>
             )}
 
             <button 
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
             >
-              <Settings className="w-4 h-4" /> {text.settings}
+              <Settings className="w-4 h-4" /> <span className="hidden sm:inline">{text.settings}</span>
             </button>
           </div>
 
           <button 
             onClick={handleLogout}
-            className="p-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold flex items-center gap-1.5"
+            className="p-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold flex items-center gap-1.5"
             title="Sign Out"
           >
             <LogOut className="w-4 h-4" />
@@ -1109,7 +1110,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+      <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
         {activeTab === 'intake' && (
           <div className="space-y-6">
             <div className="flex justify-center mb-6">
@@ -1117,14 +1118,14 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setServiceType('alteration')}
-                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm transition-all ${serviceType === 'alteration' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
+                  className={`flex items-center gap-2 px-6 sm:px-8 py-3 rounded-xl text-xs sm:text-sm transition-all ${serviceType === 'alteration' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                 >
                   <Scissors className="w-4 h-4" /> {text.alterationTicket}
                 </button>
                 <button
                   type="button"
                   onClick={() => setServiceType('laundry')}
-                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm transition-all ${serviceType === 'laundry' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
+                  className={`flex items-center gap-2 px-6 sm:px-8 py-3 rounded-xl text-xs sm:text-sm transition-all ${serviceType === 'laundry' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                 >
                   <Shirt className="w-4 h-4" /> {text.laundryTicket}
                 </button>
@@ -1132,7 +1133,7 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className={`lg:col-span-2 border rounded-3xl p-8 shadow-2xl backdrop-blur-sm space-y-8 ${t.cardBg}`}>
+              <div className={`lg:col-span-2 border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-sm space-y-8 ${t.cardBg}`}>
                 <div className="flex justify-between items-center pb-4 border-b border-opacity-30">
                   <h2 className="text-base font-bold flex items-center gap-2">
                     <User className={`w-5 h-5 ${t.textAccent}`} /> {text.customerPayment}
@@ -1390,10 +1391,10 @@ export default function App() {
         )}
 
         {activeTab === 'orders' && (
-          <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+          <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
             <div className="flex flex-wrap justify-between items-center gap-4">
               <h2 className="text-lg font-bold">{text.ticketHistory}</h2>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <div className="relative">
                   <Search className="w-4 h-4 absolute left-3 top-3.5 opacity-50" />
                   <input 
@@ -1419,7 +1420,7 @@ export default function App() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className={`border-b text-xs uppercase opacity-70 ${t.isLight ? 'border-slate-200' : 'border-slate-700'}`}>
                     <th className="py-3 px-4">{text.tagId}</th>
@@ -1487,36 +1488,36 @@ export default function App() {
 
         {activeTab === 'analytics' && isAdmin && (
           <div className="space-y-6">
-            <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+            <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <h2 className="text-xl font-bold">{text.analyticsTitle}</h2>
                   <p className="text-xs opacity-75">{text.analyticsDesc}</p>
                 </div>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
                     <button
                       onClick={() => { setReportTimeframe('day'); setStartDateFilter(''); setEndDateFilter(''); }}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeDay}
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('week'); setStartDateFilter(''); setEndDateFilter(''); }}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeWeek}
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('month'); setStartDateFilter(''); setEndDateFilter(''); }}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeMonth}
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('year'); setStartDateFilter(''); setEndDateFilter(''); }}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeYear}
                     </button>
@@ -1542,7 +1543,7 @@ export default function App() {
               </div>
 
               {revenueMultiplier !== 1.00 && (
-                <div className="bg-slate-800 border border-slate-700 text-slate-300 p-4 rounded-2xl text-xs flex items-center justify-between">
+                <div className="bg-slate-800 border border-slate-700 text-slate-300 p-4 rounded-2xl text-xs flex items-center justify-between flex-wrap gap-2">
                   <span>{text.activeNotice} <strong>{Math.round(revenueMultiplier * 100)}%</strong>. (Expenses remain completely independent and unscaled).</span>
                   <button 
                     onClick={() => setRevenueMultiplier(1.00)}
@@ -1554,7 +1555,7 @@ export default function App() {
               )}
 
               {/* Financial Summary Cards (Revenue, Expenses, Net Profit) */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
                   <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalRevenue}</p>
                   <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</h3>
@@ -1614,12 +1615,12 @@ export default function App() {
                 <h4 className="text-sm font-bold flex items-center gap-2">
                   <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestDaysMeter}
                 </h4>
-                <div className="grid grid-cols-7 gap-2 pt-2">
+                <div className="grid grid-cols-7 gap-2 pt-2 overflow-x-auto">
                   {dayNames.map((d, index) => {
                     const dayRev = dayTotals[index];
                     const percentage = Math.round((dayRev / maxDayRevenue) * 100);
                     return (
-                      <div key={d} className="flex flex-col items-center space-y-2">
+                      <div key={d} className="flex flex-col items-center space-y-2 min-w-[35px]">
                         <div className="w-full bg-slate-950/40 h-32 rounded-xl flex items-end p-1.5">
                           <div 
                             className="w-full bg-teal-500 rounded-lg transition-all duration-500" 
@@ -1640,12 +1641,12 @@ export default function App() {
                 <h4 className="text-sm font-bold flex items-center gap-2">
                   <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestMonthsMeter} ({now.getFullYear()})
                 </h4>
-                <div className="grid grid-cols-12 gap-1.5 pt-2">
+                <div className="grid grid-cols-12 gap-1.5 pt-2 overflow-x-auto">
                   {monthNames.map((m, index) => {
                     const monthRev = monthTotals[index];
                     const percentage = Math.round((monthRev / maxMonthRevenue) * 100);
                     return (
-                      <div key={m} className="flex flex-col items-center space-y-2">
+                      <div key={m} className="flex flex-col items-center space-y-2 min-w-[28px]">
                         <div className="w-full bg-slate-950/40 h-32 rounded-xl flex items-end p-1">
                           <div 
                             className="w-full bg-emerald-500 rounded-lg transition-all duration-500" 
@@ -1693,7 +1694,7 @@ export default function App() {
 
         {activeTab === 'bookkeeping' && isAdmin && (
           <div className="space-y-6">
-            <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+            <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <h2 className="text-xl font-bold">{text.bookkeepingTitle}</h2>
@@ -1743,7 +1744,7 @@ export default function App() {
                 <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-teal-400" /> {text.customRangeLabel}:
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <input 
                     type="date"
                     value={startDateFilter}
@@ -1769,7 +1770,7 @@ export default function App() {
               </div>
 
               {/* Financial Profit & Loss Header Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
                   <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.grossRevenueCard}</p>
                   <p className={`text-xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</p>
@@ -1795,7 +1796,7 @@ export default function App() {
               {/* Expense Category Breakdown Summary Cards */}
               <div className="pt-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider opacity-80 mb-3">{text.spendingByCategory} ({startDateFilter ? text.customRangeLabel : reportTimeframe.toUpperCase()})</h3>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                   {EXPENSE_CATEGORIES.map(cat => {
                     const catTotal = categoryTotals[cat.key] || 0;
                     const catPercentage = periodExpenses > 0 ? Math.round((catTotal / periodExpenses) * 100) : 0;
@@ -1877,11 +1878,11 @@ export default function App() {
 
               {/* Expense History Table */}
               <div className="pt-4 overflow-x-auto">
-                <div className="flex justify-between items-center mb-3">
+                <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
                   <h3 className="text-sm font-bold">{text.expenseHistory} ({startDateFilter ? text.customRangeLabel : reportTimeframe.toUpperCase()})</h3>
                   <span className="font-mono text-sm font-extrabold text-rose-400">Total: €{periodExpenses.toFixed(2)}</span>
                 </div>
-                <table className="w-full text-left border-collapse text-xs">
+                <table className="w-full text-left border-collapse text-xs min-w-[600px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
                       <th className="py-3 px-3">Date</th>
@@ -1928,7 +1929,7 @@ export default function App() {
 
         {activeTab === 'settings' && (
           <div className="space-y-6 max-w-xl mx-auto w-full">
-            <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+            <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <Palette className={`w-5 h-5 ${t.textAccent}`} /> {text.appearanceTitle}
               </h2>
@@ -1953,7 +1954,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+            <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <Globe className={`w-5 h-5 ${t.textAccent}`} /> {text.languageTitle}
               </h2>
@@ -1978,7 +1979,7 @@ export default function App() {
 
             {/* Hidden Display Calibration Settings (Admin Only) */}
             {isAdmin && (
-              <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
                 <h2 className="text-lg font-bold flex items-center gap-2">
                   <SlidersHorizontal className={`w-5 h-5 ${t.textAccent}`} /> {text.optimizationTitle}
                 </h2>
