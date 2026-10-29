@@ -58,7 +58,7 @@ export default function App() {
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
   const [nextTagId, setNextTagId] = useState('ALT-' + Math.floor(7000 + Math.random() * 900));
 
-  // Theme styling mapper with dynamic input backgrounds
+  // Theme styling mapper with fully adaptive headers, inputs, and text colors
   const themes = {
     'teal-dark': {
       isLight: false,
