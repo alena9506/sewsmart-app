@@ -74,6 +74,7 @@ export default function App() {
       borderFocus: 'focus:border-teal-500',
       buttonSelected: 'bg-teal-500/20 border-teal-500 text-teal-300 shadow-md',
       tabActive: 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20',
+      serviceActive: 'bg-teal-500 text-slate-950 shadow-md font-extrabold',
       iconBox: 'bg-teal-500 text-slate-950 shadow-teal-500/20'
     },
     'teal-light': {
@@ -90,6 +91,7 @@ export default function App() {
       borderFocus: 'focus:border-teal-600',
       buttonSelected: 'bg-teal-100 border-teal-500 text-teal-900 shadow-sm font-bold',
       tabActive: 'bg-teal-600 text-white shadow-md shadow-teal-600/20',
+      serviceActive: 'bg-teal-600 text-white shadow-md font-extrabold',
       iconBox: 'bg-teal-600 text-white shadow-teal-600/20'
     },
     'indigo-dark': {
@@ -106,6 +108,7 @@ export default function App() {
       borderFocus: 'focus:border-indigo-500',
       buttonSelected: 'bg-indigo-500/20 border-indigo-500 text-indigo-300 shadow-md',
       tabActive: 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20',
+      serviceActive: 'bg-indigo-600 text-white shadow-md font-extrabold',
       iconBox: 'bg-indigo-600 text-white shadow-indigo-500/20'
     },
     'indigo-light': {
@@ -122,7 +125,8 @@ export default function App() {
       borderFocus: 'focus:border-indigo-600',
       buttonSelected: 'bg-indigo-100 border-indigo-500 text-indigo-900 shadow-sm font-bold',
       tabActive: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20',
-      iconBox: 'bg-indigo-600 text-white shadow-teal-600/20'
+      serviceActive: 'bg-indigo-600 text-white shadow-md font-extrabold',
+      iconBox: 'bg-indigo-600 text-white shadow-indigo-600/20'
     }
   };
 
@@ -295,14 +299,14 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setServiceType('alteration')}
-                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all ${serviceType === 'alteration' ? `shadow-md border ${t.textAccent} border-opacity-30 ${t.isLight ? 'bg-white text-slate-900 font-extrabold' : 'bg-slate-950 text-white'}` : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm transition-all ${serviceType === 'alteration' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                 >
                   <Scissors className="w-4 h-4" /> Alteration Ticket
                 </button>
                 <button
                   type="button"
                   onClick={() => setServiceType('laundry')}
-                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all ${serviceType === 'laundry' ? `shadow-md border ${t.textAccent} border-opacity-30 ${t.isLight ? 'bg-white text-slate-900 font-extrabold' : 'bg-slate-950 text-white'}` : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm transition-all ${serviceType === 'laundry' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                 >
                   <Shirt className="w-4 h-4" /> Laundry Ticket
                 </button>
