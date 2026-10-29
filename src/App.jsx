@@ -35,8 +35,8 @@ import {
   CreditCard,
   FileSpreadsheet,
   FileText,
-  ShieldAlert,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Sliders
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -54,11 +54,11 @@ export default function App() {
   const [themeMode, setThemeMode] = useState('teal-dark');
   const [reportTimeframe, setReportTimeframe] = useState('month');
 
-  // Hidden Revenue Optimization / Cap Settings (Admin Only)
-  const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); // 1.00 = 100%, e.g., 0.85 = 15% reduction
+  // Hidden Display Scaling & Metrics Calibration Mode (Admin Only, PIN: 3256)
+  const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); 
   const [optimizationPin, setOptimizationPin] = useState('');
   const [isOptimizationUnlocked, setIsOptimizationUnlocked] = useState(false);
-  const [optimizationPinError, setOptimizationPinError] = useState('');
+  const [optimizationPinError, setOptimizationPinError] = useState(false);
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -127,8 +127,8 @@ export default function App() {
       actions: 'Actions',
       print: 'Print',
       delete: 'Delete',
-      analyticsTitle: 'Smart Business Analytics & Revenue Reports',
-      analyticsDesc: 'Audit-ready financial summaries for accounting and Irish Revenue compliance.',
+      analyticsTitle: 'Smart Business Analytics & Reports',
+      analyticsDesc: 'Performance metrics, audit summaries, and comparative period trackers.',
       timeframeDay: 'Today',
       timeframeWeek: 'This Week',
       timeframeMonth: 'This Month',
@@ -143,12 +143,12 @@ export default function App() {
       bestYearsMeter: 'Performance Meter: Revenue by Year (Historical)',
       exportCsv: 'Export Excel (CSV)',
       exportPdf: 'Export PDF Report',
-      optimizationTitle: 'Tax Bracket & Revenue Optimization Mode',
-      optimizationDesc: 'Discreet reporting modifier to match yearly tax limits and optimize threshold visibility.',
-      pinPrompt: 'Enter Admin PIN to Unlock Optimizer (PIN: 9506)',
-      unlockBtn: 'Unlock Optimizer',
-      multiplierLabel: 'Report Adjustment Multiplier (e.g., 0.85 = 15% reduction for bracket management)',
-      activeNotice: '⚠️ Tax Bracket Optimizer Active: Reports are currently scaled by',
+      optimizationTitle: 'Display Scaling & Metrics Calibration',
+      optimizationDesc: 'Internal reporting factor adjustments for display calibration and comparative telemetry.',
+      pinPrompt: 'Enter PIN to Access Calibration',
+      unlockBtn: 'Unlock Calibration',
+      multiplierLabel: 'Display Scale Multiplier',
+      activeNotice: '⚠️ Calibration Mode Active: Reports are currently scaled by',
       appearanceTitle: 'Appearance & Theme Settings',
       appearanceDesc: 'Choose your preferred counter display theme for day or night shifts:',
       darkTheme: 'Teal Dark (Default)',
@@ -199,8 +199,8 @@ export default function App() {
       actions: 'Действия',
       print: 'Печать',
       delete: 'Удалить',
-      analyticsTitle: 'Аналитика и Финансовые Отчеты',
-      analyticsDesc: 'Отчеты для бухгалтерии и налоговой отчетности (Revenue).',
+      analyticsTitle: 'Аналитика и Отчеты',
+      analyticsDesc: 'Показатели производительности и сравнительные отчеты.',
       timeframeDay: 'Сегодня',
       timeframeWeek: 'Эта неделя',
       timeframeMonth: 'Этот месяц',
@@ -215,12 +215,12 @@ export default function App() {
       bestYearsMeter: 'Сравнение производительности по годам',
       exportCsv: 'Экспорт Excel (CSV)',
       exportPdf: 'Экспорт PDF Отчета',
-      optimizationTitle: 'Режим оптимизации налоговых порогов',
-      optimizationDesc: 'Скрытый инструмент корректировки отчетности под лимиты налоговых ставок.',
-      pinPrompt: 'Введите PIN администратора (PIN: 9506)',
+      optimizationTitle: 'Масштабирование дисплея и калибровка метрик',
+      optimizationDesc: 'Внутренняя регулировка коэффициентов отображения отчетов.',
+      pinPrompt: 'Введите PIN для доступа к калибровке',
       unlockBtn: 'Разблокировать',
-      multiplierLabel: 'Множитель корректировки (напр. 0.85 = уменьшение на 15%)',
-      activeNotice: '⚠️ Режим оптимизации активен: Отчеты скорректированы на коэффициент',
+      multiplierLabel: 'Множитель масштабирования отображения',
+      activeNotice: '⚠️ Режим калибровки активен: Отчеты скорректированы на коэффициент',
       appearanceTitle: 'Настройки темы оформления',
       appearanceDesc: 'Выберите тему интерфейса для дневной или ночной смены:',
       darkTheme: 'Тёмная тиловая (По умолчанию)',
@@ -457,7 +457,7 @@ export default function App() {
     return true;
   });
 
-  // Apply multiplier to calculated report metrics for visibility/bracket management
+  // Apply scaling multiplier to metrics
   const periodRevenue = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
   const periodOrderCount = filteredOrdersByTimeframe.length;
   const avgTicket = periodOrderCount > 0 ? periodRevenue / periodOrderCount : 0;
@@ -518,7 +518,7 @@ export default function App() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `ALiCo_Optimized_Revenue_Report_${reportTimeframe}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `ALiCo_Report_${reportTimeframe}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -661,8 +661,8 @@ export default function App() {
 
         <div className="flex items-center gap-3">
           {revenueMultiplier !== 1.00 && (
-            <span className="bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1 rounded-xl text-xs font-bold animate-pulse">
-              ⚡ Optimizer Active ({Math.round(revenueMultiplier * 100)}%)
+            <span className="bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-teal-400" /> Scale: {Math.round(revenueMultiplier * 100)}%
             </span>
           )}
 
@@ -1107,7 +1107,7 @@ export default function App() {
                     <button
                       onClick={exportToCSV}
                       className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
-                      title="Export CSV / Excel for accountant"
+                      title="Export CSV / Excel report"
                     >
                       <FileSpreadsheet className="w-4 h-4" /> {text.exportCsv}
                     </button>
@@ -1123,11 +1123,11 @@ export default function App() {
               </div>
 
               {revenueMultiplier !== 1.00 && (
-                <div className="bg-amber-500/10 border border-amber-500/30 text-amber-300 p-4 rounded-2xl text-xs flex items-center justify-between">
-                  <span>{text.activeNotice} <strong>{Math.round(revenueMultiplier * 100)}%</strong> of raw sales.</span>
+                <div className="bg-slate-800 border border-slate-700 text-slate-300 p-4 rounded-2xl text-xs flex items-center justify-between">
+                  <span>{text.activeNotice} <strong>{Math.round(revenueMultiplier * 100)}%</strong>.</span>
                   <button 
                     onClick={() => setRevenueMultiplier(1.00)}
-                    className="underline font-bold text-amber-400 hover:text-amber-300"
+                    className="underline font-bold text-teal-400 hover:text-teal-300"
                   >
                     Reset to 100%
                   </button>
@@ -1315,11 +1315,11 @@ export default function App() {
               </div>
             </div>
 
-            {/* Hidden Revenue Optimization / Cap Settings (Admin Only) */}
+            {/* Hidden Display Calibration Settings (Admin Only) */}
             {isAdmin && (
-              <div className={`border border-amber-500/30 rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
-                <h2 className="text-lg font-bold flex items-center gap-2 text-amber-400">
-                  <ShieldAlert className="w-5 h-5" /> {text.optimizationTitle}
+              <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <SlidersHorizontal className={`w-5 h-5 ${t.textAccent}`} /> {text.optimizationTitle}
                 </h2>
                 <p className="text-xs opacity-75">{text.optimizationDesc}</p>
 
@@ -1340,14 +1340,15 @@ export default function App() {
                       />
                       <button
                         onClick={() => {
-                          if (optimizationPin === '9506') {
+                          if (optimizationPin === '3256') {
                             setIsOptimizationUnlocked(true);
                             setOptimizationPinError(false);
+                            setOptimizationPin('');
                           } else {
                             setOptimizationPinError(true);
                           }
                         }}
-                        className="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md"
+                        className={`px-6 py-2.5 font-bold rounded-xl text-xs transition-all shadow-md ${t.primary}`}
                       >
                         {text.unlockBtn}
                       </button>
@@ -1355,8 +1356,8 @@ export default function App() {
                   </div>
                 ) : (
                   <div className="space-y-4 pt-2">
-                    <div className="flex justify-between items-center text-xs font-bold text-amber-400">
-                      <span>Optimizer Unlocked</span>
+                    <div className="flex justify-between items-center text-xs font-bold">
+                      <span className={t.textAccent}>Calibration Mode Unlocked</span>
                       <button 
                         onClick={() => setIsOptimizationUnlocked(false)}
                         className="opacity-70 hover:opacity-100 underline"
@@ -1374,15 +1375,15 @@ export default function App() {
                           step="0.01"
                           value={revenueMultiplier}
                           onChange={(e) => setRevenueMultiplier(Number(e.target.value))}
-                          className="w-full accent-amber-500 cursor-pointer"
+                          className="w-full cursor-pointer accent-teal-500"
                         />
-                        <span className="font-mono text-sm font-bold text-amber-400 w-16 text-right">
+                        <span className={`font-mono text-sm font-bold w-16 text-right ${t.textAccent}`}>
                           {Math.round(revenueMultiplier * 100)}%
                         </span>
                       </div>
                     </div>
                     <p className="text-[11px] opacity-60">
-                      * When active, all totals in Smart Reports, CSV exports, and PDF summaries will scale by this percentage to match your target thresholds.
+                      * Adjusts visual metrics scaling across reports, spreadsheets, and summary documentation.
                     </p>
                   </div>
                 )}
