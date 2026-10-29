@@ -150,15 +150,60 @@ export default function App() {
 
   const t = themes[themeMode] || themes['teal-dark'];
 
-  const ALT_OPTIONS = [
-    { name: 'Trousers Hemming', price: 12.00 },
-    { name: 'Zip Replacement (Jacket/Jeans)', price: 18.00 },
-    { name: 'Waist Take-in / Let-out', price: 16.00 },
-    { name: 'Dress Shortening / Hemming', price: 25.00 },
-    { name: 'Sleeve Shortening (Jacket/Coat)', price: 22.00 },
-    { name: 'Curtain Hemming (per metre)', price: 15.00 },
-    { name: 'Patch / Mending', price: 8.00 }
-  ];
+  // Specific alteration options mapped per garment type
+  const GARMENT_ALTERATIONS = {
+    'Trousers / Jeans': [
+      { name: 'Standard Hemming', price: 12.00 },
+      { name: 'Original Hemming (Keep Fade)', price: 15.00 },
+      { name: 'Waist Take-in / Let-out', price: 16.00 },
+      { name: 'Zip Replacement', price: 18.00 },
+      { name: 'Taper Legs', price: 18.00 },
+      { name: 'Patch / Mending', price: 8.00 }
+    ],
+    'Suit Jacket / Blazer': [
+      { name: 'Sleeve Shortening (Plain)', price: 22.00 },
+      { name: 'Sleeve Shortening (Working Cuffs)', price: 35.00 },
+      { name: 'Take in Side Seams', price: 28.00 },
+      { name: 'Shorten Length from Bottom', price: 30.00 },
+      { name: 'Replace Lining', price: 65.00 }
+    ],
+    'Dress / Formal Wear': [
+      { name: 'Hem Shortening (Single Layer)', price: 25.00 },
+      { name: 'Hem Shortening (Multi-Layer / Pleated)', price: 40.00 },
+      { name: 'Take in Side Seams', price: 25.00 },
+      { name: 'Strap Adjustment', price: 15.00 },
+      { name: 'Zip Replacement', price: 22.00 }
+    ],
+    'Skirt': [
+      { name: 'Hem Shortening', price: 18.00 },
+      { name: 'Waist Take-in / Let-out', price: 16.00 },
+      { name: 'Zip Replacement', price: 18.00 }
+    ],
+    'Shirt / Blouse': [
+      { name: 'Sleeve Shortening', price: 18.00 },
+      { name: 'Take in Side Seams (Slim fit)', price: 16.00 },
+      { name: 'Shorten Shirt Length', price: 15.00 }
+    ],
+    'Coat / Jacket': [
+      { name: 'Sleeve Shortening', price: 25.00 },
+      { name: 'Zip Replacement (Heavy Duty)', price: 28.00 },
+      { name: 'Replace Buttons / Snap', price: 10.00 },
+      { name: 'Patch / Mending', price: 12.00 }
+    ],
+    'Curtains / Home Textiles': [
+      { name: 'Hemming per metre', price: 15.00 },
+      { name: 'Alter Width per metre', price: 18.00 },
+      { name: 'Re-taping Header', price: 22.00 }
+    ]
+  };
+
+  const currentGarmentOptions = GARMENT_ALTERATIONS[garmentType] || [];
+
+  const handleGarmentChange = (newGarment) => {
+    setGarmentType(newGarment);
+    setSelectedAlterations([]);
+    setAlterationPrice('');
+  };
 
   const toggleAlteration = (alt) => {
     if (selectedAlterations.includes(alt.name)) {
@@ -470,7 +515,7 @@ export default function App() {
                         <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Garment Type</label>
                         <select 
                           value={garmentType} 
-                          onChange={(e) => setGarmentType(e.target.value)}
+                          onChange={(e) => handleGarmentChange(e.target.value)}
                           className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                         >
                           <option>Trousers / Jeans</option>
@@ -484,9 +529,11 @@ export default function App() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-3">Quick Select Presets:</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-3">
+                          Fix Options for {garmentType}:
+                        </label>
                         <div className="flex flex-wrap gap-2.5">
-                          {ALT_OPTIONS.map((alt) => {
+                          {currentGarmentOptions.map((alt) => {
                             const isSelected = selectedAlterations.includes(alt.name);
                             return (
                               <button
