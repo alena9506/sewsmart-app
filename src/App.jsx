@@ -18,8 +18,6 @@ import {
   Printer, 
   BarChart3, 
   Clock, 
-  Smartphone, 
-  Calendar,
   Euro,
   User,
   Trash2,
@@ -245,45 +243,36 @@ export default function App() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Customer Name</label>
-                      <div className="flex items-center bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 focus-within:border-teal-500 shadow-inner">
-                        <User className="w-4 h-4 text-slate-400 mr-3 shrink-0" />
-                        <input 
-                          type="text" 
-                          value={customerName}
-                          onChange={(e) => setCustomerName(e.target.value)}
-                          placeholder="e.g. Siobhán O'Connor"
-                          className="w-full bg-transparent focus:outline-none text-sm text-white placeholder-slate-500"
-                        />
-                      </div>
+                      <input 
+                        type="text" 
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="e.g. Siobhán O'Connor"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 text-white placeholder-slate-500 shadow-inner"
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Phone Number *</label>
-                      <div className="flex items-center bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 focus-within:border-teal-500 shadow-inner">
-                        <Smartphone className="w-4 h-4 text-slate-400 mr-3 shrink-0" />
-                        <input 
-                          type="tel" 
-                          required
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="e.g. 087 123 4567"
-                          className="w-full bg-transparent focus:outline-none text-sm text-white placeholder-slate-500"
-                        />
-                      </div>
+                      <input 
+                        type="tel" 
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="e.g. 087 123 4567"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 text-white placeholder-slate-500 shadow-inner"
+                      />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Target Ready Date</label>
-                      <div className="flex items-center bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 focus-within:border-teal-500 shadow-inner">
-                        <Calendar className="w-4 h-4 text-slate-400 mr-3 shrink-0" />
-                        <input 
-                          type="date" 
-                          value={dueDate}
-                          onChange={(e) => setDueDate(e.target.value)}
-                          className="w-full bg-transparent focus:outline-none text-sm text-white"
-                        />
-                      </div>
+                      <input 
+                        type="date" 
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 text-white shadow-inner"
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Upfront Payment Method</label>
@@ -390,18 +379,15 @@ export default function App() {
                   <div className="pt-6 border-t border-slate-700/80 flex flex-col md:flex-row gap-6 items-center justify-between">
                     <div className="w-full md:w-1/2">
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Total Price (€) *</label>
-                      <div className="flex items-center bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 focus-within:border-teal-500 shadow-inner">
-                        <Euro className="w-5 h-5 text-teal-400 mr-3 shrink-0" />
-                        <input 
-                          type="number" 
-                          step="0.50"
-                          required
-                          value={serviceType === 'alteration' ? alterationPrice : laundryPrice}
-                          onChange={(e) => serviceType === 'alteration' ? setAlterationPrice(e.target.value) : setLaundryPrice(e.target.value)}
-                          placeholder="0.00"
-                          className="w-full bg-transparent focus:outline-none text-lg font-extrabold text-teal-400 placeholder-slate-500"
-                        />
-                      </div>
+                      <input 
+                        type="number" 
+                        step="0.50"
+                        required
+                        value={serviceType === 'alteration' ? alterationPrice : laundryPrice}
+                        onChange={(e) => serviceType === 'alteration' ? setAlterationPrice(e.target.value) : setLaundryPrice(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-lg font-extrabold text-teal-400 focus:outline-none focus:border-teal-500 placeholder-slate-500 shadow-inner"
+                      />
                     </div>
 
                     <div className="w-full md:w-1/2 self-end">
