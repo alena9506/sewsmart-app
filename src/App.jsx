@@ -270,8 +270,8 @@ export default function App() {
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6 font-sans">
         <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6">
           <div className="text-center space-y-3">
-            <div className="w-16 h-16 bg-slate-950 rounded-2xl mx-auto flex items-center justify-center overflow-hidden border border-slate-700 shadow-lg">
-              <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-cover" />
+            <div className="w-16 h-16 bg-white rounded-2xl mx-auto flex items-center justify-center overflow-hidden border border-slate-700 shadow-lg p-1.5">
+              <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">ALiCo</h1>
             <p className="text-xs text-slate-400">Sign in to your counter POS terminal</p>
@@ -322,8 +322,8 @@ export default function App() {
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg}`}>
       <header className={`border-b px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-md ${t.headerBg}`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-700 shadow-md flex items-center justify-center bg-slate-950">
-            <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-cover" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-700 shadow-md flex items-center justify-center bg-white p-1">
+            <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">
