@@ -1,15 +1,20 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
+// Your Firebase configuration (replace with your actual Firebase config keys if needed)
 const firebaseConfig = {
-  apiKey: "AIzaSyArx4wmy_JEN39HnKpd2YMOwsJoUu0U-CA",
-  authDomain: "sewsmart-pos.firebaseapp.com",
-  projectId: "sewsmart-pos",
-  storageBucket: "sewsmart-pos.appspot.com",
-  messagingSenderId: "796043143292",
-  appId: "1:796043143292:web:193bb80129d3f7855141f9",
-  measurementId: "G-Y9BS8RL6ZE"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Initialize and export services
 export const db = getFirestore(app);
+export const auth = getAuth(app);
