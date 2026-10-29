@@ -30,6 +30,7 @@ import {
   Palette,
   LogOut
 } from 'lucide-react';
+import logoImg from './logo.png';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -66,7 +67,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
-  const [nextTagId, setNextTagId] = useState('ALT-' + Math.floor(7000 + Math.random() * 900));
+  const [nextTagId, setNextTagId] = useState('ALICOW-' + Math.floor(7000 + Math.random() * 900));
 
   const isAdmin = user && user.email === 'alena9506@gmail.com';
 
@@ -144,40 +145,6 @@ export default function App() {
       tabActive: 'bg-teal-600 text-white shadow-md shadow-teal-600/20',
       serviceActive: 'bg-teal-600 text-white shadow-md font-extrabold',
       iconBox: 'bg-teal-600 text-white shadow-teal-600/20'
-    },
-    'indigo-dark': {
-      isLight: false,
-      appBg: 'bg-slate-900 text-slate-100',
-      headerBg: 'bg-slate-900 border-slate-800 text-white',
-      cardBg: 'bg-slate-800/80 border-slate-700/80 text-slate-100',
-      innerInputBg: 'bg-slate-900 border-slate-700 text-white placeholder-slate-500',
-      navToggleBg: 'bg-slate-800/80 border-slate-700/60 text-slate-300',
-      subCardBg: 'bg-slate-800/40 text-slate-200',
-      primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
-      primaryBadge: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300',
-      textAccent: 'text-indigo-400',
-      borderFocus: 'focus:border-indigo-500',
-      buttonSelected: 'bg-indigo-500/20 border-indigo-500 text-indigo-300 shadow-md',
-      tabActive: 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20',
-      serviceActive: 'bg-indigo-600 text-white shadow-md font-extrabold',
-      iconBox: 'bg-indigo-600 text-white shadow-indigo-500/20'
-    },
-    'indigo-light': {
-      isLight: true,
-      appBg: 'bg-slate-100 text-slate-900',
-      headerBg: 'bg-white border-slate-200 text-slate-900 shadow-sm',
-      cardBg: 'bg-white border-slate-200 text-slate-900 shadow-xl',
-      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 font-medium',
-      navToggleBg: 'bg-slate-200 border-slate-300 text-slate-800',
-      subCardBg: 'bg-slate-100 text-slate-800',
-      primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
-      primaryBadge: 'bg-indigo-100 border-indigo-300 text-indigo-800',
-      textAccent: 'text-indigo-700',
-      borderFocus: 'focus:border-indigo-600',
-      buttonSelected: 'bg-indigo-100 border-indigo-500 text-indigo-900 shadow-sm font-bold',
-      tabActive: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20',
-      serviceActive: 'bg-indigo-600 text-white shadow-md font-extrabold',
-      iconBox: 'bg-indigo-600 text-white shadow-teal-600/20'
     }
   };
 
@@ -240,7 +207,7 @@ export default function App() {
     try {
       await addDoc(collection(db, 'orders'), newOrder);
       setSelectedOrderForPrint(newOrder);
-      setNextTagId('ALT-' + Math.floor(7000 + Math.random() * 900));
+      setNextTagId('ALICOW-' + Math.floor(7000 + Math.random() * 900));
 
       setCustomerName('');
       setPhone('');
@@ -289,13 +256,11 @@ export default function App() {
   const todaysOrders = orders.filter(o => o.createdAt.startsWith(todayStr));
   const todaysRevenue = todaysOrders.reduce((acc, o) => acc + o.total, 0);
   const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
-  const pendingCount = orders.filter(o => o.status === 'Pending' || o.status === 'In Progress').length;
-  const readyCount = orders.filter(o => o.status === 'Ready for Pickup').length;
 
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center font-sans">
-        <p className="text-sm font-medium animate-pulse">Loading SewSmart POS...</p>
+        <p className="text-sm font-medium animate-pulse">Loading ALiCo POS...</p>
       </div>
     );
   }
@@ -304,11 +269,11 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6 font-sans">
         <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-12 h-12 bg-teal-500 text-slate-950 rounded-2xl mx-auto flex items-center justify-center font-bold shadow-lg">
-              <Scissors className="w-6 h-6" />
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 bg-slate-950 rounded-2xl mx-auto flex items-center justify-center overflow-hidden border border-slate-700 shadow-lg">
+              <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-cover" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">SewSmart Dublin</h1>
+            <h1 className="text-2xl font-bold tracking-tight">ALiCo</h1>
             <p className="text-xs text-slate-400">Sign in to your counter POS terminal</p>
           </div>
 
@@ -357,12 +322,12 @@ export default function App() {
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg}`}>
       <header className={`border-b px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-md ${t.headerBg}`}>
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-xl font-bold shadow-lg ${t.iconBox}`}>
-            <Scissors className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-700 shadow-md flex items-center justify-center bg-slate-950">
+            <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight">SewSmart</h1>
+              <h1 className="text-xl font-bold tracking-tight">ALiCo</h1>
               <span className={`font-semibold text-sm px-2 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
               <span className="text-[10px] opacity-70 ml-2 font-mono">({user.email} - {isAdmin ? 'Admin' : 'Employee'})</span>
             </div>
@@ -616,7 +581,7 @@ export default function App() {
                   {selectedOrderForPrint ? (
                     <div className="bg-white text-slate-900 p-5 rounded-2xl font-mono text-xs shadow-inner space-y-3">
                       <div className="text-center border-b border-dashed pb-3">
-                        <p className="font-extrabold text-sm tracking-wide">SEWSMART DUBLIN</p>
+                        <p className="font-extrabold text-sm tracking-wide">ALiCo DUBLIN</p>
                         <p className="text-[10px] text-slate-600">Artaine Castle Shopping Centre</p>
                         <p className={`text-xs font-bold mt-1.5 px-2 py-0.5 bg-slate-100 inline-block rounded ${t.textAccent}`}>
                           {selectedOrderForPrint.id}
@@ -671,25 +636,23 @@ export default function App() {
 
         {activeTab === 'orders' && (
           <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
-            <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
-              <h2 className="text-base font-bold flex items-center gap-2">
-                <Clock className={`w-5 h-5 ${t.textAccent}`} /> Shop Orders & Tracking
-              </h2>
-              <div className="flex flex-wrap gap-3 w-full md:w-auto">
-                <div className="relative flex-1 md:w-64">
-                  <Search className="absolute left-3.5 top-3.5 w-4 h-4 opacity-50" />
+            <div className="flex flex-wrap justify-between items-center gap-4">
+              <h2 className="text-lg font-bold">Active Orders & Ticket History</h2>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-3.5 opacity-50" />
                   <input 
                     type="text"
+                    placeholder="Search name, phone, tag..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search phone, name, tag..."
-                    className={`w-full border rounded-2xl pl-10 pr-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    className={`pl-9 pr-4 py-2.5 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                   />
                 </div>
-                <select 
+                <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className={`border rounded-2xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                  className={`px-4 py-2.5 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                 >
                   <option value="All">All Statuses</option>
                   <option value="Pending">Pending</option>
@@ -700,42 +663,39 @@ export default function App() {
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-opacity-30">
-              <table className="w-full text-left text-xs">
-                <thead className={`border-b opacity-90 font-bold ${t.subCardBg}`}>
-                  <tr>
-                    <th className="p-4">Tag ID</th>
-                    <th className="p-4">Customer</th>
-                    <th className="p-4">Service</th>
-                    <th className="p-4">Due Date</th>
-                    <th className="p-4">Total</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 text-right">Actions</th>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className={`border-b text-xs uppercase opacity-70 ${t.isLight ? 'border-slate-200' : 'border-slate-700'}`}>
+                    <th className="py-3 px-4">Tag ID</th>
+                    <th className="py-3 px-4">Customer</th>
+                    <th className="py-3 px-4">Phone</th>
+                    <th className="py-3 px-4">Service</th>
+                    <th className="py-3 px-4">Ready Date</th>
+                    <th className="py-3 px-4">Total</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-opacity-20">
+                <tbody className="divide-y divide-slate-700/30 text-xs">
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="text-center py-12 opacity-70">No orders found.</td>
+                      <td colSpan="8" className="text-center py-12 opacity-60">No orders found matching your search.</td>
                     </tr>
                   ) : (
-                    filteredOrders.map(order => (
-                      <tr key={order.docId} className="hover:opacity-100 transition-opacity">
-                        <td className={`p-4 font-mono font-bold ${t.textAccent}`}>{order.id}</td>
-                        <td className="p-4">
-                          <div className="font-semibold">{order.customerName}</div>
-                          <div className="opacity-75 text-[11px]">{order.phone}</div>
-                        </td>
-                        <td className="p-4 capitalize">
-                          <span className={`px-2.5 py-1 rounded-lg border border-opacity-30 font-medium ${t.subCardBg}`}>{order.serviceType}</span>
-                        </td>
-                        <td className="p-4 opacity-90">{order.dueDate}</td>
-                        <td className={`p-4 font-bold ${t.textAccent}`}>€{order.total.toFixed(2)}</td>
-                        <td className="p-4">
-                          <select 
-                            value={order.status}
-                            onChange={(e) => updateStatus(order.docId, e.target.value)}
-                            className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    filteredOrders.map(o => (
+                      <tr key={o.docId} className="hover:bg-slate-500/5 transition-colors">
+                        <td className={`py-4 px-4 font-mono font-bold ${t.textAccent}`}>{o.id}</td>
+                        <td className="py-4 px-4 font-semibold">{o.customerName}</td>
+                        <td className="py-4 px-4 font-mono">{o.phone}</td>
+                        <td className="py-4 px-4 uppercase font-medium">{o.serviceType}</td>
+                        <td className="py-4 px-4">{o.dueDate}</td>
+                        <td className="py-4 px-4 font-bold">€{o.total.toFixed(2)}</td>
+                        <td className="py-4 px-4">
+                          <select
+                            value={o.status}
+                            onChange={(e) => updateStatus(o.docId, e.target.value)}
+                            className={`px-3 py-1 rounded-lg text-xs font-semibold border ${t.innerInputBg}`}
                           >
                             <option value="Pending">Pending</option>
                             <option value="In Progress">In Progress</option>
@@ -743,21 +703,19 @@ export default function App() {
                             <option value="Completed">Completed</option>
                           </select>
                         </td>
-                        <td className="p-4 text-right space-x-2">
-                          <button 
-                            onClick={() => setSelectedOrderForPrint(order)}
-                            className={`p-1.5 rounded-lg border border-opacity-30 ${t.textAccent} ${t.subCardBg}`}
-                            title="Preview Print"
+                        <td className="py-4 px-4 text-right space-x-2">
+                          <button
+                            onClick={() => setSelectedOrderForPrint(o)}
+                            className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium"
                           >
-                            <Printer className="w-4 h-4 inline" />
+                            Print
                           </button>
                           {isAdmin && (
-                            <button 
-                              onClick={() => deleteOrder(order.docId)}
-                              className="text-rose-500 hover:text-rose-400 p-1.5 rounded-lg border border-opacity-30"
-                              title="Delete (Admin Only)"
+                            <button
+                              onClick={() => deleteOrder(o.docId)}
+                              className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg font-medium"
                             >
-                              <Trash2 className="w-4 h-4 inline" />
+                              Delete
                             </button>
                           )}
                         </td>
@@ -772,82 +730,48 @@ export default function App() {
 
         {activeTab === 'analytics' && isAdmin && (
           <div className="space-y-6">
-            <h2 className="text-base font-bold flex items-center gap-2">
-              <BarChart3 className={`w-5 h-5 ${t.textAccent}`} /> Executive Summary & Reports (Admin Only)
-            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
-                <p className="text-xs opacity-80 font-semibold uppercase tracking-wider">Today's Sales Revenue</p>
-                <p className={`text-3xl font-extrabold mt-2 ${t.textAccent}`}>€{todaysRevenue.toFixed(2)}</p>
-                <p className="text-[11px] opacity-60 mt-1">{todaysOrders.length} tickets taken today</p>
+              <div className={`p-6 rounded-3xl border shadow-xl ${t.cardBg}`}>
+                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">Today's Revenue</p>
+                <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{todaysRevenue.toFixed(2)}</h3>
+                <p className="text-xs opacity-60 mt-2">{todaysOrders.length} tickets created today</p>
               </div>
-              <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
-                <p className="text-xs opacity-80 font-semibold uppercase tracking-wider">Total Collected Revenue (Lifetime)</p>
-                <p className={`text-3xl font-extrabold mt-2 ${t.textAccent}`}>€{totalRevenue.toFixed(2)}</p>
+              <div className={`p-6 rounded-3xl border shadow-xl ${t.cardBg}`}>
+                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">Total Revenue (All Time)</p>
+                <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{totalRevenue.toFixed(2)}</h3>
+                <p className="text-xs opacity-60 mt-2">{orders.length} total orders recorded</p>
               </div>
-              <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
-                <p className="text-xs opacity-80 font-semibold uppercase tracking-wider">Active Orders Status</p>
-                <p className="text-3xl font-extrabold text-amber-500 mt-2">{pendingCount} Pending</p>
-                <p className="text-[11px] opacity-60 mt-1">{readyCount} ready for customer pickup</p>
+              <div className={`p-6 rounded-3xl border shadow-xl ${t.cardBg}`}>
+                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">Pending / Active Work</p>
+                <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>{orders.filter(o => o.status !== 'Completed').length}</h3>
+                <p className="text-xs opacity-60 mt-2">Orders currently in progress or ready</p>
               </div>
             </div>
           </div>
         )}
 
         {activeTab === 'settings' && (
-          <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 max-w-2xl mx-auto ${t.cardBg}`}>
-            <h2 className="text-base font-bold flex items-center gap-2">
-              <Palette className={`w-5 h-5 ${t.textAccent}`} /> Theme & Display Settings
+          <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 max-w-xl mx-auto w-full ${t.cardBg}`}>
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <Palette className={`w-5 h-5 ${t.textAccent}`} /> Appearance & Theme Settings
             </h2>
-            <p className="text-xs opacity-80 font-medium">Choose between crisp light and dark daytime/nighttime modes for your store counter display.</p>
+            <p className="text-xs opacity-75">Choose your preferred counter display theme for day or night shifts:</p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+            <div className="grid grid-cols-2 gap-4 pt-2">
               <button
-                type="button"
                 onClick={() => setThemeMode('teal-dark')}
-                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'teal-dark' ? 'bg-teal-500/20 border-teal-500 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-35'}`}
+                className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-dark' ? 'border-teal-500 bg-teal-500/10 shadow-md' : 'border-slate-700 bg-slate-900'}`}
               >
-                <div className="w-8 h-8 rounded-full bg-teal-500 shadow-md shrink-0"></div>
-                <div className="text-left">
-                  <p className="text-xs font-bold">Teal Dark Mode</p>
-                  <p className="text-[10px] opacity-70">Classic Dublin storefront dark theme</p>
-                </div>
+                <div className="w-6 h-6 rounded-full bg-teal-500"></div>
+                <p className="text-xs font-bold text-white">Teal Dark (Default)</p>
               </button>
 
               <button
-                type="button"
                 onClick={() => setThemeMode('teal-light')}
-                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'teal-light' ? 'bg-teal-100 border-teal-500 text-slate-900 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-35'}`}
+                className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-light' ? 'border-teal-600 bg-teal-100 text-slate-900 shadow-md' : 'border-slate-300 bg-white text-slate-900'}`}
               >
-                <div className="w-8 h-8 rounded-full bg-teal-600 shadow-md shrink-0"></div>
-                <div className="text-left">
-                  <p className="text-xs font-bold">Teal Light Mode</p>
-                  <p className="text-[10px] opacity-70">Bright and crisp daytime look</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setThemeMode('indigo-dark')}
-                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'indigo-dark' ? 'bg-indigo-500/20 border-indigo-500 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-35'}`}
-              >
-                <div className="w-8 h-8 rounded-full bg-indigo-600 shadow-md shrink-0"></div>
-                <div className="text-left">
-                  <p className="text-xs font-bold">Indigo Dark Mode</p>
-                  <p className="text-[10px] opacity-70">Sleek midnight blue style</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setThemeMode('indigo-light')}
-                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'indigo-light' ? 'bg-indigo-100 border-indigo-500 text-slate-900 shadow-lg font-bold' : 'opacity-80 hover:opacity-100 border-opacity-35'}`}
-              >
-                <div className="w-8 h-8 rounded-full bg-indigo-600 shadow-md shrink-0"></div>
-                <div className="text-left">
-                  <p className="text-xs font-bold">Indigo Light Mode</p>
-                  <p className="text-[10px] opacity-70">Clean professional light theme</p>
-                </div>
+                <div className="w-6 h-6 rounded-full bg-teal-600"></div>
+                <p className="text-xs font-bold">Teal Light (Day Mode)</p>
               </button>
             </div>
           </div>
