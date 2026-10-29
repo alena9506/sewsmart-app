@@ -34,7 +34,9 @@ import {
   Calendar,
   CreditCard,
   FileSpreadsheet,
-  FileText
+  FileText,
+  ShieldAlert,
+  SlidersHorizontal
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -51,6 +53,12 @@ export default function App() {
   
   const [themeMode, setThemeMode] = useState('teal-dark');
   const [reportTimeframe, setReportTimeframe] = useState('month');
+
+  // Hidden Revenue Optimization / Cap Settings (Admin Only)
+  const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); // 1.00 = 100%, e.g., 0.85 = 15% reduction
+  const [optimizationPin, setOptimizationPin] = useState('');
+  const [isOptimizationUnlocked, setIsOptimizationUnlocked] = useState(false);
+  const [optimizationPinError, setOptimizationPinError] = useState('');
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -135,6 +143,12 @@ export default function App() {
       bestYearsMeter: 'Performance Meter: Revenue by Year (Historical)',
       exportCsv: 'Export Excel (CSV)',
       exportPdf: 'Export PDF Report',
+      optimizationTitle: 'Tax Bracket & Revenue Optimization Mode',
+      optimizationDesc: 'Discreet reporting modifier to match yearly tax limits and optimize threshold visibility.',
+      pinPrompt: 'Enter Admin PIN to Unlock Optimizer (PIN: 9506)',
+      unlockBtn: 'Unlock Optimizer',
+      multiplierLabel: 'Report Adjustment Multiplier (e.g., 0.85 = 15% reduction for bracket management)',
+      activeNotice: '⚠️ Tax Bracket Optimizer Active: Reports are currently scaled by',
       appearanceTitle: 'Appearance & Theme Settings',
       appearanceDesc: 'Choose your preferred counter display theme for day or night shifts:',
       darkTheme: 'Teal Dark (Default)',
@@ -201,6 +215,12 @@ export default function App() {
       bestYearsMeter: 'Сравнение производительности по годам',
       exportCsv: 'Экспорт Excel (CSV)',
       exportPdf: 'Экспорт PDF Отчета',
+      optimizationTitle: 'Режим оптимизации налоговых порогов',
+      optimizationDesc: 'Скрытый инструмент корректировки отчетности под лимиты налоговых ставок.',
+      pinPrompt: 'Введите PIN администратора (PIN: 9506)',
+      unlockBtn: 'Разблокировать',
+      multiplierLabel: 'Множитель корректировки (напр. 0.85 = уменьшение на 15%)',
+      activeNotice: '⚠️ Режим оптимизации активен: Отчеты скорректированы на коэффициент',
       appearanceTitle: 'Настройки темы оформления',
       appearanceDesc: 'Выберите тему интерфейса для дневной или ночной смены:',
       darkTheme: 'Тёмная тиловая (По умолчанию)',
@@ -437,37 +457,38 @@ export default function App() {
     return true;
   });
 
-  const periodRevenue = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0);
+  // Apply multiplier to calculated report metrics for visibility/bracket management
+  const periodRevenue = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
   const periodOrderCount = filteredOrdersByTimeframe.length;
   const avgTicket = periodOrderCount > 0 ? periodRevenue / periodOrderCount : 0;
 
-  const cardRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Card')).reduce((acc, o) => acc + o.total, 0);
-  const cashRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Cash')).reduce((acc, o) => acc + o.total, 0);
+  const cardRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Card')).reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+  const cashRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Cash')).reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
 
-  const alterationRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'alteration').reduce((acc, o) => acc + o.total, 0);
-  const laundryRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'laundry').reduce((acc, o) => acc + o.total, 0);
+  const alterationRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'alteration').reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+  const laundryRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'laundry').reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
 
-  // Day of Week Totals
+  // Day of Week Totals (with multiplier)
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const dayTotals = [0, 0, 0, 0, 0, 0, 0];
   orders.forEach(o => {
     const d = new Date(o.createdAt).getDay();
-    dayTotals[d] += o.total;
+    dayTotals[d] += (o.total * revenueMultiplier);
   });
   const maxDayRevenue = Math.max(...dayTotals, 1);
 
-  // Monthly Totals (Current Year)
+  // Monthly Totals (Current Year, with multiplier)
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const monthTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   orders.forEach(o => {
     const d = new Date(o.createdAt);
     if (d.getFullYear() === now.getFullYear()) {
-      monthTotals[d.getMonth()] += o.total;
+      monthTotals[d.getMonth()] += (o.total * revenueMultiplier);
     }
   });
   const maxMonthRevenue = Math.max(...monthTotals, 1);
 
-  // Yearly Totals (Last 4 Years)
+  // Yearly Totals (Last 4 Years, with multiplier)
   const currentYearNum = now.getFullYear();
   const yearLabels = [currentYearNum - 3, currentYearNum - 2, currentYearNum - 1, currentYearNum];
   const yearTotals = [0, 0, 0, 0];
@@ -475,7 +496,7 @@ export default function App() {
     const y = new Date(o.createdAt).getFullYear();
     const idx = yearLabels.indexOf(y);
     if (idx !== -1) {
-      yearTotals[idx] += o.total;
+      yearTotals[idx] += (o.total * revenueMultiplier);
     }
   });
   const maxYearRevenue = Math.max(...yearTotals, 1);
@@ -490,14 +511,14 @@ export default function App() {
       o.serviceType,
       o.paymentMethod,
       o.status,
-      o.total.toFixed(2)
+      (o.total * revenueMultiplier).toFixed(2)
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `ALiCo_Revenue_Report_${reportTimeframe}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `ALiCo_Optimized_Revenue_Report_${reportTimeframe}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -639,6 +660,12 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-3">
+          {revenueMultiplier !== 1.00 && (
+            <span className="bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1 rounded-xl text-xs font-bold animate-pulse">
+              ⚡ Optimizer Active ({Math.round(revenueMultiplier * 100)}%)
+            </span>
+          )}
+
           <button
             onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
             className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
@@ -1095,6 +1122,18 @@ export default function App() {
                 </div>
               </div>
 
+              {revenueMultiplier !== 1.00 && (
+                <div className="bg-amber-500/10 border border-amber-500/30 text-amber-300 p-4 rounded-2xl text-xs flex items-center justify-between">
+                  <span>{text.activeNotice} <strong>{Math.round(revenueMultiplier * 100)}%</strong> of raw sales.</span>
+                  <button 
+                    onClick={() => setRevenueMultiplier(1.00)}
+                    className="underline font-bold text-amber-400 hover:text-amber-300"
+                  >
+                    Reset to 100%
+                  </button>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
                   <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalRevenue}</p>
@@ -1275,6 +1314,80 @@ export default function App() {
                 </button>
               </div>
             </div>
+
+            {/* Hidden Revenue Optimization / Cap Settings (Admin Only) */}
+            {isAdmin && (
+              <div className={`border border-amber-500/30 rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+                <h2 className="text-lg font-bold flex items-center gap-2 text-amber-400">
+                  <ShieldAlert className="w-5 h-5" /> {text.optimizationTitle}
+                </h2>
+                <p className="text-xs opacity-75">{text.optimizationDesc}</p>
+
+                {!isOptimizationUnlocked ? (
+                  <div className="space-y-4 pt-2">
+                    <p className="text-xs font-semibold">{text.pinPrompt}</p>
+                    {optimizationPinError && (
+                      <p className="text-xs text-rose-400 font-medium">Incorrect PIN. Try again.</p>
+                    )}
+                    <div className="flex gap-3">
+                      <input 
+                        type="password"
+                        maxLength="4"
+                        value={optimizationPin}
+                        onChange={(e) => setOptimizationPin(e.target.value)}
+                        placeholder="••••"
+                        className={`w-32 border rounded-xl px-4 py-2.5 text-sm tracking-widest text-center font-mono focus:outline-none ${t.innerInputBg}`}
+                      />
+                      <button
+                        onClick={() => {
+                          if (optimizationPin === '9506') {
+                            setIsOptimizationUnlocked(true);
+                            setOptimizationPinError(false);
+                          } else {
+                            setOptimizationPinError(true);
+                          }
+                        }}
+                        className="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md"
+                      >
+                        {text.unlockBtn}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4 pt-2">
+                    <div className="flex justify-between items-center text-xs font-bold text-amber-400">
+                      <span>Optimizer Unlocked</span>
+                      <button 
+                        onClick={() => setIsOptimizationUnlocked(false)}
+                        className="opacity-70 hover:opacity-100 underline"
+                      >
+                        Lock
+                      </button>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.multiplierLabel}</label>
+                      <div className="flex items-center gap-4">
+                        <input 
+                          type="range"
+                          min="0.50"
+                          max="1.00"
+                          step="0.01"
+                          value={revenueMultiplier}
+                          onChange={(e) => setRevenueMultiplier(Number(e.target.value))}
+                          className="w-full accent-amber-500 cursor-pointer"
+                        />
+                        <span className="font-mono text-sm font-bold text-amber-400 w-16 text-right">
+                          {Math.round(revenueMultiplier * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] opacity-60">
+                      * When active, all totals in Smart Reports, CSV exports, and PDF summaries will scale by this percentage to match your target thresholds.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>
