@@ -103,6 +103,7 @@ export default function App() {
       newTicket: 'New Ticket',
       orders: 'Orders',
       reports: 'Reports',
+      bookkeeping: 'Bookkeeping',
       settings: 'Settings',
       alterationTicket: 'Alteration Ticket',
       laundryTicket: 'Laundry Ticket',
@@ -137,8 +138,8 @@ export default function App() {
       actions: 'Actions',
       print: 'Print',
       delete: 'Delete',
-      analyticsTitle: 'Smart Business Analytics & Bookkeeping',
-      analyticsDesc: 'Performance metrics, independent expense tracking, and net profit summaries.',
+      analyticsTitle: 'Smart Business Analytics & Reports',
+      analyticsDesc: 'Performance metrics, financial summaries, and comparative period trackers.',
       timeframeDay: 'Today',
       timeframeWeek: 'This Week',
       timeframeMonth: 'This Month',
@@ -183,6 +184,7 @@ export default function App() {
       newTicket: 'Новый заказ',
       orders: 'Заказы',
       reports: 'Отчеты',
+      bookkeeping: 'Бухгалтерия',
       settings: 'Настройки',
       alterationTicket: 'Ателье (Ремонт одежды)',
       laundryTicket: 'Прачечная',
@@ -217,8 +219,8 @@ export default function App() {
       actions: 'Действия',
       print: 'Печать',
       delete: 'Удалить',
-      analyticsTitle: 'Аналитика и Бухгалтерия',
-      analyticsDesc: 'Показатели производительности, учет независимых расходов и чистая прибыль.',
+      analyticsTitle: 'Аналитика и Отчеты',
+      analyticsDesc: 'Показатели производительности и сравнительные отчеты.',
       timeframeDay: 'Сегодня',
       timeframeWeek: 'Эта неделя',
       timeframeMonth: 'Этот месяц',
@@ -786,12 +788,20 @@ export default function App() {
             </button>
             
             {isAdmin && (
-              <button 
-                onClick={() => setActiveTab('analytics')}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              >
-                <BarChart3 className="w-4 h-4" /> {text.reports}
-              </button>
+              <>
+                <button 
+                  onClick={() => setActiveTab('analytics')}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                >
+                  <BarChart3 className="w-4 h-4" /> {text.reports}
+                </button>
+                <button 
+                  onClick={() => setActiveTab('bookkeeping')}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                >
+                  <Wallet className="w-4 h-4" /> {text.bookkeeping}
+                </button>
+              </>
             )}
 
             <button 
@@ -1252,102 +1262,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Bookkeeping & Expense Entry Section inside Reports/Analytics */}
-              <div className={`p-6 rounded-3xl border space-y-4 ${t.subCardBg}`}>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold flex items-center gap-2">
-                    <Wallet className={`w-4 h-4 ${t.textAccent}`} /> {text.bookkeepingTitle}
-                  </h3>
-                  <span className="text-[11px] opacity-70">Independent & unscaled spendings</span>
-                </div>
-                <p className="text-xs opacity-75">{text.bookkeepingDesc}</p>
-
-                <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-5 gap-4 pt-2">
-                  <div className="md:col-span-2">
-                    <input 
-                      type="text"
-                      required
-                      value={expenseDescription}
-                      onChange={(e) => setExpenseDescription(e.target.value)}
-                      placeholder={text.expenseDescPlaceholder}
-                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
-                    />
-                  </div>
-                  <div>
-                    <select
-                      value={expenseCategory}
-                      onChange={(e) => setExpenseCategory(e.target.value)}
-                      className={`w-full border rounded-xl px-3 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
-                    >
-                      <option value="Supplies & Materials">Supplies & Materials</option>
-                      <option value="Rent & Utilities">Rent & Utilities</option>
-                      <option value="Equipment & Maintenance">Equipment & Maintenance</option>
-                      <option value="Payroll & Subcontractors">Payroll & Subcontractors</option>
-                      <option value="Miscellaneous">Miscellaneous</option>
-                    </select>
-                  </div>
-                  <div>
-                    <input 
-                      type="number"
-                      step="0.01"
-                      required
-                      value={expenseAmount}
-                      onChange={(e) => setExpenseAmount(e.target.value)}
-                      placeholder={text.expenseAmountPlaceholder}
-                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
-                    />
-                  </div>
-                  <div>
-                    <button
-                      type="submit"
-                      className={`w-full font-bold py-2.5 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
-                    >
-                      <Plus className="w-4 h-4" /> {text.addExpenseBtn}
-                    </button>
-                  </div>
-                </form>
-
-                {/* Expense History Table */}
-                <div className="pt-4 overflow-x-auto">
-                  <p className="text-xs font-bold mb-2 uppercase tracking-wider opacity-75">{text.expenseHistory}</p>
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-700/50 opacity-70">
-                        <th className="py-2 px-3">Date</th>
-                        <th className="py-2 px-3">Description</th>
-                        <th className="py-2 px-3">Category</th>
-                        <th className="py-2 px-3">Amount</th>
-                        <th className="py-2 px-3 text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700/20">
-                      {filteredExpensesByTimeframe.length === 0 ? (
-                        <tr>
-                          <td colSpan="5" className="text-center py-6 opacity-60">No expenses recorded for this timeframe.</td>
-                        </tr>
-                      ) : (
-                        filteredExpensesByTimeframe.map(ex => (
-                          <tr key={ex.docId} className="hover:bg-slate-500/5 transition-colors">
-                            <td className="py-2.5 px-3 font-mono">{ex.date || ex.createdAt?.split('T')[0]}</td>
-                            <td className="py-2.5 px-3 font-semibold">{ex.description}</td>
-                            <td className="py-2.5 px-3 opacity-80">{ex.category}</td>
-                            <td className="py-2.5 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
-                            <td className="py-2.5 px-3 text-right">
-                              <button
-                                onClick={() => deleteExpense(ex.docId)}
-                                className="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
-                              >
-                                Delete
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
                   <h4 className="text-sm font-bold flex items-center gap-2">
@@ -1458,6 +1372,157 @@ export default function App() {
                     );
                   })}
                 </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'bookkeeping' && isAdmin && (
+          <div className="space-y-6">
+            <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <div className="flex flex-wrap justify-between items-center gap-4">
+                <div>
+                  <h2 className="text-xl font-bold">{text.bookkeepingTitle}</h2>
+                  <p className="text-xs opacity-75">{text.bookkeepingDesc}</p>
+                </div>
+
+                <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
+                  <button
+                    onClick={() => setReportTimeframe('day')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.timeframeDay}
+                  </button>
+                  <button
+                    onClick={() => setReportTimeframe('week')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.timeframeWeek}
+                  </button>
+                  <button
+                    onClick={() => setReportTimeframe('month')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.timeframeMonth}
+                  </button>
+                  <button
+                    onClick={() => setReportTimeframe('year')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.timeframeYear}
+                  </button>
+                </div>
+              </div>
+
+              {/* Add Expense Form */}
+              <form onSubmit={handleAddExpense} className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                  <Wallet className={`w-4 h-4 ${t.textAccent}`} /> Record New Business Spend
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Date</label>
+                    <input 
+                      type="date"
+                      required
+                      value={expenseDate}
+                      onChange={(e) => setExpenseDate(e.target.value)}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Description / Vendor</label>
+                    <input 
+                      type="text"
+                      required
+                      value={expenseDescription}
+                      onChange={(e) => setExpenseDescription(e.target.value)}
+                      placeholder={text.expenseDescPlaceholder}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Category</label>
+                    <select
+                      value={expenseCategory}
+                      onChange={(e) => setExpenseCategory(e.target.value)}
+                      className={`w-full border rounded-xl px-3 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    >
+                      <option value="Supplies & Materials">Supplies & Materials</option>
+                      <option value="Rent & Utilities">Rent & Utilities</option>
+                      <option value="Equipment & Maintenance">Equipment & Maintenance</option>
+                      <option value="Payroll & Subcontractors">Payroll & Subcontractors</option>
+                      <option value="Miscellaneous">Miscellaneous</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 items-end">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.expenseAmountPlaceholder}</label>
+                    <input 
+                      type="number"
+                      step="0.01"
+                      required
+                      value={expenseAmount}
+                      onChange={(e) => setExpenseAmount(e.target.value)}
+                      placeholder="0.00"
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div className="md:col-span-3">
+                    <button
+                      type="submit"
+                      className={`w-full md:w-auto font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
+                    >
+                      <Plus className="w-4 h-4" /> {text.addExpenseBtn}
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              {/* Expense History Table */}
+              <div className="pt-4 overflow-x-auto">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-bold">{text.expenseHistory} ({reportTimeframe.toUpperCase()})</h3>
+                  <span className="font-mono text-sm font-extrabold text-rose-400">Total: €{periodExpenses.toFixed(2)}</span>
+                </div>
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-700/50 opacity-70">
+                      <th className="py-3 px-3">Date</th>
+                      <th className="py-3 px-3">Description</th>
+                      <th className="py-3 px-3">Category</th>
+                      <th className="py-3 px-3">Amount</th>
+                      <th className="py-3 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/20">
+                    {filteredExpensesByTimeframe.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="text-center py-10 opacity-60">No expenses recorded for this timeframe.</td>
+                      </tr>
+                    ) : (
+                      filteredExpensesByTimeframe.map(ex => (
+                        <tr key={ex.docId} className="hover:bg-slate-500/5 transition-colors">
+                          <td className="py-3 px-3 font-mono">{ex.date || ex.createdAt?.split('T')[0]}</td>
+                          <td className="py-3 px-3 font-semibold">{ex.description}</td>
+                          <td className="py-3 px-3 opacity-80">{ex.category}</td>
+                          <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              onClick={() => deleteExpense(ex.docId)}
+                              className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
 
             </div>
