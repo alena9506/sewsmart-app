@@ -57,6 +57,10 @@ export default function App() {
   const [themeMode, setThemeMode] = useState('teal-dark');
   const [reportTimeframe, setReportTimeframe] = useState('month');
 
+  // Custom Date Range Filters for Bookkeeping
+  const [startDateFilter, setStartDateFilter] = useState('');
+  const [endDateFilter, setEndDateFilter] = useState('');
+
   // Hidden Display Scaling & Metrics Calibration Mode (Admin Only, PIN: 3256)
   const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); 
   const [optimizationPin, setOptimizationPin] = useState('');
@@ -548,36 +552,47 @@ export default function App() {
   };
 
   const now = new Date();
-  const filteredOrdersByTimeframe = orders.filter(o => {
-    const orderDate = new Date(o.createdAt);
+
+  // Helper date checker for timeframe or custom range
+  const matchesTimeframe = (dateString) => {
+    if (!dateString) return false;
+    const itemDate = new Date(dateString);
+    if (isNaN(itemDate.getTime())) return false;
+
+    // If custom date range is provided, use that
+    if (startDateFilter && endDateFilter) {
+      const start = new Date(startDateFilter);
+      const end = new Date(endDateFilter);
+      end.setHours(23, 59, 59, 999);
+      return itemDate >= start && itemDate <= end;
+    }
+
     if (reportTimeframe === 'day') {
-      return orderDate.toDateString() === now.toDateString();
+      return itemDate.toDateString() === now.toDateString();
     } else if (reportTimeframe === 'week') {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(now.getDate() - 7);
-      return orderDate >= oneWeekAgo;
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday start or adjust as needed
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      return itemDate >= startOfWeek && itemDate <= endOfWeek;
     } else if (reportTimeframe === 'month') {
-      return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+      return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
     } else if (reportTimeframe === 'year') {
-      return orderDate.getFullYear() === now.getFullYear();
+      return itemDate.getFullYear() === now.getFullYear();
     }
     return true;
+  };
+
+  const filteredOrdersByTimeframe = orders.filter(o => {
+    const dateStr = o.dueDate || o.createdAt?.split('T')[0];
+    return matchesTimeframe(dateStr);
   });
 
   const filteredExpensesByTimeframe = expenses.filter(ex => {
-    const exDate = new Date(ex.createdAt);
-    if (reportTimeframe === 'day') {
-      return exDate.toDateString() === now.toDateString();
-    } else if (reportTimeframe === 'week') {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(now.getDate() - 7);
-      return exDate >= oneWeekAgo;
-    } else if (reportTimeframe === 'month') {
-      return exDate.getMonth() === now.getMonth() && exDate.getFullYear() === now.getFullYear();
-    } else if (reportTimeframe === 'year') {
-      return exDate.getFullYear() === now.getFullYear();
-    }
-    return true;
+    const dateStr = ex.date || ex.createdAt?.split('T')[0];
+    return matchesTimeframe(dateStr);
   });
 
   // Apply scaling multiplier to revenue metrics only; expenses remain completely unscaled and independent
@@ -1240,26 +1255,26 @@ export default function App() {
                 <div className="flex items-center gap-3">
                   <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
                     <button
-                      onClick={() => setReportTimeframe('day')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      onClick={() => { setReportTimeframe('day'); setStartDateFilter(''); setEndDateFilter(''); }}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeDay}
                     </button>
                     <button
-                      onClick={() => setReportTimeframe('week')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      onClick={() => { setReportTimeframe('week'); setStartDateFilter(''); setEndDateFilter(''); }}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeWeek}
                     </button>
                     <button
-                      onClick={() => setReportTimeframe('month')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      onClick={() => { setReportTimeframe('month'); setStartDateFilter(''); setEndDateFilter(''); }}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeMonth}
                     </button>
                     <button
-                      onClick={() => setReportTimeframe('year')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      onClick={() => { setReportTimeframe('year'); setStartDateFilter(''); setEndDateFilter(''); }}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeYear}
                     </button>
@@ -1443,7 +1458,7 @@ export default function App() {
                   <p className="text-xs opacity-75">{text.bookkeepingDesc}</p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <button
                     onClick={exportExpensesToCSV}
                     className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
@@ -1454,31 +1469,61 @@ export default function App() {
 
                   <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
                     <button
-                      onClick={() => setReportTimeframe('day')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      onClick={() => { setReportTimeframe('day'); setStartDateFilter(''); setEndDateFilter(''); }}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeDay}
                     </button>
                     <button
-                      onClick={() => setReportTimeframe('week')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      onClick={() => { setReportTimeframe('week'); setStartDateFilter(''); setEndDateFilter(''); }}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeWeek}
                     </button>
                     <button
-                      onClick={() => setReportTimeframe('month')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      onClick={() => { setReportTimeframe('month'); setStartDateFilter(''); setEndDateFilter(''); }}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeMonth}
                     </button>
                     <button
-                      onClick={() => setReportTimeframe('year')}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                      onClick={() => { setReportTimeframe('year'); setStartDateFilter(''); setEndDateFilter(''); }}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
                       {text.timeframeYear}
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* Custom Date Range Filter Bar */}
+              <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
+                <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-teal-400" /> Custom Date Range:
+                </span>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="date"
+                    value={startDateFilter}
+                    onChange={(e) => setStartDateFilter(e.target.value)}
+                    className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
+                  />
+                  <span className="text-xs opacity-60">to</span>
+                  <input 
+                    type="date"
+                    value={endDateFilter}
+                    onChange={(e) => setEndDateFilter(e.target.value)}
+                    className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
+                  />
+                </div>
+                {(startDateFilter || endDateFilter) && (
+                  <button
+                    onClick={() => { setStartDateFilter(''); setEndDateFilter(''); }}
+                    className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-auto"
+                  >
+                    Clear Custom Range
+                  </button>
+                )}
               </div>
 
               {/* Financial Profit & Loss Header Cards */}
@@ -1507,7 +1552,7 @@ export default function App() {
 
               {/* Expense Category Breakdown Summary Cards */}
               <div className="pt-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider opacity-80 mb-3">Spending by Category ({reportTimeframe.toUpperCase()})</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider opacity-80 mb-3">Spending by Category ({startDateFilter ? 'Custom Range' : reportTimeframe.toUpperCase()})</h3>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {EXPENSE_CATEGORIES.map(cat => {
                     const catTotal = categoryTotals[cat.key] || 0;
@@ -1591,7 +1636,7 @@ export default function App() {
               {/* Expense History Table */}
               <div className="pt-4 overflow-x-auto">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-bold">{text.expenseHistory} ({reportTimeframe.toUpperCase()})</h3>
+                  <h3 className="text-sm font-bold">{text.expenseHistory} ({startDateFilter ? 'Custom Range' : reportTimeframe.toUpperCase()})</h3>
                   <span className="font-mono text-sm font-extrabold text-rose-400">Total: €{periodExpenses.toFixed(2)}</span>
                 </div>
                 <table className="w-full text-left border-collapse text-xs">
