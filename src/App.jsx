@@ -1529,7 +1529,6 @@ export default function App() {
                       </tr>
                     ) : (
                       filteredExpensesByTimeframe.map(ex => {
-                        // Find translated category label if stored key matches
                         const foundCat = EXPENSE_CATEGORIES.find(c => c.key === ex.category);
                         const displayCat = foundCat ? foundCat.label : ex.category;
                         return (
