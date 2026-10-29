@@ -150,50 +150,59 @@ export default function App() {
 
   const t = themes[themeMode] || themes['teal-dark'];
 
-  // Specific alteration options mapped per garment type
+  // Comprehensive garment-specific alterations including zip runner replacements
   const GARMENT_ALTERATIONS = {
     'Trousers / Jeans': [
       { name: 'Standard Hemming', price: 12.00 },
       { name: 'Original Hemming (Keep Fade)', price: 15.00 },
       { name: 'Waist Take-in / Let-out', price: 16.00 },
-      { name: 'Zip Replacement', price: 18.00 },
+      { name: 'Full Zip Replacement', price: 18.00 },
+      { name: 'Zip Runner / Slider Replacement', price: 8.00 },
       { name: 'Taper Legs', price: 18.00 },
-      { name: 'Patch / Mending', price: 8.00 }
+      { name: 'Patch / Mending', price: 8.00 },
+      { name: 'New Button / Hook & Bar', price: 5.00 }
     ],
     'Suit Jacket / Blazer': [
       { name: 'Sleeve Shortening (Plain)', price: 22.00 },
       { name: 'Sleeve Shortening (Working Cuffs)', price: 35.00 },
       { name: 'Take in Side Seams', price: 28.00 },
       { name: 'Shorten Length from Bottom', price: 30.00 },
-      { name: 'Replace Lining', price: 65.00 }
+      { name: 'Replace Lining', price: 65.00 },
+      { name: 'Shoulder Adjustment', price: 45.00 }
     ],
     'Dress / Formal Wear': [
       { name: 'Hem Shortening (Single Layer)', price: 25.00 },
       { name: 'Hem Shortening (Multi-Layer / Pleated)', price: 40.00 },
       { name: 'Take in Side Seams', price: 25.00 },
       { name: 'Strap Adjustment', price: 15.00 },
-      { name: 'Zip Replacement', price: 22.00 }
+      { name: 'Full Zip Replacement', price: 22.00 },
+      { name: 'Zip Runner / Slider Replacement', price: 10.00 },
+      { name: 'Add Darts for Fit', price: 18.00 }
     ],
     'Skirt': [
       { name: 'Hem Shortening', price: 18.00 },
       { name: 'Waist Take-in / Let-out', price: 16.00 },
-      { name: 'Zip Replacement', price: 18.00 }
+      { name: 'Full Zip Replacement', price: 18.00 },
+      { name: 'Zip Runner / Slider Replacement', price: 8.00 }
     ],
     'Shirt / Blouse': [
       { name: 'Sleeve Shortening', price: 18.00 },
       { name: 'Take in Side Seams (Slim fit)', price: 16.00 },
-      { name: 'Shorten Shirt Length', price: 15.00 }
+      { name: 'Shorten Shirt Length', price: 15.00 },
+      { name: 'Add Back Darts', price: 12.00 }
     ],
     'Coat / Jacket': [
       { name: 'Sleeve Shortening', price: 25.00 },
-      { name: 'Zip Replacement (Heavy Duty)', price: 28.00 },
-      { name: 'Replace Buttons / Snap', price: 10.00 },
-      { name: 'Patch / Mending', price: 12.00 }
+      { name: 'Full Zip Replacement (Heavy Duty)', price: 28.00 },
+      { name: 'Zip Runner / Slider Replacement', price: 12.00 },
+      { name: 'Replace Buttons / Snaps', price: 10.00 },
+      { name: 'Patch / Mending / Tear Repair', price: 15.00 }
     ],
     'Curtains / Home Textiles': [
       { name: 'Hemming per metre', price: 15.00 },
       { name: 'Alter Width per metre', price: 18.00 },
-      { name: 'Re-taping Header', price: 22.00 }
+      { name: 'Re-taping Header', price: 22.00 },
+      { name: 'Cushion Cover Zip Replacement', price: 12.00 }
     ]
   };
 
