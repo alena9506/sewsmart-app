@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { db } from './firebase';
+import { db, auth } from './firebase';
+import { 
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth';
 import { 
   collection, 
   addDoc, 
@@ -23,10 +28,19 @@ import {
   Trash2,
   Check,
   Settings,
-  Palette
+  Palette,
+  LogOut,
+  Lock
 } from 'lucide-react';
 
 export default function App() {
+  // Auth state
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
   const [activeTab, setActiveTab] = useState('intake');
   const [serviceType, setServiceType] = useState('alteration');
   
@@ -57,6 +71,50 @@ export default function App() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
   const [nextTagId, setNextTagId] = useState('ALT-' + Math.floor(7000 + Math.random() * 900));
+
+  // Check if current user is admin
+  const isAdmin = user && user.email === 'alena9506@gmail.com';
+
+  // Listen to Firebase Auth state
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribeAuth();
+  }, []);
+
+  // Fetch orders from Firestore in real-time
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+    const unsubscribeOrders = onSnapshot(q, (snapshot) => {
+      const ordersData = snapshot.docs.map(doc => ({
+        docId: doc.id,
+        ...doc.data()
+      }));
+      setOrders(ordersData);
+    });
+    return () => unsubscribeOrders();
+  }, [user]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    try {
+      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+    } catch (error) {
+      setLoginError('Invalid email or password. Please try again.');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out', error);
+    }
+  };
 
   // Explicit theme styling configuration
   const themes = {
@@ -131,19 +189,6 @@ export default function App() {
   };
 
   const t = themes[themeMode] || themes['teal-dark'];
-
-  // Fetch orders from Firestore in real-time
-  useEffect(() => {
-    const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const ordersData = snapshot.docs.map(doc => ({
-        docId: doc.id,
-        ...doc.data()
-      }));
-      setOrders(ordersData);
-    });
-    return () => unsubscribe();
-  }, []);
 
   const ALT_OPTIONS = [
     { name: 'Trousers Hemming', price: 12.00 },
@@ -228,6 +273,10 @@ export default function App() {
   };
 
   const deleteOrder = async (docId) => {
+    if (!isAdmin) {
+      alert('Permission denied. Only Admin can delete orders.');
+      return;
+    }
     if (confirm('Are you sure you want to delete this order?')) {
       try {
         await deleteDoc(doc(db, 'orders', docId));
@@ -243,9 +292,75 @@ export default function App() {
     return matchesSearch && matchesStatus;
   });
 
+  // Calculate Today's Sales for Employees & Admin
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todaysOrders = orders.filter(o => o.createdAt.startsWith(todayStr));
+  const todaysRevenue = todaysOrders.reduce((acc, o) => acc + o.total, 0);
   const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
   const pendingCount = orders.filter(o => o.status === 'Pending' || o.status === 'In Progress').length;
   const readyCount = orders.filter(o => o.status === 'Ready for Pickup').length;
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center font-sans">
+        <p className="text-sm font-medium animate-pulse">Loading SewSmart POS...</p>
+      </div>
+    );
+  }
+
+  // Login Screen if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6 font-sans">
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-12 h-12 bg-teal-500 text-slate-950 rounded-2xl mx-auto flex items-center justify-center font-bold shadow-lg">
+              <Scissors className="w-6 h-6" />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight">SewSmart Dublin</h1>
+            <p className="text-xs text-slate-400">Sign in to your counter POS terminal</p>
+          </div>
+
+          {loginError && (
+            <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 p-3 rounded-xl text-xs text-center font-medium">
+              {loginError}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Email Address</label>
+              <input 
+                type="email"
+                required
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="e.g. alena9506@gmail.com"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Password</label>
+              <input 
+                type="password"
+                required
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500"
+              />
+            </div>
+            <button 
+              type="submit"
+              className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-teal-500/20"
+            >
+              Sign In to Terminal
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg}`}>
@@ -258,35 +373,51 @@ export default function App() {
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold tracking-tight">SewSmart</h1>
               <span className={`font-semibold text-sm px-2 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
+              <span className="text-[10px] opacity-70 ml-2 font-mono">({user.email} - {isAdmin ? 'Admin' : 'Employee'})</span>
             </div>
             <p className="text-xs opacity-80 font-medium">Alterations & Service Laundry POS (Cloud Sync)</p>
           </div>
         </div>
 
-        <div className={`flex p-1.5 rounded-2xl border shadow-inner ${t.navToggleBg}`}>
+        <div className="flex items-center gap-3">
+          <div className={`flex p-1.5 rounded-2xl border shadow-inner ${t.navToggleBg}`}>
+            <button 
+              onClick={() => setActiveTab('intake')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+            >
+              <PlusCircle className="w-4 h-4" /> New Ticket
+            </button>
+            <button 
+              onClick={() => setActiveTab('orders')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+            >
+              <Clock className="w-4 h-4" /> Orders <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
+            </button>
+            
+            {/* Reports tab only visible to Admin */}
+            {isAdmin && (
+              <button 
+                onClick={() => setActiveTab('analytics')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              >
+                <BarChart3 className="w-4 h-4" /> Reports
+              </button>
+            )}
+
+            <button 
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+            >
+              <Settings className="w-4 h-4" /> Settings
+            </button>
+          </div>
+
           <button 
-            onClick={() => setActiveTab('intake')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+            onClick={handleLogout}
+            className="p-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold flex items-center gap-1.5"
+            title="Sign Out"
           >
-            <PlusCircle className="w-4 h-4" /> New Ticket
-          </button>
-          <button 
-            onClick={() => setActiveTab('orders')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-          >
-            <Clock className="w-4 h-4" /> Orders <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('analytics')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-          >
-            <BarChart3 className="w-4 h-4" /> Reports
-          </button>
-          <button 
-            onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-          >
-            <Settings className="w-4 h-4" /> Settings
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </header>
@@ -630,13 +761,15 @@ export default function App() {
                           >
                             <Printer className="w-4 h-4 inline" />
                           </button>
-                          <button 
-                            onClick={() => deleteOrder(order.docId)}
-                            className="text-rose-500 hover:text-rose-400 p-1.5 rounded-lg border border-opacity-30"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4 inline" />
-                          </button>
+                          {isAdmin && (
+                            <button 
+                              onClick={() => deleteOrder(order.docId)}
+                              className="text-rose-500 hover:text-rose-400 p-1.5 rounded-lg border border-opacity-30"
+                              title="Delete (Admin Only)"
+                            >
+                              <Trash2 className="w-4 h-4 inline" />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -647,23 +780,25 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'analytics' && (
+        {activeTab === 'analytics' && isAdmin && (
           <div className="space-y-6">
             <h2 className="text-base font-bold flex items-center gap-2">
-              <BarChart3 className={`w-5 h-5 ${t.textAccent}`} /> Executive Summary & Reports
+              <BarChart3 className={`w-5 h-5 ${t.textAccent}`} /> Executive Summary & Reports (Admin Only)
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
-                <p className="text-xs opacity-80 font-semibold uppercase tracking-wider">Total Collected Revenue</p>
+                <p className="text-xs opacity-80 font-semibold uppercase tracking-wider">Today's Sales Revenue</p>
+                <p className={`text-3xl font-extrabold mt-2 ${t.textAccent}`}>€{todaysRevenue.toFixed(2)}</p>
+                <p className="text-[11px] opacity-60 mt-1">{todaysOrders.length} tickets taken today</p>
+              </div>
+              <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
+                <p className="text-xs opacity-80 font-semibold uppercase tracking-wider">Total Collected Revenue (Lifetime)</p>
                 <p className={`text-3xl font-extrabold mt-2 ${t.textAccent}`}>€{totalRevenue.toFixed(2)}</p>
               </div>
               <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
-                <p className="text-xs opacity-80 font-semibold uppercase tracking-wider">Pending / In Progress Orders</p>
-                <p className="text-3xl font-extrabold text-amber-500 mt-2">{pendingCount}</p>
-              </div>
-              <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
-                <p className="text-xs opacity-80 font-semibold uppercase tracking-wider">Ready For Pickup</p>
-                <p className="text-3xl font-extrabold text-emerald-500 mt-2">{readyCount}</p>
+                <p className="text-xs opacity-80 font-semibold uppercase tracking-wider">Active Orders Status</p>
+                <p className="text-3xl font-extrabold text-amber-500 mt-2">{pendingCount} Pending</p>
+                <p className="text-[11px] opacity-60 mt-1">{readyCount} ready for customer pickup</p>
               </div>
             </div>
           </div>
