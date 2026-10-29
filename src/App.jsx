@@ -44,7 +44,9 @@ import {
   Minimize,
   Lock,
   Unlock,
-  Mail
+  Mail,
+  X,
+  CheckCircle2
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -65,6 +67,9 @@ export default function App() {
   const [isTerminalLocked, setIsTerminalLocked] = useState(false);
   const [unlockPinInput, setUnlockPinInput] = useState('');
   const [unlockPinError, setUnlockPinError] = useState(false);
+
+  // In-App Toast Notification State (Replaces ugly browser alerts)
+  const [toastMessage, setToastMessage] = useState(null);
 
   // Inactivity Timer Ref (10 Minutes = 600,000 ms)
   const inactivityTimerRef = useRef(null);
@@ -113,6 +118,13 @@ export default function App() {
   const [nextTagId, setNextTagId] = useState(() => Math.floor(7000 + Math.random() * 900).toString());
 
   const isAdmin = user && user.email === 'alena9506@gmail.com';
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 5000);
+  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -519,13 +531,13 @@ export default function App() {
   const handleCreateOrder = async (e) => {
     e.preventDefault();
     if (!phone) {
-      alert('Please enter a customer phone number.');
+      showToast('Please enter a customer phone number.');
       return;
     }
 
     const total = serviceType === 'alteration' ? Number(alterationPrice) : Number(laundryPrice);
     if (!total || total <= 0) {
-      alert('Please specify a valid price.');
+      showToast('Please specify a valid price.');
       return;
     }
 
@@ -574,10 +586,10 @@ export default function App() {
       const successMsg = newOrder.customerEmail 
         ? 'Ticket created, synced to cloud, and digital receipt sent to customer email!' 
         : 'Ticket created and synced to cloud database!';
-      alert(successMsg);
+      showToast(successMsg);
     } catch (error) {
       console.error('Error adding order: ', error);
-      alert('Failed to save order to cloud.');
+      showToast('Failed to save order to cloud.');
     }
   };
 
@@ -585,7 +597,7 @@ export default function App() {
     e.preventDefault();
     const amountNum = Number(expenseAmount);
     if (!amountNum || amountNum <= 0) {
-      alert('Please enter a valid expense amount.');
+      showToast('Please enter a valid expense amount.');
       return;
     }
 
@@ -601,10 +613,10 @@ export default function App() {
       await addDoc(collection(db, 'expenses'), newExpense);
       setExpenseDescription('');
       setExpenseAmount('');
-      alert('Expense recorded successfully!');
+      showToast('Expense recorded successfully!');
     } catch (error) {
       console.error('Error adding expense: ', error);
-      alert('Failed to save expense to cloud.');
+      showToast('Failed to save expense to cloud.');
     }
   };
 
@@ -630,7 +642,7 @@ export default function App() {
 
   const deleteOrder = async (docId) => {
     if (!isAdmin) {
-      alert('Permission denied. Only Admin can delete orders.');
+      showToast('Permission denied. Only Admin can delete orders.');
       return;
     }
     if (confirm('Are you sure you want to delete this order?')) {
@@ -899,6 +911,20 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
+      {/* In-App Toast Popup Banner */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 border border-teal-500/40 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
+          <CheckCircle2 className="w-6 h-6 text-teal-400 flex-shrink-0" />
+          <p className="text-xs font-semibold">{toastMessage}</p>
+          <button 
+            onClick={() => setToastMessage(null)}
+            className="ml-3 text-slate-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Locked Terminal Overlay */}
       {isTerminalLocked && (
         <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-6">
