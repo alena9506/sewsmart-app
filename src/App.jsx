@@ -245,28 +245,28 @@ export default function App() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Customer Name</label>
-                      <div className="relative">
-                        <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                      <div className="relative flex items-center">
+                        <User className="absolute left-4 w-4 h-4 text-slate-500 pointer-events-none z-10" />
                         <input 
                           type="text" 
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
                           placeholder="e.g. Siobhán O'Connor"
-                          className="w-full bg-slate-900 border border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-teal-500 text-white placeholder-slate-500 shadow-inner"
+                          className="w-full bg-slate-900 border border-slate-700 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-teal-500 text-white placeholder-slate-500 shadow-inner"
                         />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Phone Number *</label>
-                      <div className="relative">
-                        <Smartphone className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                      <div className="relative flex items-center">
+                        <Smartphone className="absolute left-4 w-4 h-4 text-slate-500 pointer-events-none z-10" />
                         <input 
                           type="tel" 
                           required
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           placeholder="e.g. 087 123 4567"
-                          className="w-full bg-slate-900 border border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-teal-500 text-white placeholder-slate-500 shadow-inner"
+                          className="w-full bg-slate-900 border border-slate-700 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-teal-500 text-white placeholder-slate-500 shadow-inner"
                         />
                       </div>
                     </div>
@@ -275,13 +275,13 @@ export default function App() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Target Ready Date</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                      <div className="relative flex items-center">
+                        <Calendar className="absolute left-4 w-4 h-4 text-slate-500 pointer-events-none z-10" />
                         <input 
                           type="date" 
                           value={dueDate}
                           onChange={(e) => setDueDate(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-teal-500 text-white shadow-inner"
+                          className="w-full bg-slate-900 border border-slate-700 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-teal-500 text-white shadow-inner"
                         />
                       </div>
                     </div>
@@ -391,7 +391,7 @@ export default function App() {
                     <div className="w-full md:w-1/2">
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Total Price (€) *</label>
                       <div className="relative flex items-center">
-                        <Euro className="absolute left-4 w-5 h-5 text-teal-400 pointer-events-none" />
+                        <Euro className="absolute left-4 w-5 h-5 text-teal-400 pointer-events-none z-10" />
                         <input 
                           type="number" 
                           step="0.50"
