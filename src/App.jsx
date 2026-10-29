@@ -97,7 +97,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
-  const [nextTagId, setNextTagId] = useState('ALICOW-' + Math.floor(7000 + Math.random() * 900));
+  const [nextTagId, setNextTagId] = useState(() => Math.floor(7000 + Math.random() * 900).toString());
 
   const isAdmin = user && user.email === 'alena9506@gmail.com';
 
@@ -488,7 +488,7 @@ export default function App() {
     try {
       await addDoc(collection(db, 'orders'), newOrder);
       setSelectedOrderForPrint(newOrder);
-      setNextTagId('ALICOW-' + Math.floor(7000 + Math.random() * 900));
+      setNextTagId(Math.floor(7000 + Math.random() * 900).toString());
 
       setCustomerName('');
       setPhone('');
@@ -935,7 +935,7 @@ export default function App() {
                     <User className={`w-5 h-5 ${t.textAccent}`} /> {text.customerPayment}
                   </h2>
                   <span className={`font-mono text-xs px-3 py-1 rounded-full font-semibold border ${t.primaryBadge}`}>
-                    TAG: {nextTagId}
+                    TAG: #{nextTagId}
                   </span>
                 </div>
 
@@ -1113,14 +1113,17 @@ export default function App() {
                           <div className="absolute top-2 right-2 bg-slate-900 text-white text-[9px] px-2 py-0.5 rounded font-bold">
                             {copyType}
                           </div>
-                          <div className="text-center border-b border-dashed pb-3">
-                            <p className="font-extrabold text-sm tracking-wide">ALiCo DUBLIN</p>
-                            <p className="text-[10px] text-slate-600">Artaine Castle Shopping Centre</p>
-                            <p className={`text-xs font-bold mt-1.5 px-2 py-0.5 bg-slate-100 inline-block rounded ${t.textAccent}`}>
-                              {selectedOrderForPrint.id}
-                            </p>
+                          
+                          <div className="text-center border-b border-dashed pb-3 pt-2">
+                            <p className="font-extrabold text-xs tracking-wide">ALiCo DUBLIN</p>
+                            
+                            {/* HUGE SIMPLE STANDOUT TICKET NUMBER */}
+                            <div className="my-2 py-2 px-6 bg-slate-900 text-teal-400 font-black text-4xl tracking-widest rounded-2xl inline-block shadow-lg">
+                              #{selectedOrderForPrint.id}
+                            </div>
                           </div>
-                          <div className="space-y-1.5 pt-1">
+
+                          <div className="space-y-1.5 pt-1 text-[11px] opacity-80">
                             <p><strong>Customer:</strong> {selectedOrderForPrint.customerName}</p>
                             <p><strong>Phone:</strong> {selectedOrderForPrint.phone}</p>
                             <p><strong>Service:</strong> {selectedOrderForPrint.serviceType.toUpperCase()}</p>
@@ -1220,7 +1223,7 @@ export default function App() {
                   ) : (
                     filteredOrders.map(o => (
                       <tr key={o.docId} className="hover:bg-slate-500/5 transition-colors">
-                        <td className={`py-4 px-4 font-mono font-bold ${t.textAccent}`}>{o.id}</td>
+                        <td className={`py-4 px-4 font-mono font-black text-sm ${t.textAccent}`}>#{o.id}</td>
                         <td className="py-4 px-4 font-semibold">{o.customerName}</td>
                         <td className="py-4 px-4 font-mono">{o.phone}</td>
                         <td className="py-4 px-4 uppercase font-medium">{o.serviceType}</td>
