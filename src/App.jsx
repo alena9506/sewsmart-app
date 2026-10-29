@@ -123,9 +123,9 @@ export default function App() {
       weightQty: 'Weight / Bag Quantity',
       totalPrice: 'Total Price (€) *',
       completePrint: 'Complete Intake & Print 3 Receipts',
-      thermalPreview: 'Thermal Print Preview',
+      thermalPreview: 'Thermal Print Preview (3 Copies)',
       submitReceiptPrompt: 'Submit an intake ticket to generate printable thermal claim check receipts.',
-      printReceiptsNow: 'Print Receipts Now',
+      printReceiptsNow: 'Print All 3 Receipts Now',
       ticketHistory: 'Active Orders & Ticket History',
       searchPlaceholder: 'Search name, phone, tag...',
       allStatuses: 'All Statuses',
@@ -221,9 +221,9 @@ export default function App() {
       weightQty: 'Вес / Количество мешков',
       totalPrice: 'Итоговая цена (€) *',
       completePrint: 'Оформить и распечатать 3 чека',
-      thermalPreview: 'Превью термочека',
+      thermalPreview: 'Превью термочеков (3 Копии)',
       submitReceiptPrompt: 'Создайте заказ, чтобы сгенерировать квитанции для печати.',
-      printReceiptsNow: 'Печать чеков',
+      printReceiptsNow: 'Печать всех 3 чеков',
       ticketHistory: 'Активные заказы и история',
       searchPlaceholder: 'Поиск по имени, телефону...',
       allStatuses: 'Все статусы',
@@ -573,7 +573,6 @@ export default function App() {
     const itemDate = new Date(dateString);
     if (isNaN(itemDate.getTime())) return false;
 
-    // If custom date range is provided, use that
     if (startDateFilter && endDateFilter) {
       const start = new Date(startDateFilter);
       const end = new Date(endDateFilter);
@@ -1108,39 +1107,46 @@ export default function App() {
                     <Printer className={`w-4 h-4 ${t.textAccent}`} /> {text.thermalPreview}
                   </h3>
                   {selectedOrderForPrint ? (
-                    <div className="bg-white text-slate-900 p-5 rounded-2xl font-mono text-xs shadow-inner space-y-3">
-                      <div className="text-center border-b border-dashed pb-3">
-                        <p className="font-extrabold text-sm tracking-wide">ALiCo DUBLIN</p>
-                        <p className="text-[10px] text-slate-600">Artaine Castle Shopping Centre</p>
-                        <p className={`text-xs font-bold mt-1.5 px-2 py-0.5 bg-slate-100 inline-block rounded ${t.textAccent}`}>
-                          {selectedOrderForPrint.id}
-                        </p>
-                      </div>
-                      <div className="space-y-1.5 pt-1">
-                        <p><strong>Customer:</strong> {selectedOrderForPrint.customerName}</p>
-                        <p><strong>Phone:</strong> {selectedOrderForPrint.phone}</p>
-                        <p><strong>Service:</strong> {selectedOrderForPrint.serviceType.toUpperCase()}</p>
-                        {selectedOrderForPrint.serviceType === 'alteration' ? (
-                          <>
-                            <p><strong>Garment:</strong> {selectedOrderForPrint.details.garmentType}</p>
-                            <p><strong>Tasks:</strong> {selectedOrderForPrint.details.alterations.join(', ')}</p>
-                            {selectedOrderForPrint.details.customAlteration && <p><strong>Note:</strong> {selectedOrderForPrint.details.customAlteration}</p>}
-                          </>
-                        ) : (
-                          <>
-                            <p><strong>Type:</strong> {selectedOrderForPrint.details.laundryService}</p>
-                            {selectedOrderForPrint.details.weightKg && <p><strong>Qty/Wt:</strong> {selectedOrderForPrint.details.weightKg}</p>}
-                          </>
-                        )}
-                      </div>
-                      <div className="border-t border-dashed pt-3 flex justify-between font-bold text-xs">
-                        <span>PAID ({selectedOrderForPrint.paymentMethod}):</span>
-                        <span className={t.textAccent}>€{selectedOrderForPrint.total.toFixed(2)}</span>
-                      </div>
-                      <div className="text-center pt-3 text-[10px] text-slate-500 border-t border-dashed">
-                        <p>Due: {selectedOrderForPrint.dueDate}</p>
-                        <p className="font-bold text-slate-800 mt-1">*** PAID IN FULL ***</p>
-                      </div>
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                      {['CUSTOMER COPY', 'TAG / RACK COPY', 'ACCOUNTING COPY'].map((copyType, idx) => (
+                        <div key={idx} className="bg-white text-slate-900 p-5 rounded-2xl font-mono text-xs shadow-inner space-y-3 relative border-2 border-dashed border-slate-300">
+                          <div className="absolute top-2 right-2 bg-slate-900 text-white text-[9px] px-2 py-0.5 rounded font-bold">
+                            {copyType}
+                          </div>
+                          <div className="text-center border-b border-dashed pb-3">
+                            <p className="font-extrabold text-sm tracking-wide">ALiCo DUBLIN</p>
+                            <p className="text-[10px] text-slate-600">Artaine Castle Shopping Centre</p>
+                            <p className={`text-xs font-bold mt-1.5 px-2 py-0.5 bg-slate-100 inline-block rounded ${t.textAccent}`}>
+                              {selectedOrderForPrint.id}
+                            </p>
+                          </div>
+                          <div className="space-y-1.5 pt-1">
+                            <p><strong>Customer:</strong> {selectedOrderForPrint.customerName}</p>
+                            <p><strong>Phone:</strong> {selectedOrderForPrint.phone}</p>
+                            <p><strong>Service:</strong> {selectedOrderForPrint.serviceType.toUpperCase()}</p>
+                            {selectedOrderForPrint.serviceType === 'alteration' ? (
+                              <>
+                                <p><strong>Garment:</strong> {selectedOrderForPrint.details.garmentType}</p>
+                                <p><strong>Tasks:</strong> {selectedOrderForPrint.details.alterations.join(', ')}</p>
+                                {selectedOrderForPrint.details.customAlteration && <p><strong>Note:</strong> {selectedOrderForPrint.details.customAlteration}</p>}
+                              </>
+                            ) : (
+                              <>
+                                <p><strong>Type:</strong> {selectedOrderForPrint.details.laundryService}</p>
+                                {selectedOrderForPrint.details.weightKg && <p><strong>Qty/Wt:</strong> {selectedOrderForPrint.details.weightKg}</p>}
+                              </>
+                            )}
+                          </div>
+                          <div className="border-t border-dashed pt-3 flex justify-between font-bold text-xs">
+                            <span>PAID ({selectedOrderForPrint.paymentMethod}):</span>
+                            <span className={t.textAccent}>€{selectedOrderForPrint.total.toFixed(2)}</span>
+                          </div>
+                          <div className="text-center pt-3 text-[10px] text-slate-500 border-t border-dashed">
+                            <p>Due: {selectedOrderForPrint.dueDate}</p>
+                            <p className="font-bold text-slate-800 mt-1">*** PAID IN FULL ***</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className={`text-center py-16 opacity-70 border border-dashed rounded-2xl ${t.subCardBg}`}>
