@@ -23,18 +23,15 @@ import {
   Printer, 
   BarChart3, 
   Clock, 
-  Euro,
   User,
   Trash2,
   Check,
   Settings,
   Palette,
-  LogOut,
-  Lock
+  LogOut
 } from 'lucide-react';
 
 export default function App() {
-  // Auth state
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [loginEmail, setLoginEmail] = useState('');
@@ -44,7 +41,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('intake');
   const [serviceType, setServiceType] = useState('alteration');
   
-  // Theme state
   const [themeMode, setThemeMode] = useState('teal-dark');
 
   const [customerName, setCustomerName] = useState('');
@@ -72,10 +68,8 @@ export default function App() {
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
   const [nextTagId, setNextTagId] = useState('ALT-' + Math.floor(7000 + Math.random() * 900));
 
-  // Check if current user is admin
   const isAdmin = user && user.email === 'alena9506@gmail.com';
 
-  // Listen to Firebase Auth state
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -84,7 +78,6 @@ export default function App() {
     return () => unsubscribeAuth();
   }, []);
 
-  // Fetch orders from Firestore in real-time
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
@@ -117,7 +110,6 @@ export default function App() {
     }
   };
 
-  // Explicit theme styling configuration
   const themes = {
     'teal-dark': {
       isLight: false,
@@ -308,7 +300,6 @@ export default function App() {
     );
   }
 
-  // Login Screen if not authenticated
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6 font-sans">
