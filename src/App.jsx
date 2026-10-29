@@ -166,6 +166,7 @@ export default function App() {
       expenseAmountPlaceholder: 'Amount (€)',
       addExpenseBtn: 'Record Expense',
       expenseHistory: 'Recorded Expenses Log',
+      exportExpensesCsv: 'Export Expenses (CSV)',
       catSupplies: 'Supplies & Materials',
       catRent: 'Rent & Utilities',
       catEquipment: 'Equipment & Maintenance',
@@ -256,6 +257,7 @@ export default function App() {
       expenseAmountPlaceholder: 'Сумма (€)',
       addExpenseBtn: 'Добавить расход',
       expenseHistory: 'Журнал записанных расходов',
+      exportExpensesCsv: 'Экспорт расходов (CSV)',
       catSupplies: 'Материалы и расходники',
       catRent: 'Аренда и коммунальные услуги',
       catEquipment: 'Оборудование и обслуживание',
@@ -582,6 +584,7 @@ export default function App() {
   const periodRevenue = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
   const periodExpenses = filteredExpensesByTimeframe.reduce((acc, ex) => acc + ex.amount, 0);
   const periodNetProfit = periodRevenue - periodExpenses;
+  const profitMargin = periodRevenue > 0 ? (periodNetProfit / periodRevenue) * 100 : 0;
 
   const periodOrderCount = filteredOrdersByTimeframe.length;
   const avgTicket = periodOrderCount > 0 ? periodRevenue / periodOrderCount : 0;
@@ -591,6 +594,14 @@ export default function App() {
 
   const alterationRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'alteration').reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
   const laundryRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'laundry').reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+
+  // Category breakdown for expenses
+  const categoryTotals = {};
+  EXPENSE_CATEGORIES.forEach(cat => {
+    categoryTotals[cat.key] = filteredExpensesByTimeframe
+      .filter(ex => ex.category === cat.key)
+      .reduce((sum, ex) => sum + ex.amount, 0);
+  });
 
   // Day of Week Totals (with multiplier)
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -643,6 +654,25 @@ export default function App() {
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
     link.setAttribute('download', `ALiCo_Report_${reportTimeframe}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportExpensesToCSV = () => {
+    const headers = ['Date', 'Description / Vendor', 'Category', 'Amount (€)'];
+    const rows = filteredExpensesByTimeframe.map(ex => [
+      ex.date || ex.createdAt?.split('T')[0],
+      `"${ex.description || ''}"`,
+      ex.category,
+      ex.amount.toFixed(2)
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `ALiCo_Expenses_${reportTimeframe}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1413,31 +1443,83 @@ export default function App() {
                   <p className="text-xs opacity-75">{text.bookkeepingDesc}</p>
                 </div>
 
-                <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
+                <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setReportTimeframe('day')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                    onClick={exportExpensesToCSV}
+                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                    title="Export Expenses CSV for Accountant"
                   >
-                    {text.timeframeDay}
+                    <FileSpreadsheet className="w-4 h-4" /> {text.exportExpensesCsv}
                   </button>
-                  <button
-                    onClick={() => setReportTimeframe('week')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                  >
-                    {text.timeframeWeek}
-                  </button>
-                  <button
-                    onClick={() => setReportTimeframe('month')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                  >
-                    {text.timeframeMonth}
-                  </button>
-                  <button
-                    onClick={() => setReportTimeframe('year')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                  >
-                    {text.timeframeYear}
-                  </button>
+
+                  <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
+                    <button
+                      onClick={() => setReportTimeframe('day')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                    >
+                      {text.timeframeDay}
+                    </button>
+                    <button
+                      onClick={() => setReportTimeframe('week')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                    >
+                      {text.timeframeWeek}
+                    </button>
+                    <button
+                      onClick={() => setReportTimeframe('month')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                    >
+                      {text.timeframeMonth}
+                    </button>
+                    <button
+                      onClick={() => setReportTimeframe('year')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                    >
+                      {text.timeframeYear}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Profit & Loss Header Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-2">
+                <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Gross Revenue</p>
+                  <p className={`text-xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</p>
+                </div>
+                <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Total Expenses</p>
+                  <p className="text-xl font-extrabold text-rose-400">€{periodExpenses.toFixed(2)}</p>
+                </div>
+                <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Net Operating Profit</p>
+                  <p className={`text-xl font-extrabold ${periodNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    €{periodNetProfit.toFixed(2)}
+                  </p>
+                </div>
+                <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Profit Margin</p>
+                  <p className={`text-xl font-extrabold ${profitMargin >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
+                    {profitMargin.toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Expense Category Breakdown Summary Cards */}
+              <div className="pt-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider opacity-80 mb-3">Spending by Category ({reportTimeframe.toUpperCase()})</h3>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {EXPENSE_CATEGORIES.map(cat => {
+                    const catTotal = categoryTotals[cat.key] || 0;
+                    const catPercentage = periodExpenses > 0 ? Math.round((catTotal / periodExpenses) * 100) : 0;
+                    return (
+                      <div key={cat.key} className={`p-4 rounded-2xl border ${t.subCardBg} space-y-1`}>
+                        <p className="text-[11px] font-semibold truncate opacity-80" title={cat.label}>{cat.label}</p>
+                        <p className="text-lg font-bold text-rose-400">€{catTotal.toFixed(2)}</p>
+                        <p className="text-[10px] opacity-60 font-mono">{catPercentage}% of spend</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
