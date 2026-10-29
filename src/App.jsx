@@ -33,7 +33,8 @@ import {
   TrendingUp,
   Calendar,
   CreditCard,
-  DollarSign
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -118,8 +119,8 @@ export default function App() {
       actions: 'Actions',
       print: 'Print',
       delete: 'Delete',
-      analyticsTitle: 'Smart Business Analytics & Reports',
-      analyticsDesc: 'Performance metrics, revenue timelines, and comparative daily meters.',
+      analyticsTitle: 'Smart Business Analytics & Revenue Reports',
+      analyticsDesc: 'Audit-ready financial summaries for accounting and Irish Revenue compliance.',
       timeframeDay: 'Today',
       timeframeWeek: 'This Week',
       timeframeMonth: 'This Month',
@@ -130,6 +131,8 @@ export default function App() {
       paymentSplit: 'Payment Method Breakdown',
       serviceSplit: 'Service Revenue Split',
       bestDaysMeter: 'Performance Meter: Revenue by Day of Week',
+      exportCsv: 'Export Excel (CSV)',
+      exportPdf: 'Export PDF Report',
       appearanceTitle: 'Appearance & Theme Settings',
       appearanceDesc: 'Choose your preferred counter display theme for day or night shifts:',
       darkTheme: 'Teal Dark (Default)',
@@ -180,8 +183,8 @@ export default function App() {
       actions: 'Действия',
       print: 'Печать',
       delete: 'Удалить',
-      analyticsTitle: 'Аналитика и Умные Отчеты',
-      analyticsDesc: 'Показатели производительности, динамика выручки и сравнительные графики.',
+      analyticsTitle: 'Аналитика и Финансовые Отчеты',
+      analyticsDesc: 'Отчеты для бухгалтерии и налоговой отчетности (Revenue).',
       timeframeDay: 'Сегодня',
       timeframeWeek: 'Эта неделя',
       timeframeMonth: 'Этот месяц',
@@ -192,6 +195,8 @@ export default function App() {
       paymentSplit: 'Распределение по способам оплаты',
       serviceSplit: 'Выручка по типам услуг',
       bestDaysMeter: 'Сравнение производительности по дням недели',
+      exportCsv: 'Экспорт Excel (CSV)',
+      exportPdf: 'Экспорт PDF Отчета',
       appearanceTitle: 'Настройки темы оформления',
       appearanceDesc: 'Выберите тему интерфейса для дневной или ночной смены:',
       darkTheme: 'Тёмная тиловая (По умолчанию)',
@@ -445,6 +450,33 @@ export default function App() {
     dayTotals[d] += o.total;
   });
   const maxDayRevenue = Math.max(...dayTotals, 1);
+
+  const exportToCSV = () => {
+    const headers = ['Tag ID', 'Date', 'Customer Name', 'Phone', 'Service Type', 'Payment Method', 'Status', 'Total (€)'];
+    const rows = filteredOrdersByTimeframe.map(o => [
+      o.id,
+      new Date(o.createdAt).toLocaleString(),
+      `"${o.customerName || ''}"`,
+      o.phone,
+      o.serviceType,
+      o.paymentMethod,
+      o.status,
+      o.total.toFixed(2)
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `ALiCo_Revenue_Report_${reportTimeframe}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToPDF = () => {
+    window.print();
+  };
 
   const filteredOrders = orders.filter(o => {
     const matchesSearch = o.phone.includes(searchTerm) || o.id.toLowerCase().includes(searchTerm.toLowerCase()) || o.customerName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -987,31 +1019,51 @@ export default function App() {
                   <p className="text-xs opacity-75">{text.analyticsDesc}</p>
                 </div>
                 
-                <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
-                  <button
-                    onClick={() => setReportTimeframe('day')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                  >
-                    {text.timeframeDay}
-                  </button>
-                  <button
-                    onClick={() => setReportTimeframe('week')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                  >
-                    {text.timeframeWeek}
-                  </button>
-                  <button
-                    onClick={() => setReportTimeframe('month')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                  >
-                    {text.timeframeMonth}
-                  </button>
-                  <button
-                    onClick={() => setReportTimeframe('year')}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                  >
-                    {text.timeframeYear}
-                  </button>
+                <div className="flex items-center gap-3">
+                  <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
+                    <button
+                      onClick={() => setReportTimeframe('day')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                    >
+                      {text.timeframeDay}
+                    </button>
+                    <button
+                      onClick={() => setReportTimeframe('week')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                    >
+                      {text.timeframeWeek}
+                    </button>
+                    <button
+                      onClick={() => setReportTimeframe('month')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                    >
+                      {text.timeframeMonth}
+                    </button>
+                    <button
+                      onClick={() => setReportTimeframe('year')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                    >
+                      {text.timeframeYear}
+                    </button>
+                  </div>
+
+                  {/* Export Options */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={exportToCSV}
+                      className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                      title="Export CSV / Excel for accountant"
+                    >
+                      <FileSpreadsheet className="w-4 h-4" /> {text.exportCsv}
+                    </button>
+                    <button
+                      onClick={exportToPDF}
+                      className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                      title="Export PDF / Printable Report"
+                    >
+                      <FileText className="w-4 h-4" /> {text.exportPdf}
+                    </button>
+                  </div>
                 </div>
               </div>
 
