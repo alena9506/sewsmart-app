@@ -29,7 +29,11 @@ import {
   Settings,
   Palette,
   LogOut,
-  Globe
+  Globe,
+  TrendingUp,
+  Calendar,
+  CreditCard,
+  DollarSign
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -45,6 +49,7 @@ export default function App() {
   const [serviceType, setServiceType] = useState('alteration');
   
   const [themeMode, setThemeMode] = useState('teal-dark');
+  const [reportTimeframe, setReportTimeframe] = useState('month'); // 'day', 'week', 'month', 'year'
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -113,12 +118,18 @@ export default function App() {
       actions: 'Actions',
       print: 'Print',
       delete: 'Delete',
-      todaysRevenue: "Today's Revenue",
-      ticketsCreatedToday: 'tickets created today',
-      totalRevenue: 'Total Revenue (All Time)',
-      totalOrdersRecorded: 'total orders recorded',
-      pendingWork: 'Pending / Active Work',
-      ordersInProgress: 'Orders currently in progress or ready',
+      analyticsTitle: 'Smart Business Analytics & Reports',
+      analyticsDesc: 'Performance metrics, revenue timelines, and comparative daily meters.',
+      timeframeDay: 'Today',
+      timeframeWeek: 'This Week',
+      timeframeMonth: 'This Month',
+      timeframeYear: 'This Year',
+      totalRevenue: 'Total Revenue',
+      totalOrders: 'Total Orders',
+      avgTicketValue: 'Average Ticket Value',
+      paymentSplit: 'Payment Method Breakdown',
+      serviceSplit: 'Service Revenue Split',
+      bestDaysMeter: 'Performance Meter: Revenue by Day of Week',
       appearanceTitle: 'Appearance & Theme Settings',
       appearanceDesc: 'Choose your preferred counter display theme for day or night shifts:',
       darkTheme: 'Teal Dark (Default)',
@@ -169,12 +180,18 @@ export default function App() {
       actions: 'Действия',
       print: 'Печать',
       delete: 'Удалить',
-      todaysRevenue: 'Выручка за сегодня',
-      ticketsCreatedToday: 'билетов создано сегодня',
-      totalRevenue: 'Общая выручка за всё время',
-      totalOrdersRecorded: 'всего заказов записано',
-      pendingWork: 'В работе / Ожидание',
-      ordersInProgress: 'Заказы в процессе или готовы',
+      analyticsTitle: 'Аналитика и Умные Отчеты',
+      analyticsDesc: 'Показатели производительности, динамика выручки и сравнительные графики.',
+      timeframeDay: 'Сегодня',
+      timeframeWeek: 'Эта неделя',
+      timeframeMonth: 'Этот месяц',
+      timeframeYear: 'Этот год',
+      totalRevenue: 'Общая выручка',
+      totalOrders: 'Всего заказов',
+      avgTicketValue: 'Средний чек',
+      paymentSplit: 'Распределение по способам оплаты',
+      serviceSplit: 'Выручка по типам услуг',
+      bestDaysMeter: 'Сравнение производительности по дням недели',
       appearanceTitle: 'Настройки темы оформления',
       appearanceDesc: 'Выберите тему интерфейса для дневной или ночной смены:',
       darkTheme: 'Тёмная тиловая (По умолчанию)',
@@ -190,7 +207,6 @@ export default function App() {
 
   const text = translations[lang] || translations.en;
 
-  // Garments translated for interface
   const GARMENTS = [
     { key: 'Trousers / Jeans', en: 'Trousers / Jeans', ru: 'Брюки / Джинсы' },
     { key: 'Suit Jacket / Blazer', en: 'Suit Jacket / Blazer', ru: 'Пиджак / Блейзер' },
@@ -201,7 +217,6 @@ export default function App() {
     { key: 'Curtains / Home Textiles', en: 'Curtains / Home Textiles', ru: 'Шторы / Домашний текстиль' }
   ];
 
-  // Bilingual Alteration Options
   const GARMENT_ALTERATIONS = {
     'Trousers / Jeans': [
       { nameEn: 'Standard Hemming', nameRu: 'Стандартный подшив низа', price: 12.00 },
@@ -352,16 +367,50 @@ export default function App() {
     }
   };
 
+  // Filter orders based on selected report timeframe
+  const now = new Date();
+  const filteredOrdersByTimeframe = orders.filter(o => {
+    const orderDate = new Date(o.createdAt);
+    if (reportTimeframe === 'day') {
+      return orderDate.toDateString() === now.toDateString();
+    } else if (reportTimeframe === 'week') {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(now.getDate() - 7);
+      return orderDate >= oneWeekAgo;
+    } else if (reportTimeframe === 'month') {
+      return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+    } else if (reportTimeframe === 'year') {
+      return orderDate.getFullYear() === now.getFullYear();
+    }
+    return true;
+  });
+
+  const periodRevenue = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0);
+  const periodOrderCount = filteredOrdersByTimeframe.length;
+  const avgTicket = periodOrderCount > 0 ? periodRevenue / periodOrderCount : 0;
+
+  // Payment Breakdown
+  const cardRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Card')).reduce((acc, o) => acc + o.total, 0);
+  const cashRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Cash')).reduce((acc, o) => acc + o.total, 0);
+
+  // Service Breakdown
+  const alterationRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'alteration').reduce((acc, o) => acc + o.total, 0);
+  const laundryRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'laundry').reduce((acc, o) => acc + o.total, 0);
+
+  // Day of Week Performance Meter
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayTotals = [0, 0, 0, 0, 0, 0, 0];
+  orders.forEach(o => {
+    const d = new Date(o.createdAt).getDay();
+    dayTotals[d] += o.total;
+  });
+  const maxDayRevenue = Math.max(...dayTotals, 1);
+
   const filteredOrders = orders.filter(o => {
     const matchesSearch = o.phone.includes(searchTerm) || o.id.toLowerCase().includes(searchTerm.toLowerCase()) || o.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' || o.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todaysOrders = orders.filter(o => o.createdAt.startsWith(todayStr));
-  const todaysRevenue = todaysOrders.reduce((acc, o) => acc + o.total, 0);
-  const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
 
   if (authLoading) {
     return (
@@ -424,6 +473,43 @@ export default function App() {
     );
   }
 
+  const themes = {
+    'teal-dark': {
+      isLight: false,
+      appBg: 'bg-slate-900 text-slate-100',
+      headerBg: 'bg-slate-900 border-slate-800 text-white',
+      cardBg: 'bg-slate-800/80 border-slate-700/80 text-slate-100',
+      innerInputBg: 'bg-slate-900 border-slate-700 text-white placeholder-slate-500',
+      navToggleBg: 'bg-slate-800/80 border-slate-700/60 text-slate-300',
+      subCardBg: 'bg-slate-800/40 text-slate-200',
+      primary: 'bg-teal-500 hover:bg-teal-400 text-slate-950',
+      primaryBadge: 'bg-teal-500/10 border-teal-500/30 text-teal-300',
+      textAccent: 'text-teal-400',
+      borderFocus: 'focus:border-teal-500',
+      buttonSelected: 'bg-teal-500/20 border-teal-500 text-teal-300 shadow-md',
+      tabActive: 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20',
+      serviceActive: 'bg-teal-500 text-slate-950 shadow-md font-extrabold',
+    },
+    'teal-light': {
+      isLight: true,
+      appBg: 'bg-slate-100 text-slate-900',
+      headerBg: 'bg-white border-slate-200 text-slate-900 shadow-sm',
+      cardBg: 'bg-white border-slate-200 text-slate-900 shadow-xl',
+      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 font-medium',
+      navToggleBg: 'bg-slate-200 border-slate-300 text-slate-800',
+      subCardBg: 'bg-slate-100 text-slate-800',
+      primary: 'bg-teal-600 hover:bg-teal-500 text-white',
+      primaryBadge: 'bg-teal-100 border-teal-300 text-teal-800',
+      textAccent: 'text-teal-700',
+      borderFocus: 'focus:border-teal-600',
+      buttonSelected: 'bg-teal-100 border-teal-500 text-teal-900 shadow-sm font-bold',
+      tabActive: 'bg-teal-600 text-white shadow-md shadow-teal-600/20',
+      serviceActive: 'bg-teal-600 text-white shadow-md font-extrabold',
+    }
+  };
+
+  const t = themes[themeMode] || themes['teal-dark'];
+
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg}`}>
       <header className={`border-b px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-md ${t.headerBg}`}>
@@ -442,7 +528,6 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Language Toggle */}
           <button
             onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
             className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
@@ -845,22 +930,119 @@ export default function App() {
 
         {activeTab === 'analytics' && isAdmin && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className={`p-6 rounded-3xl border shadow-xl ${t.cardBg}`}>
-                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">{text.todaysRevenue}</p>
-                <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{todaysRevenue.toFixed(2)}</h3>
-                <p className="text-xs opacity-60 mt-2">{todaysOrders.length} {text.ticketsCreatedToday}</p>
+            <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <div className="flex flex-wrap justify-between items-center gap-4">
+                <div>
+                  <h2 className="text-xl font-bold">{text.analyticsTitle}</h2>
+                  <p className="text-xs opacity-75">{text.analyticsDesc}</p>
+                </div>
+                
+                {/* Timeframe Selector */}
+                <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
+                  <button
+                    onClick={() => setReportTimeframe('day')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.timeframeDay}
+                  </button>
+                  <button
+                    onClick={() => setReportTimeframe('week')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.timeframeWeek}
+                  </button>
+                  <button
+                    onClick={() => setReportTimeframe('month')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.timeframeMonth}
+                  </button>
+                  <button
+                    onClick={() => setReportTimeframe('year')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.timeframeYear}
+                  </button>
+                </div>
               </div>
-              <div className={`p-6 rounded-3xl border shadow-xl ${t.cardBg}`}>
-                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">{text.totalRevenue}</p>
-                <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{totalRevenue.toFixed(2)}</h3>
-                <p className="text-xs opacity-60 mt-2">{orders.length} {text.totalOrdersRecorded}</p>
+
+              {/* Top Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalRevenue}</p>
+                  <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</h3>
+                </div>
+                <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalOrders}</p>
+                  <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>{periodOrderCount}</h3>
+                </div>
+                <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.avgTicketValue}</p>
+                  <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{avgTicket.toFixed(2)}</h3>
+                </div>
               </div>
-              <div className={`p-6 rounded-3xl border shadow-xl ${t.cardBg}`}>
-                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">{text.pendingWork}</p>
-                <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>{orders.filter(o => o.status !== 'Completed').length}</h3>
-                <p className="text-xs opacity-60 mt-2">{text.ordersInProgress}</p>
+
+              {/* Service & Payment Splits */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
+                  <h4 className="text-sm font-bold flex items-center gap-2">
+                    <TrendingUp className={`w-4 h-4 ${t.textAccent}`} /> {text.serviceSplit}
+                  </h4>
+                  <div className="space-y-3 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span>✂️ {lang === 'ru' ? 'Ателье' : 'Alterations'}</span>
+                      <span className="font-bold">€{alterationRevenue.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>👔 {lang === 'ru' ? 'Прачечная' : 'Laundry'}</span>
+                      <span className="font-bold">€{laundryRevenue.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
+                  <h4 className="text-sm font-bold flex items-center gap-2">
+                    <CreditCard className={`w-4 h-4 ${t.textAccent}`} /> {text.paymentSplit}
+                  </h4>
+                  <div className="space-y-3 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span>💳 {lang === 'ru' ? 'Карта' : 'Card Payments'}</span>
+                      <span className="font-bold">€{cardRevenue.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>💵 {lang === 'ru' ? 'Наличные' : 'Cash Payments'}</span>
+                      <span className="font-bold">€{cashRevenue.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              {/* Performance Meter by Day of Week */}
+              <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4 pt-6`}>
+                <h4 className="text-sm font-bold flex items-center gap-2">
+                  <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestDaysMeter}
+                </h4>
+                <div className="grid grid-cols-7 gap-2 pt-2">
+                  {dayNames.map((d, index) => {
+                    const dayRev = dayTotals[index];
+                    const percentage = Math.round((dayRev / maxDayRevenue) * 100);
+                    return (
+                      <div key={d} className="flex flex-col items-center space-y-2">
+                        <div className="w-full bg-slate-950/40 h-32 rounded-xl flex items-end p-1.5">
+                          <div 
+                            className="w-full bg-teal-500 rounded-lg transition-all duration-500" 
+                            style={{ height: `${Math.max(percentage, 8)}%` }}
+                            title={`€${dayRev.toFixed(2)}`}
+                          ></div>
+                        </div>
+                        <span className="text-[11px] font-bold opacity-80">{d}</span>
+                        <span className="text-[10px] font-mono text-teal-400 font-semibold">€{dayRev.toFixed(0)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
             </div>
           </div>
         )}
