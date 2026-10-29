@@ -190,135 +190,70 @@ export default function App() {
 
   const text = translations[lang] || translations.en;
 
-  useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setAuthLoading(false);
-    });
-    return () => unsubscribeAuth();
-  }, []);
+  // Garments translated for interface
+  const GARMENTS = [
+    { key: 'Trousers / Jeans', en: 'Trousers / Jeans', ru: 'Брюки / Джинсы' },
+    { key: 'Suit Jacket / Blazer', en: 'Suit Jacket / Blazer', ru: 'Пиджак / Блейзер' },
+    { key: 'Dress / Formal Wear', en: 'Dress / Formal Wear', ru: 'Платье / Нарядная одежда' },
+    { key: 'Skirt', en: 'Skirt', ru: 'Юбка' },
+    { key: 'Shirt / Blouse', en: 'Shirt / Blouse', ru: 'Рубашка / Блузка' },
+    { key: 'Coat / Jacket', en: 'Coat / Jacket', ru: 'Пальто / Куртка' },
+    { key: 'Curtains / Home Textiles', en: 'Curtains / Home Textiles', ru: 'Шторы / Домашний текстиль' }
+  ];
 
-  useEffect(() => {
-    if (!user) return;
-    const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-    const unsubscribeOrders = onSnapshot(q, (snapshot) => {
-      const ordersData = snapshot.docs.map(doc => ({
-        docId: doc.id,
-        ...doc.data()
-      }));
-      setOrders(ordersData);
-    });
-    return () => unsubscribeOrders();
-  }, [user]);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoginError('');
-    try {
-      await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-    } catch (error) {
-      setLoginError('Invalid email or password. Please try again.');
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      setUser(null);
-    } catch (error) {
-      console.error('Error signing out', error);
-    }
-  };
-
-  const themes = {
-    'teal-dark': {
-      isLight: false,
-      appBg: 'bg-slate-900 text-slate-100',
-      headerBg: 'bg-slate-900 border-slate-800 text-white',
-      cardBg: 'bg-slate-800/80 border-slate-700/80 text-slate-100',
-      innerInputBg: 'bg-slate-900 border-slate-700 text-white placeholder-slate-500',
-      navToggleBg: 'bg-slate-800/80 border-slate-700/60 text-slate-300',
-      subCardBg: 'bg-slate-800/40 text-slate-200',
-      primary: 'bg-teal-500 hover:bg-teal-400 text-slate-950',
-      primaryBadge: 'bg-teal-500/10 border-teal-500/30 text-teal-300',
-      textAccent: 'text-teal-400',
-      borderFocus: 'focus:border-teal-500',
-      buttonSelected: 'bg-teal-500/20 border-teal-500 text-teal-300 shadow-md',
-      tabActive: 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20',
-      serviceActive: 'bg-teal-500 text-slate-950 shadow-md font-extrabold',
-    },
-    'teal-light': {
-      isLight: true,
-      appBg: 'bg-slate-100 text-slate-900',
-      headerBg: 'bg-white border-slate-200 text-slate-900 shadow-sm',
-      cardBg: 'bg-white border-slate-200 text-slate-900 shadow-xl',
-      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 font-medium',
-      navToggleBg: 'bg-slate-200 border-slate-300 text-slate-800',
-      subCardBg: 'bg-slate-100 text-slate-800',
-      primary: 'bg-teal-600 hover:bg-teal-500 text-white',
-      primaryBadge: 'bg-teal-100 border-teal-300 text-teal-800',
-      textAccent: 'text-teal-700',
-      borderFocus: 'focus:border-teal-600',
-      buttonSelected: 'bg-teal-100 border-teal-500 text-teal-900 shadow-sm font-bold',
-      tabActive: 'bg-teal-600 text-white shadow-md shadow-teal-600/20',
-      serviceActive: 'bg-teal-600 text-white shadow-md font-extrabold',
-    }
-  };
-
-  const t = themes[themeMode] || themes['teal-dark'];
-
+  // Bilingual Alteration Options
   const GARMENT_ALTERATIONS = {
     'Trousers / Jeans': [
-      { name: 'Standard Hemming', price: 12.00 },
-      { name: 'Original Hemming (Keep Fade)', price: 15.00 },
-      { name: 'Waist Take-in / Let-out', price: 16.00 },
-      { name: 'Full Zip Replacement', price: 18.00 },
-      { name: 'Zip Runner / Slider Replacement', price: 8.00 },
-      { name: 'Taper Legs', price: 18.00 },
-      { name: 'Patch / Mending', price: 8.00 },
-      { name: 'New Button / Hook & Bar', price: 5.00 }
+      { nameEn: 'Standard Hemming', nameRu: 'Стандартный подшив низа', price: 12.00 },
+      { nameEn: 'Original Hemming (Keep Fade)', nameRu: 'Сохранение оригинального низа', price: 15.00 },
+      { nameEn: 'Waist Take-in / Let-out', nameRu: 'Ушив / Расшив по поясу', price: 16.00 },
+      { nameEn: 'Full Zip Replacement', nameRu: 'Замена молнии полностью', price: 18.00 },
+      { nameEn: 'Zip Runner / Slider Replacement', nameRu: 'Замена бегунка молнии', price: 8.00 },
+      { nameEn: 'Taper Legs', nameRu: 'Заужение штанин', price: 18.00 },
+      { nameEn: 'Patch / Mending', nameRu: 'Штопка / Заплатка', price: 8.00 },
+      { nameEn: 'New Button / Hook & Bar', nameRu: 'Новая пуговица / крючок', price: 5.00 }
     ],
     'Suit Jacket / Blazer': [
-      { name: 'Sleeve Shortening (Plain)', price: 22.00 },
-      { name: 'Sleeve Shortening (Working Cuffs)', price: 35.00 },
-      { name: 'Take in Side Seams', price: 28.00 },
-      { name: 'Shorten Length from Bottom', price: 30.00 },
-      { name: 'Replace Lining', price: 65.00 },
-      { name: 'Shoulder Adjustment', price: 45.00 }
+      { nameEn: 'Sleeve Shortening (Plain)', nameRu: 'Укорачивание рукавов (простое)', price: 22.00 },
+      { nameEn: 'Sleeve Shortening (Working Cuffs)', nameRu: 'Укорачивание рукавов (шлицы/петли)', price: 35.00 },
+      { nameEn: 'Take in Side Seams', nameRu: 'Ушив по боковым швам', price: 28.00 },
+      { nameEn: 'Shorten Length from Bottom', nameRu: 'Укорачивание длины снизу', price: 30.00 },
+      { nameEn: 'Replace Lining', nameRu: 'Замена подкладки', price: 65.00 },
+      { nameEn: 'Shoulder Adjustment', nameRu: 'Подгонка по плечам', price: 45.00 }
     ],
     'Dress / Formal Wear': [
-      { name: 'Hem Shortening (Single Layer)', price: 25.00 },
-      { name: 'Hem Shortening (Multi-Layer / Pleated)', price: 40.00 },
-      { name: 'Take in Side Seams', price: 25.00 },
-      { name: 'Strap Adjustment', price: 15.00 },
-      { name: 'Full Zip Replacement', price: 22.00 },
-      { name: 'Zip Runner / Slider Replacement', price: 10.00 },
-      { name: 'Add Darts for Fit', price: 18.00 }
+      { nameEn: 'Hem Shortening (Single Layer)', nameRu: 'Укорачивание низа (однослойное)', price: 25.00 },
+      { nameEn: 'Hem Shortening (Multi-Layer / Pleated)', nameRu: 'Укорачивание низа (многослойное/плиссе)', price: 40.00 },
+      { nameEn: 'Take in Side Seams', nameRu: 'Ушив по боковым швам', price: 25.00 },
+      { nameEn: 'Strap Adjustment', nameRu: 'Регулировка бретелей', price: 15.00 },
+      { nameEn: 'Full Zip Replacement', nameRu: 'Замена молнии полностью', price: 22.00 },
+      { nameEn: 'Zip Runner / Slider Replacement', nameRu: 'Замена бегунка молнии', price: 10.00 },
+      { nameEn: 'Add Darts for Fit', nameRu: 'Добавление вытачек', price: 18.00 }
     ],
     'Skirt': [
-      { name: 'Hem Shortening', price: 18.00 },
-      { name: 'Waist Take-in / Let-out', price: 16.00 },
-      { name: 'Full Zip Replacement', price: 18.00 },
-      { name: 'Zip Runner / Slider Replacement', price: 8.00 }
+      { nameEn: 'Hem Shortening', nameRu: 'Укорачивание низа юбки', price: 18.00 },
+      { nameEn: 'Waist Take-in / Let-out', nameRu: 'Ушив / Расшив по поясу', price: 16.00 },
+      { nameEn: 'Full Zip Replacement', nameRu: 'Замена молнии полностью', price: 18.00 },
+      { nameEn: 'Zip Runner / Slider Replacement', nameRu: 'Замена бегунка молнии', price: 8.00 }
     ],
     'Shirt / Blouse': [
-      { name: 'Sleeve Shortening', price: 18.00 },
-      { name: 'Take in Side Seams (Slim fit)', price: 16.00 },
-      { name: 'Shorten Shirt Length', price: 15.00 },
-      { name: 'Add Back Darts', price: 12.00 }
+      { nameEn: 'Sleeve Shortening', nameRu: 'Укорачивание рукавов', price: 18.00 },
+      { nameEn: 'Take in Side Seams (Slim fit)', nameRu: 'Ушив по бокам (притаивание)', price: 16.00 },
+      { nameEn: 'Shorten Shirt Length', nameRu: 'Укорачивание длины рубашки', price: 15.00 },
+      { nameEn: 'Add Back Darts', nameRu: 'Добавление вытачек на спине', price: 12.00 }
     ],
     'Coat / Jacket': [
-      { name: 'Sleeve Shortening', price: 25.00 },
-      { name: 'Full Zip Replacement (Heavy Duty)', price: 28.00 },
-      { name: 'Zip Runner / Slider Replacement', price: 12.00 },
-      { name: 'Replace Buttons / Snaps', price: 10.00 },
-      { name: 'Patch / Mending / Tear Repair', price: 15.00 }
+      { nameEn: 'Sleeve Shortening', nameRu: 'Укорачивание рукавов', price: 25.00 },
+      { nameEn: 'Full Zip Replacement (Heavy Duty)', nameRu: 'Замена молнии (тяжелая)', price: 28.00 },
+      { nameEn: 'Zip Runner / Slider Replacement', nameRu: 'Замена бегунка молнии', price: 12.00 },
+      { nameEn: 'Replace Buttons / Snaps', nameRu: 'Замена пуговиц / кнопок', price: 10.00 },
+      { nameEn: 'Patch / Mending / Tear Repair', nameRu: 'Ремонт разрыва / штопка', price: 15.00 }
     ],
     'Curtains / Home Textiles': [
-      { name: 'Hemming per metre', price: 15.00 },
-      { name: 'Alter Width per metre', price: 18.00 },
-      { name: 'Re-taping Header', price: 22.00 },
-      { name: 'Cushion Cover Zip Replacement', price: 12.00 }
+      { nameEn: 'Hemming per metre', nameRu: 'Подшив за метр', price: 15.00 },
+      { nameEn: 'Alter Width per metre', nameRu: 'Изменение ширины за метр', price: 18.00 },
+      { nameEn: 'Re-taping Header', nameRu: 'Замена шторной тесьмы', price: 22.00 },
+      { nameEn: 'Cushion Cover Zip Replacement', nameRu: 'Замена молнии на чехле подушки', price: 12.00 }
     ]
   };
 
@@ -331,11 +266,12 @@ export default function App() {
   };
 
   const toggleAlteration = (alt) => {
-    if (selectedAlterations.includes(alt.name)) {
-      setSelectedAlterations(selectedAlterations.filter(item => item !== alt.name));
+    const altName = lang === 'ru' ? alt.nameRu : alt.nameEn;
+    if (selectedAlterations.includes(altName)) {
+      setSelectedAlterations(selectedAlterations.filter(item => item !== altName));
       setAlterationPrice(prev => Math.max(0, Number(prev) - alt.price).toFixed(2));
     } else {
-      setSelectedAlterations([...selectedAlterations, alt.name]);
+      setSelectedAlterations([...selectedAlterations, altName]);
       setAlterationPrice(prev => (Number(prev || 0) + alt.price).toFixed(2));
     }
   };
@@ -653,32 +589,31 @@ export default function App() {
                           onChange={(e) => handleGarmentChange(e.target.value)}
                           className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                         >
-                          <option>Trousers / Jeans</option>
-                          <option>Suit Jacket / Blazer</option>
-                          <option>Dress / Formal Wear</option>
-                          <option>Skirt</option>
-                          <option>Shirt / Blouse</option>
-                          <option>Coat / Jacket</option>
-                          <option>Curtains / Home Textiles</option>
+                          {GARMENTS.map(g => (
+                            <option key={g.key} value={g.key}>
+                              {lang === 'ru' ? g.ru : g.en}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-3">
-                          {text.fixOptions} {garmentType}:
+                          {text.fixOptions} {GARMENTS.find(g => g.key === garmentType)?.[lang === 'ru' ? 'ru' : 'en'] || garmentType}:
                         </label>
                         <div className="flex flex-wrap gap-2.5">
                           {currentGarmentOptions.map((alt) => {
-                            const isSelected = selectedAlterations.includes(alt.name);
+                            const altName = lang === 'ru' ? alt.nameRu : alt.nameEn;
+                            const isSelected = selectedAlterations.includes(altName);
                             return (
                               <button
                                 type="button"
-                                key={alt.name}
+                                key={alt.nameEn}
                                 onClick={() => toggleAlteration(alt)}
                                 className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
                               >
                                 {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
-                                + {alt.name} (€{alt.price.toFixed(2)})
+                                + {altName} (€{alt.price.toFixed(2)})
                               </button>
                             );
                           })}
