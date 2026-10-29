@@ -30,8 +30,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('intake');
   const [serviceType, setServiceType] = useState('alteration');
   
-  // Theme state: 'teal', 'indigo', 'emerald', 'amber'
-  const [themeColor, setThemeColor] = useState('teal');
+  // Theme state: 'teal-dark', 'teal-light', 'indigo-dark', 'indigo-light', 'emerald-dark', 'emerald-light', 'amber-dark', 'amber-light'
+  const [themeMode, setThemeMode] = useState('teal-dark');
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -58,9 +58,16 @@ export default function App() {
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
   const [nextTagId, setNextTagId] = useState('ALT-' + Math.floor(7000 + Math.random() * 900));
 
-  // Theme color styling mapper
+  // Theme styling mapper supporting Light and Dark modes
   const themes = {
-    teal: {
+    'teal-dark': {
+      isLight: false,
+      appBg: 'bg-slate-900 text-slate-100',
+      headerBg: 'bg-slate-900 border-slate-800',
+      cardBg: 'bg-slate-800/80 border-slate-700/80',
+      innerInputBg: 'bg-slate-900 border-slate-700 text-white placeholder-slate-500',
+      navToggleBg: 'bg-slate-800/80 border-slate-700/60',
+      subCardBg: 'bg-slate-800/40',
       primary: 'bg-teal-500 hover:bg-teal-400 text-slate-950',
       primaryBadge: 'bg-teal-500/10 border-teal-500/30 text-teal-300',
       textAccent: 'text-teal-400',
@@ -69,7 +76,30 @@ export default function App() {
       tabActive: 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20',
       iconBox: 'bg-teal-500 text-slate-950 shadow-teal-500/20'
     },
-    indigo: {
+    'teal-light': {
+      isLight: true,
+      appBg: 'bg-slate-100 text-slate-900',
+      headerBg: 'bg-white border-slate-200 shadow-sm',
+      cardBg: 'bg-white border-slate-200 shadow-xl',
+      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400',
+      navToggleBg: 'bg-slate-200/80 border-slate-300',
+      subCardBg: 'bg-slate-50',
+      primary: 'bg-teal-600 hover:bg-teal-500 text-white',
+      primaryBadge: 'bg-teal-100 border-teal-300 text-teal-800',
+      textAccent: 'text-teal-600',
+      borderFocus: 'focus:border-teal-600',
+      buttonSelected: 'bg-teal-100 border-teal-500 text-teal-900 shadow-sm',
+      tabActive: 'bg-teal-600 text-white shadow-md shadow-teal-600/20',
+      iconBox: 'bg-teal-600 text-white shadow-teal-600/20'
+    },
+    'indigo-dark': {
+      isLight: false,
+      appBg: 'bg-slate-900 text-slate-100',
+      headerBg: 'bg-slate-900 border-slate-800',
+      cardBg: 'bg-slate-800/80 border-slate-700/80',
+      innerInputBg: 'bg-slate-900 border-slate-700 text-white placeholder-slate-500',
+      navToggleBg: 'bg-slate-800/80 border-slate-700/60',
+      subCardBg: 'bg-slate-800/40',
       primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
       primaryBadge: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300',
       textAccent: 'text-indigo-400',
@@ -78,27 +108,25 @@ export default function App() {
       tabActive: 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20',
       iconBox: 'bg-indigo-600 text-white shadow-indigo-500/20'
     },
-    emerald: {
-      primary: 'bg-emerald-500 hover:bg-emerald-400 text-slate-950',
-      primaryBadge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
-      textAccent: 'text-emerald-400',
-      borderFocus: 'focus:border-emerald-500',
-      buttonSelected: 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md',
-      tabActive: 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20',
-      iconBox: 'bg-emerald-500 text-slate-950 shadow-emerald-500/20'
-    },
-    amber: {
-      primary: 'bg-amber-500 hover:bg-amber-400 text-slate-950',
-      primaryBadge: 'bg-amber-500/10 border-amber-500/30 text-amber-300',
-      textAccent: 'text-amber-400',
-      borderFocus: 'focus:border-amber-500',
-      buttonSelected: 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md',
-      tabActive: 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20',
-      iconBox: 'bg-amber-500 text-slate-950 shadow-amber-500/20'
+    'indigo-light': {
+      isLight: true,
+      appBg: 'bg-slate-100 text-slate-900',
+      headerBg: 'bg-white border-slate-200 shadow-sm',
+      cardBg: 'bg-white border-slate-200 shadow-xl',
+      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400',
+      navToggleBg: 'bg-slate-200/80 border-slate-300',
+      subCardBg: 'bg-slate-50',
+      primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
+      primaryBadge: 'bg-indigo-100 border-indigo-300 text-indigo-800',
+      textAccent: 'text-indigo-600',
+      borderFocus: 'focus:border-indigo-600',
+      buttonSelected: 'bg-indigo-100 border-indigo-500 text-indigo-900 shadow-sm',
+      tabActive: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20',
+      iconBox: 'bg-indigo-600 text-white shadow-indigo-600/20'
     }
   };
 
-  const t = themes[themeColor] || themes.teal;
+  const t = themes[themeMode] || themes['teal-dark'];
 
   // Fetch orders from Firestore in real-time
   useEffect(() => {
@@ -216,43 +244,43 @@ export default function App() {
   const readyCount = orders.filter(o => o.status === 'Ready for Pickup').length;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-      <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-md">
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg}`}>
+      <header className={`border-b px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-md ${t.headerBg}`}>
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-xl font-bold shadow-lg ${t.iconBox}`}>
             <Scissors className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight text-white">SewSmart</h1>
+              <h1 className="text-xl font-bold tracking-tight">SewSmart</h1>
               <span className={`font-semibold text-sm px-2 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
             </div>
-            <p className="text-xs text-slate-400">Alterations & Service Laundry POS (Cloud Sync)</p>
+            <p className="text-xs opacity-70">Alterations & Service Laundry POS (Cloud Sync)</p>
           </div>
         </div>
 
-        <div className="flex bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/60 shadow-inner">
+        <div className={`flex p-1.5 rounded-2xl border shadow-inner ${t.navToggleBg}`}>
           <button 
             onClick={() => setActiveTab('intake')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'text-slate-400 hover:text-white'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
           >
             <PlusCircle className="w-4 h-4" /> New Ticket
           </button>
           <button 
             onClick={() => setActiveTab('orders')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'text-slate-400 hover:text-white'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
           >
-            <Clock className="w-4 h-4" /> Orders <span className={`ml-1 px-1.5 py-0.2 bg-slate-900 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
+            <Clock className="w-4 h-4" /> Orders <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
           </button>
           <button 
             onClick={() => setActiveTab('analytics')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'text-slate-400 hover:text-white'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
           >
             <BarChart3 className="w-4 h-4" /> Reports
           </button>
           <button 
             onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'text-slate-400 hover:text-white'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
           >
             <Settings className="w-4 h-4" /> Settings
           </button>
@@ -263,18 +291,18 @@ export default function App() {
         {activeTab === 'intake' && (
           <div className="space-y-6">
             <div className="flex justify-center mb-6">
-              <div className="bg-slate-800/90 p-1.5 rounded-2xl border border-slate-700 flex gap-2 shadow-lg">
+              <div className={`p-1.5 rounded-2xl border flex gap-2 shadow-lg ${t.headerBg}`}>
                 <button
                   type="button"
                   onClick={() => setServiceType('alteration')}
-                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all ${serviceType === 'alteration' ? `bg-slate-950 shadow-md border ${t.textAccent} border-opacity-30` : 'text-slate-400 hover:text-white'}`}
+                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all ${serviceType === 'alteration' ? `shadow-md border ${t.textAccent} border-opacity-30 ${t.isLight ? 'bg-white' : 'bg-slate-950'}` : 'opacity-70 hover:opacity-100'}`}
                 >
                   <Scissors className="w-4 h-4" /> Alteration Ticket
                 </button>
                 <button
                   type="button"
                   onClick={() => setServiceType('laundry')}
-                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all ${serviceType === 'laundry' ? `bg-slate-950 shadow-md border ${t.textAccent} border-opacity-30` : 'text-slate-400 hover:text-white'}`}
+                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all ${serviceType === 'laundry' ? `shadow-md border ${t.textAccent} border-opacity-30 ${t.isLight ? 'bg-white' : 'bg-slate-950'}` : 'opacity-70 hover:opacity-100'}`}
                 >
                   <Shirt className="w-4 h-4" /> Laundry Ticket
                 </button>
@@ -282,9 +310,9 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 bg-slate-800/80 border border-slate-700/80 rounded-3xl p-8 shadow-2xl backdrop-blur-sm space-y-8">
-                <div className="flex justify-between items-center pb-4 border-b border-slate-700/80">
-                  <h2 className="text-base font-bold flex items-center gap-2 text-slate-100">
+              <div className={`lg:col-span-2 border rounded-3xl p-8 shadow-2xl backdrop-blur-sm space-y-8 ${t.cardBg}`}>
+                <div className="flex justify-between items-center pb-4 border-b border-opacity-30">
+                  <h2 className="text-base font-bold flex items-center gap-2">
                     <User className={`w-5 h-5 ${t.textAccent}`} /> Customer & Payment Details
                   </h2>
                   <span className={`font-mono text-xs px-3 py-1 rounded-full font-semibold border ${t.primaryBadge}`}>
@@ -295,44 +323,44 @@ export default function App() {
                 <form onSubmit={handleCreateOrder} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Customer Name</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">Customer Name</label>
                       <input 
                         type="text" 
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="e.g. Siobhán O'Connor"
-                        className={`w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} text-white placeholder-slate-500 shadow-inner`}
+                        className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Phone Number *</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">Phone Number *</label>
                       <input 
                         type="tel" 
                         required
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="e.g. 087 123 4567"
-                        className={`w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} text-white placeholder-slate-500 shadow-inner`}
+                        className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Target Ready Date</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">Target Ready Date</label>
                       <input 
                         type="date" 
                         value={dueDate}
                         onChange={(e) => setDueDate(e.target.value)}
-                        className={`w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} text-white shadow-inner`}
+                        className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Upfront Payment Method</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">Upfront Payment Method</label>
                       <select 
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
-                        className={`w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} text-white shadow-inner`}
+                        className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       >
                         <option>Credit / Debit Card</option>
                         <option>Cash</option>
@@ -343,19 +371,19 @@ export default function App() {
                   </div>
 
                   {serviceType === 'alteration' ? (
-                    <div className="space-y-6 pt-4 border-t border-slate-700/80">
+                    <div className="space-y-6 pt-4 border-t border-opacity-30">
                       <div className="flex justify-between items-center">
-                        <h2 className="text-base font-bold flex items-center gap-2 text-slate-100">
+                        <h2 className="text-base font-bold flex items-center gap-2">
                           <Scissors className={`w-5 h-5 ${t.textAccent}`} /> Garments & Alteration Items
                         </h2>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Garment Type</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">Garment Type</label>
                         <select 
                           value={garmentType} 
                           onChange={(e) => setGarmentType(e.target.value)}
-                          className={`w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} text-white shadow-inner`}
+                          className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                         >
                           <option>Trousers / Jeans</option>
                           <option>Suit Jacket / Blazer</option>
@@ -368,7 +396,7 @@ export default function App() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Quick Select Presets:</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-3">Quick Select Presets:</label>
                         <div className="flex flex-wrap gap-2.5">
                           {ALT_OPTIONS.map((alt) => {
                             const isSelected = selectedAlterations.includes(alt.name);
@@ -377,7 +405,7 @@ export default function App() {
                                 type="button"
                                 key={alt.name}
                                 onClick={() => toggleAlteration(alt)}
-                                className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${isSelected ? t.buttonSelected : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
                               >
                                 {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
                                 + {alt.name} (€{alt.price.toFixed(2)})
@@ -388,27 +416,27 @@ export default function App() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Custom Notes / Pinning Instructions</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">Custom Notes / Pinning Instructions</label>
                         <input 
                           type="text"
                           value={customAlteration}
                           onChange={(e) => setCustomAlteration(e.target.value)}
                           placeholder="e.g. Take up by 2 inches, keep original hem"
-                          className={`w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} text-white placeholder-slate-500 shadow-inner`}
+                          className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                         />
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-6 pt-4 border-t border-slate-700/80">
-                      <h2 className="text-base font-bold flex items-center gap-2 text-slate-100">
+                    <div className="space-y-6 pt-4 border-t border-opacity-30">
+                      <h2 className="text-base font-bold flex items-center gap-2">
                         <Shirt className={`w-5 h-5 ${t.textAccent}`} /> Laundry & Dry Cleaning Services
                       </h2>
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Service Type</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">Service Type</label>
                         <select 
                           value={laundryService} 
                           onChange={(e) => setLaundryService(e.target.value)}
-                          className={`w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} text-white shadow-inner`}
+                          className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                         >
                           <option>Wash, Dry & Fold (Per Kg)</option>
                           <option>Dry Cleaning</option>
@@ -417,21 +445,21 @@ export default function App() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Weight / Bag Quantity</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">Weight / Bag Quantity</label>
                         <input 
                           type="text"
                           value={weightKg}
                           onChange={(e) => setWeightKg(e.target.value)}
                           placeholder="e.g. 5.5 kg or 2 bags"
-                          className={`w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} text-white placeholder-slate-500 shadow-inner`}
+                          className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                         />
                       </div>
                     </div>
                   )}
 
-                  <div className="pt-6 border-t border-slate-700/80 flex flex-col md:flex-row gap-6 items-center justify-between">
+                  <div className="pt-6 border-t border-opacity-30 flex flex-col md:flex-row gap-6 items-center justify-between">
                     <div className="w-full md:w-1/2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Total Price (€) *</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">Total Price (€) *</label>
                       <input 
                         type="number" 
                         step="0.50"
@@ -439,7 +467,7 @@ export default function App() {
                         value={serviceType === 'alteration' ? alterationPrice : laundryPrice}
                         onChange={(e) => serviceType === 'alteration' ? setAlterationPrice(e.target.value) : setLaundryPrice(e.target.value)}
                         placeholder="0.00"
-                        className={`w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-lg font-extrabold ${t.textAccent} focus:outline-none ${t.borderFocus} placeholder-slate-500 shadow-inner`}
+                        className={`w-full border rounded-2xl px-4 py-3 text-lg font-extrabold ${t.textAccent} focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
                     </div>
 
@@ -455,9 +483,9 @@ export default function App() {
                 </form>
               </div>
 
-              <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-2xl backdrop-blur-sm flex flex-col justify-between">
+              <div className={`border rounded-3xl p-6 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2 text-slate-200">
+                  <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
                     <Printer className={`w-4 h-4 ${t.textAccent}`} /> Thermal Print Preview
                   </h3>
                   {selectedOrderForPrint ? (
@@ -496,8 +524,8 @@ export default function App() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-16 text-slate-500 border border-dashed border-slate-700/80 rounded-2xl bg-slate-900/40">
-                      <Printer className="w-8 h-8 mx-auto mb-3 text-slate-600" />
+                    <div className={`text-center py-16 opacity-60 border border-dashed rounded-2xl ${t.subCardBg}`}>
+                      <Printer className="w-8 h-8 mx-auto mb-3 opacity-50" />
                       <p className="text-xs">Submit an intake ticket to generate printable thermal claim check receipts.</p>
                     </div>
                   )}
@@ -517,26 +545,26 @@ export default function App() {
         )}
 
         {activeTab === 'orders' && (
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-8 shadow-2xl space-y-6">
+          <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
             <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
-              <h2 className="text-base font-bold flex items-center gap-2 text-slate-100">
+              <h2 className="text-base font-bold flex items-center gap-2">
                 <Clock className={`w-5 h-5 ${t.textAccent}`} /> Shop Orders & Tracking
               </h2>
               <div className="flex flex-wrap gap-3 w-full md:w-auto">
                 <div className="relative flex-1 md:w-64">
-                  <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                  <Search className="absolute left-3.5 top-3.5 w-4 h-4 opacity-50" />
                   <input 
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search phone, name, tag..."
-                    className={`w-full bg-slate-900 border border-slate-700 rounded-2xl pl-10 pr-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} text-white`}
+                    className={`w-full border rounded-2xl pl-10 pr-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                   />
                 </div>
                 <select 
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className={`bg-slate-900 border border-slate-700 rounded-2xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} text-white`}
+                  className={`border rounded-2xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                 >
                   <option value="All">All Statuses</option>
                   <option value="Pending">Pending</option>
@@ -547,9 +575,9 @@ export default function App() {
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-slate-700/80">
+            <div className="overflow-x-auto rounded-2xl border border-opacity-30">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-900 text-slate-400 border-b border-slate-700">
+                <thead className={`border-b opacity-80 ${t.subCardBg}`}>
                   <tr>
                     <th className="p-4 font-bold">Tag ID</th>
                     <th className="p-4 font-bold">Customer</th>
@@ -560,29 +588,29 @@ export default function App() {
                     <th className="p-4 font-bold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700/60 bg-slate-800/40">
+                <tbody className="divide-y divide-opacity-20">
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="text-center py-12 text-slate-500">No orders found.</td>
+                      <td colSpan="7" className="text-center py-12 opacity-60">No orders found.</td>
                     </tr>
                   ) : (
                     filteredOrders.map(order => (
-                      <tr key={order.docId} className="hover:bg-slate-750">
+                      <tr key={order.docId} className="hover:opacity-100 transition-opacity">
                         <td className={`p-4 font-mono font-bold ${t.textAccent}`}>{order.id}</td>
                         <td className="p-4">
-                          <div className="font-semibold text-white">{order.customerName}</div>
-                          <div className="text-slate-400 text-[11px]">{order.phone}</div>
+                          <div className="font-semibold">{order.customerName}</div>
+                          <div className="opacity-70 text-[11px]">{order.phone}</div>
                         </td>
                         <td className="p-4 capitalize">
-                          <span className="bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700 text-slate-300 font-medium">{order.serviceType}</span>
+                          <span className={`px-2.5 py-1 rounded-lg border border-opacity-30 font-medium ${t.subCardBg}`}>{order.serviceType}</span>
                         </td>
-                        <td className="p-4 text-slate-300">{order.dueDate}</td>
+                        <td className="p-4 opacity-80">{order.dueDate}</td>
                         <td className={`p-4 font-bold ${t.textAccent}`}>€{order.total.toFixed(2)}</td>
                         <td className="p-4">
                           <select 
                             value={order.status}
                             onChange={(e) => updateStatus(order.docId, e.target.value)}
-                            className={`bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none ${t.borderFocus}`}
+                            className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                           >
                             <option value="Pending">Pending</option>
                             <option value="In Progress">In Progress</option>
@@ -593,14 +621,14 @@ export default function App() {
                         <td className="p-4 text-right space-x-2">
                           <button 
                             onClick={() => setSelectedOrderForPrint(order)}
-                            className={`p-1.5 bg-slate-900 rounded-lg border border-slate-700 ${t.textAccent}`}
+                            className={`p-1.5 rounded-lg border border-opacity-30 ${t.textAccent} ${t.subCardBg}`}
                             title="Preview Print"
                           >
                             <Printer className="w-4 h-4 inline" />
                           </button>
                           <button 
                             onClick={() => deleteOrder(order.docId)}
-                            className="text-rose-400 hover:text-rose-300 p-1.5 bg-slate-900 rounded-lg border border-slate-700"
+                            className="text-rose-400 hover:text-rose-300 p-1.5 rounded-lg border border-opacity-30"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4 inline" />
@@ -617,68 +645,80 @@ export default function App() {
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            <h2 className="text-base font-bold flex items-center gap-2 text-slate-100">
+            <h2 className="text-base font-bold flex items-center gap-2">
               <BarChart3 className={`w-5 h-5 ${t.textAccent}`} /> Executive Summary & Reports
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-xl">
-                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Collected Revenue</p>
+              <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
+                <p className="text-xs opacity-70 font-semibold uppercase tracking-wider">Total Collected Revenue</p>
                 <p className={`text-3xl font-extrabold mt-2 ${t.textAccent}`}>€{totalRevenue.toFixed(2)}</p>
               </div>
-              <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-xl">
-                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Pending / In Progress Orders</p>
-                <p className="text-3xl font-extrabold text-amber-400 mt-2">{pendingCount}</p>
+              <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
+                <p className="text-xs opacity-70 font-semibold uppercase tracking-wider">Pending / In Progress Orders</p>
+                <p className="text-3xl font-extrabold text-amber-500 mt-2">{pendingCount}</p>
               </div>
-              <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-xl">
-                <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Ready For Pickup</p>
-                <p className="text-3xl font-extrabold text-emerald-400 mt-2">{readyCount}</p>
+              <div className={`border rounded-3xl p-6 shadow-xl ${t.cardBg}`}>
+                <p className="text-xs opacity-70 font-semibold uppercase tracking-wider">Ready For Pickup</p>
+                <p className="text-3xl font-extrabold text-emerald-500 mt-2">{readyCount}</p>
               </div>
             </div>
           </div>
         )}
 
         {activeTab === 'settings' && (
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-8 shadow-2xl space-y-6 max-w-2xl mx-auto">
-            <h2 className="text-base font-bold flex items-center gap-2 text-slate-100">
-              <Palette className={`w-5 h-5 ${t.textAccent}`} /> Theme Settings
+          <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 max-w-2xl mx-auto ${t.cardBg}`}>
+            <h2 className="text-base font-bold flex items-center gap-2">
+              <Palette className={`w-5 h-5 ${t.textAccent}`} /> Theme & Display Settings
             </h2>
-            <p className="text-xs text-slate-400">Choose your preferred accent color for buttons, badges, and highlights across the application.</p>
+            <p className="text-xs opacity-75">Choose between light and dark modes, or switch your accent color across SewSmart Dublin.</p>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
               <button
                 type="button"
-                onClick={() => setThemeColor('teal')}
-                className={`p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${themeColor === 'teal' ? 'bg-teal-500/20 border-teal-500 text-teal-300 shadow-lg' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}`}
+                onClick={() => setThemeMode('teal-dark')}
+                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'teal-dark' ? 'bg-teal-500/20 border-teal-500 shadow-lg' : 'opacity-70 hover:opacity-100 border-opacity-30'}`}
               >
-                <div className="w-8 h-8 rounded-full bg-teal-500 shadow-md"></div>
-                <span className="text-xs font-bold">Teal (Dublin)</span>
+                <div className="w-8 h-8 rounded-full bg-teal-500 shadow-md shrink-0"></div>
+                <div className="text-left">
+                  <p className="text-xs font-bold">Teal Dark Mode</p>
+                  <p className="text-[10px] opacity-60">Classic Dublin storefront dark theme</p>
+                </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => setThemeColor('indigo')}
-                className={`p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${themeColor === 'indigo' ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300 shadow-lg' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}`}
+                onClick={() => setThemeMode('teal-light')}
+                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'teal-light' ? 'bg-teal-100 border-teal-500 text-slate-900 shadow-lg' : 'opacity-70 hover:opacity-100 border-opacity-30'}`}
               >
-                <div className="w-8 h-8 rounded-full bg-indigo-600 shadow-md"></div>
-                <span className="text-xs font-bold">Indigo Blue</span>
+                <div className="w-8 h-8 rounded-full bg-teal-600 shadow-md shrink-0"></div>
+                <div className="text-left">
+                  <p className="text-xs font-bold">Teal Light Mode</p>
+                  <p className="text-[10px] opacity-60">Bright and crisp daytime look</p>
+                </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => setThemeColor('emerald')}
-                className={`p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${themeColor === 'emerald' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-lg' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}`}
+                onClick={() => setThemeMode('indigo-dark')}
+                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'indigo-dark' ? 'bg-indigo-500/20 border-indigo-500 shadow-lg' : 'opacity-70 hover:opacity-100 border-opacity-30'}`}
               >
-                <div className="w-8 h-8 rounded-full bg-emerald-500 shadow-md"></div>
-                <span className="text-xs font-bold">Emerald Green</span>
+                <div className="w-8 h-8 rounded-full bg-indigo-600 shadow-md shrink-0"></div>
+                <div className="text-left">
+                  <p className="text-xs font-bold">Indigo Dark Mode</p>
+                  <p className="text-[10px] opacity-60">Sleek midnight blue style</p>
+                </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => setThemeColor('amber')}
-                className={`p-5 rounded-2xl border flex flex-col items-center gap-3 transition-all ${themeColor === 'amber' ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-lg' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'}`}
+                onClick={() => setThemeMode('indigo-light')}
+                className={`p-5 rounded-2xl border flex items-center gap-4 transition-all ${themeMode === 'indigo-light' ? 'bg-indigo-100 border-indigo-500 text-slate-900 shadow-lg' : 'opacity-70 hover:opacity-100 border-opacity-30'}`}
               >
-                <div className="w-8 h-8 rounded-full bg-amber-500 shadow-md"></div>
-                <span className="text-xs font-bold">Amber Gold</span>
+                <div className="w-8 h-8 rounded-full bg-indigo-600 shadow-md shrink-0"></div>
+                <div className="text-left">
+                  <p className="text-xs font-bold">Indigo Light Mode</p>
+                  <p className="text-[10px] opacity-60">Clean professional light theme</p>
+                </div>
               </button>
             </div>
           </div>
