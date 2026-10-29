@@ -28,7 +28,8 @@ import {
   Check,
   Settings,
   Palette,
-  LogOut
+  LogOut,
+  Globe
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -39,6 +40,7 @@ export default function App() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
+  const [lang, setLang] = useState('en'); // 'en' or 'ru'
   const [activeTab, setActiveTab] = useState('intake');
   const [serviceType, setServiceType] = useState('alteration');
   
@@ -70,6 +72,123 @@ export default function App() {
   const [nextTagId, setNextTagId] = useState('ALICOW-' + Math.floor(7000 + Math.random() * 900));
 
   const isAdmin = user && user.email === 'alena9506@gmail.com';
+
+  const translations = {
+    en: {
+      subtitle: 'Alterations & Service Laundry POS (Cloud Sync)',
+      newTicket: 'New Ticket',
+      orders: 'Orders',
+      reports: 'Reports',
+      settings: 'Settings',
+      alterationTicket: 'Alteration Ticket',
+      laundryTicket: 'Laundry Ticket',
+      customerPayment: 'Customer & Payment Details',
+      customerName: 'Customer Name',
+      phone: 'Phone Number *',
+      targetDate: 'Target Ready Date',
+      paymentMethod: 'Upfront Payment Method',
+      garmentType: 'Garment Type',
+      fixOptions: 'Fix Options for',
+      customNotes: 'Custom Notes / Pinning Instructions',
+      laundryService: 'Service Type',
+      weightQty: 'Weight / Bag Quantity',
+      totalPrice: 'Total Price (€) *',
+      completePrint: 'Complete Intake & Print 3 Receipts',
+      thermalPreview: 'Thermal Print Preview',
+      submitReceiptPrompt: 'Submit an intake ticket to generate printable thermal claim check receipts.',
+      printReceiptsNow: 'Print Receipts Now',
+      ticketHistory: 'Active Orders & Ticket History',
+      searchPlaceholder: 'Search name, phone, tag...',
+      allStatuses: 'All Statuses',
+      pending: 'Pending',
+      inProgress: 'In Progress',
+      readyPickup: 'Ready for Pickup',
+      completed: 'Completed',
+      tagId: 'Tag ID',
+      customer: 'Customer',
+      service: 'Service',
+      readyDate: 'Ready Date',
+      total: 'Total',
+      status: 'Status',
+      actions: 'Actions',
+      print: 'Print',
+      delete: 'Delete',
+      todaysRevenue: "Today's Revenue",
+      ticketsCreatedToday: 'tickets created today',
+      totalRevenue: 'Total Revenue (All Time)',
+      totalOrdersRecorded: 'total orders recorded',
+      pendingWork: 'Pending / Active Work',
+      ordersInProgress: 'Orders currently in progress or ready',
+      appearanceTitle: 'Appearance & Theme Settings',
+      appearanceDesc: 'Choose your preferred counter display theme for day or night shifts:',
+      darkTheme: 'Teal Dark (Default)',
+      lightTheme: 'Teal Light (Day Mode)',
+      languageTitle: 'Language Settings',
+      languageDesc: 'Choose interface language (Receipts remain in English):',
+      signInTitle: 'Sign In to Terminal',
+      emailLabel: 'Email Address',
+      passwordLabel: 'Password',
+      signInBtn: 'Sign In to Terminal'
+    },
+    ru: {
+      subtitle: 'POS для Ателье и Прачечной (Облачная синхронизация)',
+      newTicket: 'Новый заказ',
+      orders: 'Заказы',
+      reports: 'Отчеты',
+      settings: 'Настройки',
+      alterationTicket: 'Ателье (Ремонт одежды)',
+      laundryTicket: 'Прачечная',
+      customerPayment: 'Клиент и Оплата',
+      customerName: 'Имя клиента',
+      phone: 'Номер телефона *',
+      targetDate: 'Дата готовности',
+      paymentMethod: 'Способ оплаты',
+      garmentType: 'Тип одежды',
+      fixOptions: 'Варианты ремонта для',
+      customNotes: 'Примечания / Инструкции по примерке',
+      laundryService: 'Тип услуги',
+      weightQty: 'Вес / Количество мешков',
+      totalPrice: 'Итоговая цена (€) *',
+      completePrint: 'Оформить и распечатать 3 чека',
+      thermalPreview: 'Превью термочека',
+      submitReceiptPrompt: 'Создайте заказ, чтобы сгенерировать квитанции для печати.',
+      printReceiptsNow: 'Печать чеков',
+      ticketHistory: 'Активные заказы и история',
+      searchPlaceholder: 'Поиск по имени, телефону...',
+      allStatuses: 'Все статусы',
+      pending: 'В ожидании',
+      inProgress: 'В работе',
+      readyPickup: 'Готов к выдаче',
+      completed: 'Завершен',
+      tagId: 'ID Бирки',
+      customer: 'Клиент',
+      service: 'Услуга',
+      readyDate: 'Дата',
+      total: 'Итого',
+      status: 'Статус',
+      actions: 'Действия',
+      print: 'Печать',
+      delete: 'Удалить',
+      todaysRevenue: 'Выручка за сегодня',
+      ticketsCreatedToday: 'билетов создано сегодня',
+      totalRevenue: 'Общая выручка за всё время',
+      totalOrdersRecorded: 'всего заказов записано',
+      pendingWork: 'В работе / Ожидание',
+      ordersInProgress: 'Заказы в процессе или готовы',
+      appearanceTitle: 'Настройки темы оформления',
+      appearanceDesc: 'Выберите тему интерфейса для дневной или ночной смены:',
+      darkTheme: 'Тёмная тиловая (По умолчанию)',
+      lightTheme: 'Светлая тиловая (Дневной режим)',
+      languageTitle: 'Язык интерфейса',
+      languageDesc: 'Выберите язык интерфейса (Чеки печатаются на английском):',
+      signInTitle: 'Вход в терминал',
+      emailLabel: 'Электронная почта',
+      passwordLabel: 'Пароль',
+      signInBtn: 'Войти в систему'
+    }
+  };
+
+  const text = translations[lang] || translations.en;
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -127,7 +246,6 @@ export default function App() {
       buttonSelected: 'bg-teal-500/20 border-teal-500 text-teal-300 shadow-md',
       tabActive: 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20',
       serviceActive: 'bg-teal-500 text-slate-950 shadow-md font-extrabold',
-      iconBox: 'bg-teal-500 text-slate-950 shadow-teal-500/20'
     },
     'teal-light': {
       isLight: true,
@@ -144,13 +262,11 @@ export default function App() {
       buttonSelected: 'bg-teal-100 border-teal-500 text-teal-900 shadow-sm font-bold',
       tabActive: 'bg-teal-600 text-white shadow-md shadow-teal-600/20',
       serviceActive: 'bg-teal-600 text-white shadow-md font-extrabold',
-      iconBox: 'bg-teal-600 text-white shadow-teal-600/20'
     }
   };
 
   const t = themes[themeMode] || themes['teal-dark'];
 
-  // Comprehensive garment-specific alterations including zip runner replacements
   const GARMENT_ALTERATIONS = {
     'Trousers / Jeans': [
       { name: 'Standard Hemming', price: 12.00 },
@@ -328,7 +444,7 @@ export default function App() {
               <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">ALiCo</h1>
-            <p className="text-xs text-slate-400">Sign in to your counter POS terminal</p>
+            <p className="text-xs text-slate-400">{text.signInTitle}</p>
           </div>
 
           {loginError && (
@@ -339,7 +455,7 @@ export default function App() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Email Address</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">{text.emailLabel}</label>
               <input 
                 type="email"
                 required
@@ -350,7 +466,7 @@ export default function App() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Password</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">{text.passwordLabel}</label>
               <input 
                 type="password"
                 required
@@ -364,7 +480,7 @@ export default function App() {
               type="submit"
               className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-teal-500/20"
             >
-              Sign In to Terminal
+              {text.signInBtn}
             </button>
           </form>
         </div>
@@ -385,23 +501,33 @@ export default function App() {
               <span className={`font-semibold text-sm px-2 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
               <span className="text-[10px] opacity-70 ml-2 font-mono">({user.email} - {isAdmin ? 'Admin' : 'Employee'})</span>
             </div>
-            <p className="text-xs opacity-80 font-medium">Alterations & Service Laundry POS (Cloud Sync)</p>
+            <p className="text-xs opacity-80 font-medium">{text.subtitle}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Language Toggle */}
+          <button
+            onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
+            className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
+            title="Toggle Language / Сменить язык"
+          >
+            <Globe className="w-4 h-4 text-teal-400" />
+            {lang === 'en' ? '🇷🇺 RU' : '🇬🇧 EN'}
+          </button>
+
           <div className={`flex p-1.5 rounded-2xl border shadow-inner ${t.navToggleBg}`}>
             <button 
               onClick={() => setActiveTab('intake')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
             >
-              <PlusCircle className="w-4 h-4" /> New Ticket
+              <PlusCircle className="w-4 h-4" /> {text.newTicket}
             </button>
             <button 
               onClick={() => setActiveTab('orders')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
             >
-              <Clock className="w-4 h-4" /> Orders <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
+              <Clock className="w-4 h-4" /> {text.orders} <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
             </button>
             
             {isAdmin && (
@@ -409,7 +535,7 @@ export default function App() {
                 onClick={() => setActiveTab('analytics')}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
               >
-                <BarChart3 className="w-4 h-4" /> Reports
+                <BarChart3 className="w-4 h-4" /> {text.reports}
               </button>
             )}
 
@@ -417,7 +543,7 @@ export default function App() {
               onClick={() => setActiveTab('settings')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
             >
-              <Settings className="w-4 h-4" /> Settings
+              <Settings className="w-4 h-4" /> {text.settings}
             </button>
           </div>
 
@@ -441,14 +567,14 @@ export default function App() {
                   onClick={() => setServiceType('alteration')}
                   className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm transition-all ${serviceType === 'alteration' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                 >
-                  <Scissors className="w-4 h-4" /> Alteration Ticket
+                  <Scissors className="w-4 h-4" /> {text.alterationTicket}
                 </button>
                 <button
                   type="button"
                   onClick={() => setServiceType('laundry')}
                   className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm transition-all ${serviceType === 'laundry' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                 >
-                  <Shirt className="w-4 h-4" /> Laundry Ticket
+                  <Shirt className="w-4 h-4" /> {text.laundryTicket}
                 </button>
               </div>
             </div>
@@ -457,7 +583,7 @@ export default function App() {
               <div className={`lg:col-span-2 border rounded-3xl p-8 shadow-2xl backdrop-blur-sm space-y-8 ${t.cardBg}`}>
                 <div className="flex justify-between items-center pb-4 border-b border-opacity-30">
                   <h2 className="text-base font-bold flex items-center gap-2">
-                    <User className={`w-5 h-5 ${t.textAccent}`} /> Customer & Payment Details
+                    <User className={`w-5 h-5 ${t.textAccent}`} /> {text.customerPayment}
                   </h2>
                   <span className={`font-mono text-xs px-3 py-1 rounded-full font-semibold border ${t.primaryBadge}`}>
                     TAG: {nextTagId}
@@ -467,7 +593,7 @@ export default function App() {
                 <form onSubmit={handleCreateOrder} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Customer Name</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.customerName}</label>
                       <input 
                         type="text" 
                         value={customerName}
@@ -477,7 +603,7 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Phone Number *</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.phone}</label>
                       <input 
                         type="tel" 
                         required
@@ -491,7 +617,7 @@ export default function App() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Target Ready Date</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.targetDate}</label>
                       <input 
                         type="date" 
                         value={dueDate}
@@ -500,7 +626,7 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Upfront Payment Method</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.paymentMethod}</label>
                       <select 
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
@@ -516,12 +642,12 @@ export default function App() {
                     <div className="space-y-6 pt-4 border-t border-opacity-30">
                       <div className="flex justify-between items-center">
                         <h2 className="text-base font-bold flex items-center gap-2">
-                          <Scissors className={`w-5 h-5 ${t.textAccent}`} /> Garments & Alteration Items
+                          <Scissors className={`w-5 h-5 ${t.textAccent}`} /> {text.alterationTicket}
                         </h2>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Garment Type</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.garmentType}</label>
                         <select 
                           value={garmentType} 
                           onChange={(e) => handleGarmentChange(e.target.value)}
@@ -539,7 +665,7 @@ export default function App() {
 
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-3">
-                          Fix Options for {garmentType}:
+                          {text.fixOptions} {garmentType}:
                         </label>
                         <div className="flex flex-wrap gap-2.5">
                           {currentGarmentOptions.map((alt) => {
@@ -560,7 +686,7 @@ export default function App() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Custom Notes / Pinning Instructions</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.customNotes}</label>
                         <input 
                           type="text"
                           value={customAlteration}
@@ -573,10 +699,10 @@ export default function App() {
                   ) : (
                     <div className="space-y-6 pt-4 border-t border-opacity-30">
                       <h2 className="text-base font-bold flex items-center gap-2">
-                        <Shirt className={`w-5 h-5 ${t.textAccent}`} /> Laundry & Dry Cleaning Services
+                        <Shirt className={`w-5 h-5 ${t.textAccent}`} /> {text.laundryTicket}
                       </h2>
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Service Type</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.laundryService}</label>
                         <select 
                           value={laundryService} 
                           onChange={(e) => setLaundryService(e.target.value)}
@@ -589,7 +715,7 @@ export default function App() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Weight / Bag Quantity</label>
+                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.weightQty}</label>
                         <input 
                           type="text"
                           value={weightKg}
@@ -603,7 +729,7 @@ export default function App() {
 
                   <div className="pt-6 border-t border-opacity-30 flex flex-col md:flex-row gap-6 items-center justify-between">
                     <div className="w-full md:w-1/2">
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Total Price (€) *</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.totalPrice}</label>
                       <input 
                         type="number" 
                         step="0.50"
@@ -620,7 +746,7 @@ export default function App() {
                         type="submit"
                         className={`w-full font-bold py-3.5 px-6 rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm ${t.primary}`}
                       >
-                        <Printer className="w-5 h-5" /> Complete Intake & Print 3 Receipts
+                        <Printer className="w-5 h-5" /> {text.completePrint}
                       </button>
                     </div>
                   </div>
@@ -630,7 +756,7 @@ export default function App() {
               <div className={`border rounded-3xl p-6 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <Printer className={`w-4 h-4 ${t.textAccent}`} /> Thermal Print Preview
+                    <Printer className={`w-4 h-4 ${t.textAccent}`} /> {text.thermalPreview}
                   </h3>
                   {selectedOrderForPrint ? (
                     <div className="bg-white text-slate-900 p-5 rounded-2xl font-mono text-xs shadow-inner space-y-3">
@@ -670,7 +796,7 @@ export default function App() {
                   ) : (
                     <div className={`text-center py-16 opacity-70 border border-dashed rounded-2xl ${t.subCardBg}`}>
                       <Printer className="w-8 h-8 mx-auto mb-3 opacity-60" />
-                      <p className="text-xs">Submit an intake ticket to generate printable thermal claim check receipts.</p>
+                      <p className="text-xs">{text.submitReceiptPrompt}</p>
                     </div>
                   )}
                 </div>
@@ -680,7 +806,7 @@ export default function App() {
                     onClick={() => window.print()}
                     className="mt-6 w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-md"
                   >
-                    <Printer className="w-4 h-4" /> Print Receipts Now
+                    <Printer className="w-4 h-4" /> {text.printReceiptsNow}
                   </button>
                 )}
               </div>
@@ -691,13 +817,13 @@ export default function App() {
         {activeTab === 'orders' && (
           <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
             <div className="flex flex-wrap justify-between items-center gap-4">
-              <h2 className="text-lg font-bold">Active Orders & Ticket History</h2>
+              <h2 className="text-lg font-bold">{text.ticketHistory}</h2>
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Search className="w-4 h-4 absolute left-3 top-3.5 opacity-50" />
                   <input 
                     type="text"
-                    placeholder="Search name, phone, tag..."
+                    placeholder={text.searchPlaceholder}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className={`pl-9 pr-4 py-2.5 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
@@ -708,11 +834,11 @@ export default function App() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className={`px-4 py-2.5 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                 >
-                  <option value="All">All Statuses</option>
-                  <option value="Pending">Pending</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Ready for Pickup">Ready for Pickup</option>
-                  <option value="Completed">Completed</option>
+                  <option value="All">{text.allStatuses}</option>
+                  <option value="Pending">{text.pending}</option>
+                  <option value="In Progress">{text.inProgress}</option>
+                  <option value="Ready for Pickup">{text.readyPickup}</option>
+                  <option value="Completed">{text.completed}</option>
                 </select>
               </div>
             </div>
@@ -721,20 +847,20 @@ export default function App() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className={`border-b text-xs uppercase opacity-70 ${t.isLight ? 'border-slate-200' : 'border-slate-700'}`}>
-                    <th className="py-3 px-4">Tag ID</th>
-                    <th className="py-3 px-4">Customer</th>
-                    <th className="py-3 px-4">Phone</th>
-                    <th className="py-3 px-4">Service</th>
-                    <th className="py-3 px-4">Ready Date</th>
-                    <th className="py-3 px-4">Total</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                    <th className="py-3 px-4">{text.tagId}</th>
+                    <th className="py-3 px-4">{text.customer}</th>
+                    <th className="py-3 px-4">{text.phone}</th>
+                    <th className="py-3 px-4">{text.service}</th>
+                    <th className="py-3 px-4">{text.readyDate}</th>
+                    <th className="py-3 px-4">{text.total}</th>
+                    <th className="py-3 px-4">{text.status}</th>
+                    <th className="py-3 px-4 text-right">{text.actions}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/30 text-xs">
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="8" className="text-center py-12 opacity-60">No orders found matching your search.</td>
+                      <td colSpan="8" className="text-center py-12 opacity-60">No orders found.</td>
                     </tr>
                   ) : (
                     filteredOrders.map(o => (
@@ -751,10 +877,10 @@ export default function App() {
                             onChange={(e) => updateStatus(o.docId, e.target.value)}
                             className={`px-3 py-1 rounded-lg text-xs font-semibold border ${t.innerInputBg}`}
                           >
-                            <option value="Pending">Pending</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Ready for Pickup">Ready for Pickup</option>
-                            <option value="Completed">Completed</option>
+                            <option value="Pending">{text.pending}</option>
+                            <option value="In Progress">{text.inProgress}</option>
+                            <option value="Ready for Pickup">{text.readyPickup}</option>
+                            <option value="Completed">{text.completed}</option>
                           </select>
                         </td>
                         <td className="py-4 px-4 text-right space-x-2">
@@ -762,14 +888,14 @@ export default function App() {
                             onClick={() => setSelectedOrderForPrint(o)}
                             className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium"
                           >
-                            Print
+                            {text.print}
                           </button>
                           {isAdmin && (
                             <button
                               onClick={() => deleteOrder(o.docId)}
                               className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg font-medium"
                             >
-                              Delete
+                              {text.delete}
                             </button>
                           )}
                         </td>
@@ -786,47 +912,72 @@ export default function App() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className={`p-6 rounded-3xl border shadow-xl ${t.cardBg}`}>
-                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">Today's Revenue</p>
+                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">{text.todaysRevenue}</p>
                 <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{todaysRevenue.toFixed(2)}</h3>
-                <p className="text-xs opacity-60 mt-2">{todaysOrders.length} tickets created today</p>
+                <p className="text-xs opacity-60 mt-2">{todaysOrders.length} {text.ticketsCreatedToday}</p>
               </div>
               <div className={`p-6 rounded-3xl border shadow-xl ${t.cardBg}`}>
-                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">Total Revenue (All Time)</p>
+                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">{text.totalRevenue}</p>
                 <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{totalRevenue.toFixed(2)}</h3>
-                <p className="text-xs opacity-60 mt-2">{orders.length} total orders recorded</p>
+                <p className="text-xs opacity-60 mt-2">{orders.length} {text.totalOrdersRecorded}</p>
               </div>
               <div className={`p-6 rounded-3xl border shadow-xl ${t.cardBg}`}>
-                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">Pending / Active Work</p>
+                <p className="text-xs uppercase tracking-wider opacity-70 mb-1 font-semibold">{text.pendingWork}</p>
                 <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>{orders.filter(o => o.status !== 'Completed').length}</h3>
-                <p className="text-xs opacity-60 mt-2">Orders currently in progress or ready</p>
+                <p className="text-xs opacity-60 mt-2">{text.ordersInProgress}</p>
               </div>
             </div>
           </div>
         )}
 
         {activeTab === 'settings' && (
-          <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 max-w-xl mx-auto w-full ${t.cardBg}`}>
-            <h2 className="text-lg font-bold flex items-center gap-2">
-              <Palette className={`w-5 h-5 ${t.textAccent}`} /> Appearance & Theme Settings
-            </h2>
-            <p className="text-xs opacity-75">Choose your preferred counter display theme for day or night shifts:</p>
-            
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <button
-                onClick={() => setThemeMode('teal-dark')}
-                className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-dark' ? 'border-teal-500 bg-teal-500/10 shadow-md' : 'border-slate-700 bg-slate-900'}`}
-              >
-                <div className="w-6 h-6 rounded-full bg-teal-500"></div>
-                <p className="text-xs font-bold text-white">Teal Dark (Default)</p>
-              </button>
+          <div className="space-y-6 max-w-xl mx-auto w-full">
+            <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Palette className={`w-5 h-5 ${t.textAccent}`} /> {text.appearanceTitle}
+              </h2>
+              <p className="text-xs opacity-75">{text.appearanceDesc}</p>
+              
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <button
+                  onClick={() => setThemeMode('teal-dark')}
+                  className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-dark' ? 'border-teal-500 bg-teal-500/10 shadow-md' : 'border-slate-700 bg-slate-900'}`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-teal-500"></div>
+                  <p className="text-xs font-bold text-white">{text.darkTheme}</p>
+                </button>
 
-              <button
-                onClick={() => setThemeMode('teal-light')}
-                className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-light' ? 'border-teal-600 bg-teal-100 text-slate-900 shadow-md' : 'border-slate-300 bg-white text-slate-900'}`}
-              >
-                <div className="w-6 h-6 rounded-full bg-teal-600"></div>
-                <p className="text-xs font-bold">Teal Light (Day Mode)</p>
-              </button>
+                <button
+                  onClick={() => setThemeMode('teal-light')}
+                  className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-light' ? 'border-teal-600 bg-teal-100 text-slate-900 shadow-md' : 'border-slate-300 bg-white text-slate-900'}`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-teal-600"></div>
+                  <p className="text-xs font-bold">{text.lightTheme}</p>
+                </button>
+              </div>
+            </div>
+
+            <div className={`border rounded-3xl p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Globe className={`w-5 h-5 ${t.textAccent}`} /> {text.languageTitle}
+              </h2>
+              <p className="text-xs opacity-75">{text.languageDesc}</p>
+
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <button
+                  onClick={() => setLang('en')}
+                  className={`p-4 rounded-2xl border text-left space-y-1 transition-all ${lang === 'en' ? 'border-teal-500 bg-teal-500/10 shadow-md font-bold' : 'border-slate-700 bg-slate-900'}`}
+                >
+                  <p className="text-sm">🇬🇧 English</p>
+                </button>
+
+                <button
+                  onClick={() => setLang('ru')}
+                  className={`p-4 rounded-2xl border text-left space-y-1 transition-all ${lang === 'ru' ? 'border-teal-500 bg-teal-500/10 shadow-md font-bold' : 'border-slate-700 bg-slate-900'}`}
+                >
+                  <p className="text-sm">🇷🇺 Русский</p>
+                </button>
+              </div>
             </div>
           </div>
         )}
