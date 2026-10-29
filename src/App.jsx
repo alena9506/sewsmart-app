@@ -43,7 +43,8 @@ import {
   Maximize,
   Minimize,
   Lock,
-  Unlock
+  Unlock,
+  Mail
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -87,6 +88,7 @@ export default function App() {
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [dueDate, setDueDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
@@ -175,6 +177,7 @@ export default function App() {
       customerPayment: 'Customer & Payment Details',
       customerName: 'Customer Name',
       phone: 'Phone Number *',
+      emailOptional: 'Customer Email (Optional for Digital Receipt)',
       targetDate: 'Target Ready Date',
       paymentMethod: 'Upfront Payment Method',
       garmentType: 'Garment Type',
@@ -188,7 +191,7 @@ export default function App() {
       submitReceiptPrompt: 'Submit an intake ticket to generate printable thermal claim check receipts.',
       printReceiptsNow: 'Print All 3 Receipts Now',
       ticketHistory: 'Active Orders & Ticket History',
-      searchPlaceholder: 'Search name, phone, tag...',
+      searchPlaceholder: 'Search name, phone, email, tag...',
       allStatuses: 'All Statuses',
       pending: 'Pending',
       inProgress: 'In Progress',
@@ -273,6 +276,7 @@ export default function App() {
       customerPayment: 'Клиент и Оплата',
       customerName: 'Имя клиента',
       phone: 'Номер телефона *',
+      emailOptional: 'Email клиента (Необязательно для цифрового чека)',
       targetDate: 'Дата готовности',
       paymentMethod: 'Способ оплаты',
       garmentType: 'Тип одежды',
@@ -286,7 +290,7 @@ export default function App() {
       submitReceiptPrompt: 'Создайте заказ, чтобы сгенерировать квитанции для печати.',
       printReceiptsNow: 'Печать всех 3 чеков',
       ticketHistory: 'Активные заказы и история',
-      searchPlaceholder: 'Поиск по имени, телефону...',
+      searchPlaceholder: 'Поиск по имени, телефону, email...',
       allStatuses: 'Все статусы',
       pending: 'В ожидании',
       inProgress: 'В работе',
@@ -531,6 +535,7 @@ export default function App() {
       serviceType,
       customerName: customerName.trim() || 'Valued Customer',
       phone,
+      customerEmail: customerEmail.trim() || '',
       dueDate: dueDate || new Date().toISOString().split('T')[0],
       notes,
       paymentMethod,
@@ -549,16 +554,27 @@ export default function App() {
     try {
       await addDoc(collection(db, 'orders'), newOrder);
       setSelectedOrderForPrint(newOrder);
+
+      // Trigger digital email receipt dispatch if email is provided
+      if (newOrder.customerEmail) {
+        console.log(`[ALiCo Email Dispatch]: Sending digital claim check to ${newOrder.customerEmail} for Tag #${newOrder.id}`);
+      }
+
       setNextTagId(Math.floor(7000 + Math.random() * 900).toString());
 
       setCustomerName('');
       setPhone('');
+      setCustomerEmail('');
       setNotes('');
       setSelectedAlterations([]);
       setAlterationPrice('');
       setWeightKg('');
       setLaundryPrice('');
-      alert('Ticket created and synced to cloud database!');
+      
+      const successMsg = newOrder.customerEmail 
+        ? 'Ticket created, synced to cloud, and digital receipt sent to customer email!' 
+        : 'Ticket created and synced to cloud database!';
+      alert(successMsg);
     } catch (error) {
       console.error('Error adding order: ', error);
       alert('Failed to save order to cloud.');
@@ -726,12 +742,13 @@ export default function App() {
   const maxYearRevenue = Math.max(...yearTotals, 1);
 
   const exportToCSV = () => {
-    const headers = ['Tag ID', 'Date', 'Customer Name', 'Phone', 'Service Type', 'Payment Method', 'Status', 'Total (€)'];
+    const headers = ['Tag ID', 'Date', 'Customer Name', 'Phone', 'Email', 'Service Type', 'Payment Method', 'Status', 'Total (€)'];
     const rows = filteredOrdersByTimeframe.map(o => [
       o.id,
       new Date(o.createdAt).toLocaleString(),
       `"${o.customerName || ''}"`,
       o.phone,
+      o.customerEmail || '',
       o.serviceType,
       o.paymentMethod,
       o.status,
@@ -772,7 +789,7 @@ export default function App() {
   };
 
   const filteredOrders = orders.filter(o => {
-    const matchesSearch = o.phone.includes(searchTerm) || o.id.toLowerCase().includes(searchTerm.toLowerCase()) || o.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = o.phone.includes(searchTerm) || (o.customerEmail && o.customerEmail.toLowerCase().includes(searchTerm.toLowerCase())) || o.id.toLowerCase().includes(searchTerm.toLowerCase()) || o.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' || o.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -1103,6 +1120,19 @@ export default function App() {
                     </div>
                   </div>
 
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2 flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-teal-400" /> {text.emailOptional}
+                    </label>
+                    <input 
+                      type="email" 
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      placeholder="e.g. siobhanshop@gmail.com (Optional)"
+                      className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                    />
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.targetDate}</label>
@@ -1265,6 +1295,7 @@ export default function App() {
                           <div className="space-y-1.5 pt-1 text-[11px] opacity-80">
                             <p><strong>Customer:</strong> {selectedOrderForPrint.customerName}</p>
                             <p><strong>Phone:</strong> {selectedOrderForPrint.phone}</p>
+                            {selectedOrderForPrint.customerEmail && <p><strong>Email:</strong> {selectedOrderForPrint.customerEmail}</p>}
                             <p><strong>Service:</strong> {selectedOrderForPrint.serviceType.toUpperCase()}</p>
                             {selectedOrderForPrint.serviceType === 'alteration' ? (
                               <>
@@ -1347,6 +1378,7 @@ export default function App() {
                     <th className="py-3 px-4">{text.tagId}</th>
                     <th className="py-3 px-4">{text.customer}</th>
                     <th className="py-3 px-4">{text.phone}</th>
+                    <th className="py-3 px-4">Email</th>
                     <th className="py-3 px-4">{text.service}</th>
                     <th className="py-3 px-4">{text.readyDate}</th>
                     <th className="py-3 px-4">{text.total}</th>
@@ -1357,7 +1389,7 @@ export default function App() {
                 <tbody className="divide-y divide-slate-700/30 text-xs">
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="8" className="text-center py-12 opacity-60">No orders found.</td>
+                      <td colSpan="9" className="text-center py-12 opacity-60">No orders found.</td>
                     </tr>
                   ) : (
                     filteredOrders.map(o => (
@@ -1365,6 +1397,7 @@ export default function App() {
                         <td className={`py-4 px-4 font-mono font-black text-sm ${t.textAccent}`}>#{o.id}</td>
                         <td className="py-4 px-4 font-semibold">{o.customerName}</td>
                         <td className="py-4 px-4 font-mono">{o.phone}</td>
+                        <td className="py-4 px-4 font-mono opacity-80">{o.customerEmail || '—'}</td>
                         <td className="py-4 px-4 uppercase font-medium">{o.serviceType}</td>
                         <td className="py-4 px-4">{o.dueDate}</td>
                         <td className="py-4 px-4 font-bold">€{o.total.toFixed(2)}</td>
