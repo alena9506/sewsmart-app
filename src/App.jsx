@@ -36,7 +36,10 @@ import {
   FileSpreadsheet,
   FileText,
   SlidersHorizontal,
-  Sliders
+  Sliders,
+  Wallet,
+  Receipt,
+  Plus
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -59,6 +62,13 @@ export default function App() {
   const [optimizationPin, setOptimizationPin] = useState('');
   const [isOptimizationUnlocked, setIsOptimizationUnlocked] = useState(false);
   const [optimizationPinError, setOptimizationPinError] = useState(false);
+
+  // Bookkeeping / Expenses State
+  const [expenses, setExpenses] = useState([]);
+  const [expenseDescription, setExpenseDescription] = useState('');
+  const [expenseCategory, setExpenseCategory] = useState('Supplies & Materials');
+  const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -127,13 +137,15 @@ export default function App() {
       actions: 'Actions',
       print: 'Print',
       delete: 'Delete',
-      analyticsTitle: 'Smart Business Analytics & Reports',
-      analyticsDesc: 'Performance metrics, audit summaries, and comparative period trackers.',
+      analyticsTitle: 'Smart Business Analytics & Bookkeeping',
+      analyticsDesc: 'Performance metrics, independent expense tracking, and net profit summaries.',
       timeframeDay: 'Today',
       timeframeWeek: 'This Week',
       timeframeMonth: 'This Month',
       timeframeYear: 'This Year',
-      totalRevenue: 'Total Revenue',
+      totalRevenue: 'Gross Revenue (Scaled)',
+      totalExpenses: 'Total Expenses (Unscaled)',
+      netProfit: 'Net Operating Profit',
       totalOrders: 'Total Orders',
       avgTicketValue: 'Average Ticket Value',
       paymentSplit: 'Payment Method Breakdown',
@@ -143,6 +155,12 @@ export default function App() {
       bestYearsMeter: 'Performance Meter: Revenue by Year (Historical)',
       exportCsv: 'Export Excel (CSV)',
       exportPdf: 'Export PDF Report',
+      bookkeepingTitle: 'Business Expense Bookkeeping',
+      bookkeepingDesc: 'Record expenses below. Spendings are kept independent and remain unscaled by the display calibration multiplier.',
+      expenseDescPlaceholder: 'e.g. Thread, Zippers, Detergent, Rent',
+      expenseAmountPlaceholder: 'Amount (€)',
+      addExpenseBtn: 'Record Expense',
+      expenseHistory: 'Recorded Expenses Log',
       optimizationTitle: 'Display Scaling & Metrics Calibration',
       optimizationDesc: 'Internal reporting factor adjustments for display calibration and comparative telemetry.',
       pinPrompt: 'Enter PIN to Access Calibration',
@@ -199,13 +217,15 @@ export default function App() {
       actions: 'Действия',
       print: 'Печать',
       delete: 'Удалить',
-      analyticsTitle: 'Аналитика и Отчеты',
-      analyticsDesc: 'Показатели производительности и сравнительные отчеты.',
+      analyticsTitle: 'Аналитика и Бухгалтерия',
+      analyticsDesc: 'Показатели производительности, учет независимых расходов и чистая прибыль.',
       timeframeDay: 'Сегодня',
       timeframeWeek: 'Эта неделя',
       timeframeMonth: 'Этот месяц',
       timeframeYear: 'Этот год',
-      totalRevenue: 'Общая выручка',
+      totalRevenue: 'Валовая выручка (Скорректированная)',
+      totalExpenses: 'Все расходы (Полные)',
+      netProfit: 'Чистая операционная прибыль',
       totalOrders: 'Всего заказов',
       avgTicketValue: 'Средний чек',
       paymentSplit: 'Распределение по способам оплаты',
@@ -215,6 +235,12 @@ export default function App() {
       bestYearsMeter: 'Сравнение производительности по годам',
       exportCsv: 'Экспорт Excel (CSV)',
       exportPdf: 'Экспорт PDF Отчета',
+      bookkeepingTitle: 'Учет расходов и бухгалтерия',
+      bookkeepingDesc: 'Записывайте расходы ниже. Расходы учитываются независимо и не зависят от коэффициента калибровки выручки.',
+      expenseDescPlaceholder: 'напр. Нитки, Молнии, Порошок, Аренда',
+      expenseAmountPlaceholder: 'Сумма (€)',
+      addExpenseBtn: 'Добавить расход',
+      expenseHistory: 'Журнал записанных расходов',
       optimizationTitle: 'Масштабирование дисплея и калибровка метрик',
       optimizationDesc: 'Внутренняя регулировка коэффициентов отображения отчетов.',
       pinPrompt: 'Введите PIN для доступа к калибровке',
@@ -345,6 +371,19 @@ export default function App() {
     return () => unsubscribeOrders();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'expenses'), orderBy('createdAt', 'desc'));
+    const unsubscribeExpenses = onSnapshot(q, (snapshot) => {
+      const expData = snapshot.docs.map(doc => ({
+        docId: doc.id,
+        ...doc.data()
+      }));
+      setExpenses(expData);
+    });
+    return () => unsubscribeExpenses();
+  }, [user]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
@@ -417,6 +456,44 @@ export default function App() {
     }
   };
 
+  const handleAddExpense = async (e) => {
+    e.preventDefault();
+    const amountNum = Number(expenseAmount);
+    if (!amountNum || amountNum <= 0) {
+      alert('Please enter a valid expense amount.');
+      return;
+    }
+
+    const newExpense = {
+      createdAt: new Date().toISOString(),
+      date: expenseDate,
+      description: expenseDescription.trim() || 'General Business Expense',
+      category: expenseCategory,
+      amount: amountNum
+    };
+
+    try {
+      await addDoc(collection(db, 'expenses'), newExpense);
+      setExpenseDescription('');
+      setExpenseAmount('');
+      alert('Expense recorded successfully!');
+    } catch (error) {
+      console.error('Error adding expense: ', error);
+      alert('Failed to save expense to cloud.');
+    }
+  };
+
+  const deleteExpense = async (docId) => {
+    if (!isAdmin) return;
+    if (confirm('Delete this expense record?')) {
+      try {
+        await deleteDoc(doc(db, 'expenses', docId));
+      } catch (error) {
+        console.error('Error deleting expense:', error);
+      }
+    }
+  };
+
   const updateStatus = async (docId, newStatus) => {
     try {
       const orderRef = doc(db, 'orders', docId);
@@ -457,8 +534,27 @@ export default function App() {
     return true;
   });
 
-  // Apply scaling multiplier to metrics
+  const filteredExpensesByTimeframe = expenses.filter(ex => {
+    const exDate = new Date(ex.createdAt);
+    if (reportTimeframe === 'day') {
+      return exDate.toDateString() === now.toDateString();
+    } else if (reportTimeframe === 'week') {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(now.getDate() - 7);
+      return exDate >= oneWeekAgo;
+    } else if (reportTimeframe === 'month') {
+      return exDate.getMonth() === now.getMonth() && exDate.getFullYear() === now.getFullYear();
+    } else if (reportTimeframe === 'year') {
+      return exDate.getFullYear() === now.getFullYear();
+    }
+    return true;
+  });
+
+  // Apply scaling multiplier to revenue metrics only; expenses remain completely unscaled and independent
   const periodRevenue = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+  const periodExpenses = filteredExpensesByTimeframe.reduce((acc, ex) => acc + ex.amount, 0);
+  const periodNetProfit = periodRevenue - periodExpenses;
+
   const periodOrderCount = filteredOrdersByTimeframe.length;
   const avgTicket = periodOrderCount > 0 ? periodRevenue / periodOrderCount : 0;
 
@@ -1124,7 +1220,7 @@ export default function App() {
 
               {revenueMultiplier !== 1.00 && (
                 <div className="bg-slate-800 border border-slate-700 text-slate-300 p-4 rounded-2xl text-xs flex items-center justify-between">
-                  <span>{text.activeNotice} <strong>{Math.round(revenueMultiplier * 100)}%</strong>.</span>
+                  <span>{text.activeNotice} <strong>{Math.round(revenueMultiplier * 100)}%</strong>. (Expenses remain completely independent and unscaled).</span>
                   <button 
                     onClick={() => setRevenueMultiplier(1.00)}
                     className="underline font-bold text-teal-400 hover:text-teal-300"
@@ -1134,18 +1230,121 @@ export default function App() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+              {/* Financial Summary Cards (Revenue, Expenses, Net Profit) */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
                   <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalRevenue}</p>
-                  <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</h3>
+                  <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</h3>
+                </div>
+                <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalExpenses}</p>
+                  <h3 className="text-2xl font-extrabold text-rose-400">€{periodExpenses.toFixed(2)}</h3>
+                </div>
+                <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.netProfit}</p>
+                  <h3 className={`text-2xl font-extrabold ${periodNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    €{periodNetProfit.toFixed(2)}
+                  </h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
                   <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalOrders}</p>
-                  <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>{periodOrderCount}</h3>
+                  <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>{periodOrderCount}</h3>
                 </div>
-                <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.avgTicketValue}</p>
-                  <h3 className={`text-3xl font-extrabold ${t.textAccent}`}>€{avgTicket.toFixed(2)}</h3>
+              </div>
+
+              {/* Bookkeeping & Expense Entry Section inside Reports/Analytics */}
+              <div className={`p-6 rounded-3xl border space-y-4 ${t.subCardBg}`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    <Wallet className={`w-4 h-4 ${t.textAccent}`} /> {text.bookkeepingTitle}
+                  </h3>
+                  <span className="text-[11px] opacity-70">Independent & unscaled spendings</span>
+                </div>
+                <p className="text-xs opacity-75">{text.bookkeepingDesc}</p>
+
+                <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-5 gap-4 pt-2">
+                  <div className="md:col-span-2">
+                    <input 
+                      type="text"
+                      required
+                      value={expenseDescription}
+                      onChange={(e) => setExpenseDescription(e.target.value)}
+                      placeholder={text.expenseDescPlaceholder}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <select
+                      value={expenseCategory}
+                      onChange={(e) => setExpenseCategory(e.target.value)}
+                      className={`w-full border rounded-xl px-3 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    >
+                      <option value="Supplies & Materials">Supplies & Materials</option>
+                      <option value="Rent & Utilities">Rent & Utilities</option>
+                      <option value="Equipment & Maintenance">Equipment & Maintenance</option>
+                      <option value="Payroll & Subcontractors">Payroll & Subcontractors</option>
+                      <option value="Miscellaneous">Miscellaneous</option>
+                    </select>
+                  </div>
+                  <div>
+                    <input 
+                      type="number"
+                      step="0.01"
+                      required
+                      value={expenseAmount}
+                      onChange={(e) => setExpenseAmount(e.target.value)}
+                      placeholder={text.expenseAmountPlaceholder}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <button
+                      type="submit"
+                      className={`w-full font-bold py-2.5 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
+                    >
+                      <Plus className="w-4 h-4" /> {text.addExpenseBtn}
+                    </button>
+                  </div>
+                </form>
+
+                {/* Expense History Table */}
+                <div className="pt-4 overflow-x-auto">
+                  <p className="text-xs font-bold mb-2 uppercase tracking-wider opacity-75">{text.expenseHistory}</p>
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-700/50 opacity-70">
+                        <th className="py-2 px-3">Date</th>
+                        <th className="py-2 px-3">Description</th>
+                        <th className="py-2 px-3">Category</th>
+                        <th className="py-2 px-3">Amount</th>
+                        <th className="py-2 px-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/20">
+                      {filteredExpensesByTimeframe.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" className="text-center py-6 opacity-60">No expenses recorded for this timeframe.</td>
+                        </tr>
+                      ) : (
+                        filteredExpensesByTimeframe.map(ex => (
+                          <tr key={ex.docId} className="hover:bg-slate-500/5 transition-colors">
+                            <td className="py-2.5 px-3 font-mono">{ex.date || ex.createdAt?.split('T')[0]}</td>
+                            <td className="py-2.5 px-3 font-semibold">{ex.description}</td>
+                            <td className="py-2.5 px-3 opacity-80">{ex.category}</td>
+                            <td className="py-2.5 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
+                            <td className="py-2.5 px-3 text-right">
+                              <button
+                                onClick={() => deleteExpense(ex.docId)}
+                                className="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
@@ -1383,7 +1582,7 @@ export default function App() {
                       </div>
                     </div>
                     <p className="text-[11px] opacity-60">
-                      * Adjusts visual metrics scaling across reports, spreadsheets, and summary documentation.
+                      * Adjusts visual metrics scaling across reports. Expense records remain fully independent and unscaled.
                     </p>
                   </div>
                 )}
