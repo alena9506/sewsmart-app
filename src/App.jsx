@@ -41,7 +41,9 @@ import {
   Receipt,
   Plus,
   Maximize,
-  Minimize
+  Minimize,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -59,6 +61,9 @@ export default function App() {
   const [themeMode, setThemeMode] = useState('teal-dark');
   const [reportTimeframe, setReportTimeframe] = useState('month');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isTerminalLocked, setIsTerminalLocked] = useState(false);
+  const [unlockPinInput, setUnlockPinInput] = useState('');
+  const [unlockPinError, setUnlockPinError] = useState(false);
 
   // Custom Date Range Filters for Bookkeeping
   const [startDateFilter, setStartDateFilter] = useState('');
@@ -845,7 +850,65 @@ export default function App() {
   const t = themes[themeMode] || themes['teal-dark'];
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg}`}>
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
+      {/* Locked Terminal Overlay */}
+      {isTerminalLocked && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-6">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6 text-center">
+            <div className="w-16 h-16 bg-teal-500/10 border border-teal-500/30 text-teal-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
+              <Lock className="w-8 h-8 animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Terminal Locked</h2>
+              <p className="text-xs text-slate-400 mt-1">Enter your 4-digit security PIN to resume operation.</p>
+            </div>
+
+            {unlockPinError && (
+              <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 p-3 rounded-xl text-xs font-medium">
+                Incorrect PIN. Please try again.
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <input 
+                type="password"
+                maxLength="4"
+                autoFocus
+                value={unlockPinInput}
+                onChange={(e) => setUnlockPinInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    if (unlockPinInput === '3256') {
+                      setIsTerminalLocked(false);
+                      setUnlockPinInput('');
+                      setUnlockPinError(false);
+                    } else {
+                      setUnlockPinError(true);
+                    }
+                  }
+                }}
+                placeholder="••••"
+                className="w-48 bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-xl tracking-widest text-center font-mono text-white focus:outline-none focus:border-teal-500 mx-auto block shadow-inner"
+              />
+              <button
+                onClick={() => {
+                  if (unlockPinInput === '3256') {
+                    setIsTerminalLocked(false);
+                    setUnlockPinInput('');
+                    setUnlockPinError(false);
+                  } else {
+                    setUnlockPinError(true);
+                  }
+                }}
+                className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-sm transition-all shadow-lg shadow-teal-500/20"
+              >
+                Unlock Terminal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className={`border-b px-6 py-4 flex flex-wrap justify-between items-center gap-4 shadow-md ${t.headerBg}`}>
         <div className="flex items-center gap-3">
           <div className="w-16 h-10 flex items-center justify-center">
@@ -872,6 +935,16 @@ export default function App() {
               <Sliders className="w-3.5 h-3.5 text-teal-400" /> Scale: {Math.round(revenueMultiplier * 100)}%
             </span>
           )}
+
+          {/* Terminal Lock Button */}
+          <button
+            onClick={() => setIsTerminalLocked(true)}
+            className="px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm"
+            title="Lock Terminal against accidental clicks"
+          >
+            <Lock className="w-4 h-4" />
+            <span className="hidden md:inline">Lock Screen</span>
+          </button>
 
           {/* Fullscreen Toggle Button */}
           <button
