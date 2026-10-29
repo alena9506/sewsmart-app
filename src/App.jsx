@@ -111,6 +111,7 @@ export default function App() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      setUser(null);
     } catch (error) {
       console.error('Error signing out', error);
     }
@@ -184,7 +185,7 @@ export default function App() {
       buttonSelected: 'bg-indigo-100 border-indigo-500 text-indigo-900 shadow-sm font-bold',
       tabActive: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20',
       serviceActive: 'bg-indigo-600 text-white shadow-md font-extrabold',
-      iconBox: 'bg-indigo-600 text-white shadow-indigo-600/20'
+      iconBox: 'bg-indigo-600 text-white shadow-teal-600/20'
     }
   };
 
@@ -292,7 +293,6 @@ export default function App() {
     return matchesSearch && matchesStatus;
   });
 
-  // Calculate Today's Sales for Employees & Admin
   const todayStr = new Date().toISOString().split('T')[0];
   const todaysOrders = orders.filter(o => o.createdAt.startsWith(todayStr));
   const todaysRevenue = todaysOrders.reduce((acc, o) => acc + o.total, 0);
@@ -394,7 +394,6 @@ export default function App() {
               <Clock className="w-4 h-4" /> Orders <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
             </button>
             
-            {/* Reports tab only visible to Admin */}
             {isAdmin && (
               <button 
                 onClick={() => setActiveTab('analytics')}
