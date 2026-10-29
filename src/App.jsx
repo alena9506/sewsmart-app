@@ -58,7 +58,7 @@ export default function App() {
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
   const [nextTagId, setNextTagId] = useState('ALT-' + Math.floor(7000 + Math.random() * 900));
 
-  // Theme styling mapper with dedicated text color definitions
+  // Theme styling mapper with dynamic input backgrounds
   const themes = {
     'teal-dark': {
       isLight: false,
@@ -81,9 +81,9 @@ export default function App() {
       appBg: 'bg-slate-100 text-slate-900',
       headerBg: 'bg-white border-slate-200 text-slate-900 shadow-sm',
       cardBg: 'bg-white border-slate-200 text-slate-900 shadow-xl',
-      innerInputBg: 'bg-white border-slate-300 text-slate-900 placeholder-slate-400',
+      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400',
       navToggleBg: 'bg-slate-200 border-slate-300 text-slate-800',
-      subCardBg: 'bg-slate-50 text-slate-800',
+      subCardBg: 'bg-slate-100 text-slate-800',
       primary: 'bg-teal-600 hover:bg-teal-500 text-white',
       primaryBadge: 'bg-teal-100 border-teal-300 text-teal-800',
       textAccent: 'text-teal-700',
@@ -113,9 +113,9 @@ export default function App() {
       appBg: 'bg-slate-100 text-slate-900',
       headerBg: 'bg-white border-slate-200 text-slate-900 shadow-sm',
       cardBg: 'bg-white border-slate-200 text-slate-900 shadow-xl',
-      innerInputBg: 'bg-white border-slate-300 text-slate-900 placeholder-slate-400',
+      innerInputBg: 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400',
       navToggleBg: 'bg-slate-200 border-slate-300 text-slate-800',
-      subCardBg: 'bg-slate-50 text-slate-800',
+      subCardBg: 'bg-slate-100 text-slate-800',
       primary: 'bg-indigo-600 hover:bg-indigo-500 text-white',
       primaryBadge: 'bg-indigo-100 border-indigo-300 text-indigo-800',
       textAccent: 'text-indigo-700',
