@@ -158,10 +158,19 @@ export default function App() {
       exportPdf: 'Export PDF Report',
       bookkeepingTitle: 'Business Expense Bookkeeping',
       bookkeepingDesc: 'Record expenses below. Spendings are kept independent and remain unscaled by the display calibration multiplier.',
+      recordExpenseHeader: 'Record New Business Spend',
+      expenseDateLabel: 'Date',
+      expenseDescLabel: 'Description / Vendor',
+      expenseCategoryLabel: 'Category',
       expenseDescPlaceholder: 'e.g. Thread, Zippers, Detergent, Rent',
       expenseAmountPlaceholder: 'Amount (€)',
       addExpenseBtn: 'Record Expense',
       expenseHistory: 'Recorded Expenses Log',
+      catSupplies: 'Supplies & Materials',
+      catRent: 'Rent & Utilities',
+      catEquipment: 'Equipment & Maintenance',
+      catPayroll: 'Payroll & Subcontractors',
+      catMisc: 'Miscellaneous',
       optimizationTitle: 'Display Scaling & Metrics Calibration',
       optimizationDesc: 'Internal reporting factor adjustments for display calibration and comparative telemetry.',
       pinPrompt: 'Enter PIN to Access Calibration',
@@ -239,10 +248,19 @@ export default function App() {
       exportPdf: 'Экспорт PDF Отчета',
       bookkeepingTitle: 'Учет расходов и бухгалтерия',
       bookkeepingDesc: 'Записывайте расходы ниже. Расходы учитываются независимо и не зависят от коэффициента калибровки выручки.',
+      recordExpenseHeader: 'Добавить новый расход',
+      expenseDateLabel: 'Дата',
+      expenseDescLabel: 'Описание / Поставщик',
+      expenseCategoryLabel: 'Категория',
       expenseDescPlaceholder: 'напр. Нитки, Молнии, Порошок, Аренда',
       expenseAmountPlaceholder: 'Сумма (€)',
       addExpenseBtn: 'Добавить расход',
       expenseHistory: 'Журнал записанных расходов',
+      catSupplies: 'Материалы и расходники',
+      catRent: 'Аренда и коммунальные услуги',
+      catEquipment: 'Оборудование и обслуживание',
+      catPayroll: 'Зарплата и подрядчики',
+      catMisc: 'Разное / Прочее',
       optimizationTitle: 'Масштабирование дисплея и калибровка метрик',
       optimizationDesc: 'Внутренняя регулировка коэффициентов отображения отчетов.',
       pinPrompt: 'Введите PIN для доступа к калибровке',
@@ -263,6 +281,14 @@ export default function App() {
   };
 
   const text = translations[lang] || translations.en;
+
+  const EXPENSE_CATEGORIES = [
+    { key: 'Supplies & Materials', label: text.catSupplies },
+    { key: 'Rent & Utilities', label: text.catRent },
+    { key: 'Equipment & Maintenance', label: text.catEquipment },
+    { key: 'Payroll & Subcontractors', label: text.catPayroll },
+    { key: 'Miscellaneous', label: text.catMisc },
+  ];
 
   const GARMENTS = [
     { key: 'Trousers / Jeans', en: 'Trousers / Jeans', ru: 'Брюки / Джинсы' },
@@ -1418,11 +1444,11 @@ export default function App() {
               {/* Add Expense Form */}
               <form onSubmit={handleAddExpense} className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-sm font-bold flex items-center gap-2">
-                  <Wallet className={`w-4 h-4 ${t.textAccent}`} /> Record New Business Spend
+                  <Wallet className={`w-4 h-4 ${t.textAccent}`} /> {text.recordExpenseHeader}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Date</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.expenseDateLabel}</label>
                     <input 
                       type="date"
                       required
@@ -1432,7 +1458,7 @@ export default function App() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Description / Vendor</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.expenseDescLabel}</label>
                     <input 
                       type="text"
                       required
@@ -1443,17 +1469,15 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Category</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.expenseCategoryLabel}</label>
                     <select
                       value={expenseCategory}
                       onChange={(e) => setExpenseCategory(e.target.value)}
                       className={`w-full border rounded-xl px-3 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     >
-                      <option value="Supplies & Materials">Supplies & Materials</option>
-                      <option value="Rent & Utilities">Rent & Utilities</option>
-                      <option value="Equipment & Maintenance">Equipment & Maintenance</option>
-                      <option value="Payroll & Subcontractors">Payroll & Subcontractors</option>
-                      <option value="Miscellaneous">Miscellaneous</option>
+                      {EXPENSE_CATEGORIES.map(cat => (
+                        <option key={cat.key} value={cat.key}>{cat.label}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -1504,22 +1528,27 @@ export default function App() {
                         <td colSpan="5" className="text-center py-10 opacity-60">No expenses recorded for this timeframe.</td>
                       </tr>
                     ) : (
-                      filteredExpensesByTimeframe.map(ex => (
-                        <tr key={ex.docId} className="hover:bg-slate-500/5 transition-colors">
-                          <td className="py-3 px-3 font-mono">{ex.date || ex.createdAt?.split('T')[0]}</td>
-                          <td className="py-3 px-3 font-semibold">{ex.description}</td>
-                          <td className="py-3 px-3 opacity-80">{ex.category}</td>
-                          <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
-                          <td className="py-3 px-3 text-right">
-                            <button
-                              onClick={() => deleteExpense(ex.docId)}
-                              className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))
+                      filteredExpensesByTimeframe.map(ex => {
+                        // Find translated category label if stored key matches
+                        const foundCat = EXPENSE_CATEGORIES.find(c => c.key === ex.category);
+                        const displayCat = foundCat ? foundCat.label : ex.category;
+                        return (
+                          <tr key={ex.docId} className="hover:bg-slate-500/5 transition-colors">
+                            <td className="py-3 px-3 font-mono">{ex.date || ex.createdAt?.split('T')[0]}</td>
+                            <td className="py-3 px-3 font-semibold">{ex.description}</td>
+                            <td className="py-3 px-3 opacity-80">{displayCat}</td>
+                            <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
+                            <td className="py-3 px-3 text-right">
+                              <button
+                                onClick={() => deleteExpense(ex.docId)}
+                                className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
