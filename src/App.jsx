@@ -15,6 +15,7 @@ import {
   query, 
   orderBy 
 } from 'firebase/firestore';
+import emailjs from '@emailjs/browser';
 import { 
   Scissors, 
   Shirt, 
@@ -68,7 +69,7 @@ export default function App() {
   const [unlockPinInput, setUnlockPinInput] = useState('');
   const [unlockPinError, setUnlockPinError] = useState(false);
 
-  // In-App Toast Notification State (Replaces ugly browser alerts)
+  // In-App Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
 
   // Inactivity Timer Ref (10 Minutes = 600,000 ms)
@@ -567,9 +568,29 @@ export default function App() {
       await addDoc(collection(db, 'orders'), newOrder);
       setSelectedOrderForPrint(newOrder);
 
-      // Trigger digital email receipt dispatch if email is provided
+      // Send Live Email via EmailJS if customer email is provided
       if (newOrder.customerEmail) {
-        console.log(`[ALiCo Email Dispatch]: Sending digital claim check to ${newOrder.customerEmail} for Tag #${newOrder.id}`);
+        try {
+          const templateParams = {
+            to_email: newOrder.customerEmail,
+            customer_name: newOrder.customerName,
+            order_id: newOrder.id,
+            service_type: newOrder.serviceType.toUpperCase(),
+            total: newOrder.total.toFixed(2),
+            payment_method: newOrder.paymentMethod,
+            due_date: newOrder.dueDate
+          };
+
+          await emailjs.send(
+            'service_u334299',
+            'template_2ka75ti',
+            templateParams,
+            '50tnv-rcE0P4zclZ9'
+          );
+          console.log('Digital receipt email successfully sent via EmailJS!');
+        } catch (emailErr) {
+          console.error('Failed to send email via EmailJS:', emailErr);
+        }
       }
 
       setNextTagId(Math.floor(7000 + Math.random() * 900).toString());
@@ -584,7 +605,7 @@ export default function App() {
       setLaundryPrice('');
       
       const successMsg = newOrder.customerEmail 
-        ? 'Ticket created, synced to cloud, and digital receipt sent to customer email!' 
+        ? 'Ticket created & digital receipt emailed successfully!' 
         : 'Ticket created and synced to cloud database!';
       showToast(successMsg);
     } catch (error) {
