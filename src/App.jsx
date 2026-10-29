@@ -39,7 +39,9 @@ import {
   Sliders,
   Wallet,
   Receipt,
-  Plus
+  Plus,
+  Maximize,
+  Minimize
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -56,6 +58,7 @@ export default function App() {
   
   const [themeMode, setThemeMode] = useState('teal-dark');
   const [reportTimeframe, setReportTimeframe] = useState('month');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Custom Date Range Filters for Bookkeeping
   const [startDateFilter, setStartDateFilter] = useState('');
@@ -100,6 +103,28 @@ export default function App() {
   const [nextTagId, setNextTagId] = useState(() => Math.floor(7000 + Math.random() * 900).toString());
 
   const isAdmin = user && user.email === 'alena9506@gmail.com';
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   const translations = {
     en: {
@@ -847,6 +872,16 @@ export default function App() {
               <Sliders className="w-3.5 h-3.5 text-teal-400" /> Scale: {Math.round(revenueMultiplier * 100)}%
             </span>
           )}
+
+          {/* Fullscreen Toggle Button */}
+          <button
+            onClick={toggleFullscreen}
+            className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
+            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+          >
+            {isFullscreen ? <Minimize className="w-4 h-4 text-teal-400" /> : <Maximize className="w-4 h-4 text-teal-400" />}
+            <span className="hidden md:inline">{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
+          </button>
 
           <button
             onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
