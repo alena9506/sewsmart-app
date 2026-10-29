@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from './firebase';
 import { 
   signInWithEmailAndPassword,
@@ -65,6 +65,9 @@ export default function App() {
   const [unlockPinInput, setUnlockPinInput] = useState('');
   const [unlockPinError, setUnlockPinError] = useState(false);
 
+  // Inactivity Timer Ref (10 Minutes = 600,000 ms)
+  const inactivityTimerRef = useRef(null);
+
   // Custom Date Range Filters for Bookkeeping
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
@@ -130,6 +133,34 @@ export default function App() {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  // 10-Minute Inactivity Auto-Lock Logic
+  useEffect(() => {
+    if (!user) return;
+
+    const resetInactivityTimer = () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+      if (!isTerminalLocked) {
+        inactivityTimerRef.current = setTimeout(() => {
+          setIsTerminalLocked(true);
+        }, 10 * 60 * 1000); // 10 minutes
+      }
+    };
+
+    const events = ['mousemove', 'mousedown', 'keypress', 'touchstart', 'click'];
+    events.forEach(event => {
+      window.addEventListener(event, resetInactivityTimer);
+    });
+
+    resetInactivityTimer();
+
+    return () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+      events.forEach(event => {
+        window.removeEventListener(event, resetInactivityTimer);
+      });
+    };
+  }, [user, isTerminalLocked]);
 
   const translations = {
     en: {
@@ -860,7 +891,7 @@ export default function App() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Terminal Locked</h2>
-              <p className="text-xs text-slate-400 mt-1">Enter your 4-digit security PIN to resume operation.</p>
+              <p className="text-xs text-slate-400 mt-1">Enter PIN (1234) to resume operation.</p>
             </div>
 
             {unlockPinError && (
@@ -878,7 +909,7 @@ export default function App() {
                 onChange={(e) => setUnlockPinInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    if (unlockPinInput === '3256') {
+                    if (unlockPinInput === '1234') {
                       setIsTerminalLocked(false);
                       setUnlockPinInput('');
                       setUnlockPinError(false);
@@ -892,7 +923,7 @@ export default function App() {
               />
               <button
                 onClick={() => {
-                  if (unlockPinInput === '3256') {
+                  if (unlockPinInput === '1234') {
                     setIsTerminalLocked(false);
                     setUnlockPinInput('');
                     setUnlockPinError(false);
