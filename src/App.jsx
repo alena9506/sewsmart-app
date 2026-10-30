@@ -901,7 +901,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
-      {/* Universal Print Styles: Forces 80mm thermal receipt roll layout for all printer types */}
+      {/* Universal Continuous Print Styles for Thermal Rolls */}
       <style>{`
         @media print {
           body * {
@@ -914,25 +914,25 @@ export default function App() {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 80mm !important;
+            width: 72mm !important;
             margin: 0 !important;
-            padding: 2mm !important;
+            padding: 0 !important;
             background: white !important;
             color: black !important;
           }
           .thermal-receipt-item {
             display: block !important;
             width: 100% !important;
-            margin: 0 0 5mm 0 !important;
-            padding: 4mm !important;
+            margin: 0 0 4mm 0 !important;
+            padding: 3mm !important;
             background: white !important;
             color: black !important;
             border: 1px dashed #000 !important;
-            page-break-inside: avoid;
-            page-break-after: always;
+            page-break-inside: avoid !important;
+            page-break-after: auto !important;
           }
           @page {
-            size: 80mm auto;
+            size: 72mm auto;
             margin: 0mm;
           }
         }
