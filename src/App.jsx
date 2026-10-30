@@ -655,7 +655,7 @@ export default function App() {
       const orderRef = doc(db, 'orders', docId);
       await updateDoc(orderRef, { status: newStatus });
 
-      // If status is changed to Completed and customer has email, send collection notification
+      // If status is changed to Completed and customer has email, send collection notification using template_boon6r6
       const targetOrder = orders.find(o => o.docId === docId);
       if (newStatus === 'Completed' && targetOrder && targetOrder.customerEmail) {
         try {
@@ -669,11 +669,11 @@ export default function App() {
 
           await emailjs.send(
             'service_u334299',
-            'template_2ka75ti',
+            'template_boon6r6',
             templateParams,
             '50tnv-rcE0P4zclZ9'
           );
-          showToast(`Completion notification emailed to ${targetOrder.customerEmail}!`);
+          showToast(`Ready-for-collection notification emailed to ${targetOrder.customerEmail}!`);
         } catch (emailErr) {
           console.error('Failed to send completion email via EmailJS:', emailErr);
         }
