@@ -923,8 +923,8 @@ export default function App() {
           .thermal-receipt-item {
             display: block !important;
             width: 100% !important;
-            margin: 0 0 4mm 0 !important;
-            padding: 3mm !important;
+            margin: 0 0 3mm 0 !important;
+            padding: 2.5mm !important;
             background: white !important;
             color: black !important;
             border: 1px dashed #000 !important;
@@ -1388,34 +1388,34 @@ export default function App() {
                     <Printer className={`w-4 h-4 ${t.textAccent}`} /> {text.thermalPreview}
                   </h3>
                   {selectedOrderForPrint ? (
-                    <div className="thermal-print-container space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                    <div className="thermal-print-container space-y-3 overflow-visible pr-1">
                       {['CUSTOMER COPY', 'TAG / RACK COPY', 'ACCOUNTING COPY'].map((copyType, idx) => (
-                        <div key={idx} className="thermal-receipt-item bg-white text-slate-900 p-5 rounded-2xl font-mono text-xs shadow-inner space-y-3 relative border-2 border-dashed border-slate-300">
-                          <div className="absolute top-2 right-2 bg-slate-900 text-white text-[9px] px-2 py-0.5 rounded font-bold">
+                        <div key={idx} className="thermal-receipt-item bg-white text-slate-900 p-3.5 rounded-xl font-mono text-[11px] shadow-sm space-y-2 relative border border-slate-300">
+                          <div className="absolute top-1.5 right-1.5 bg-slate-900 text-white text-[8px] px-1.5 py-0.5 rounded font-bold">
                             {copyType}
                           </div>
                           
-                          <div className="text-center border-b border-dashed pb-3 pt-2">
-                            <p className="font-extrabold text-xs tracking-wide">ALiCo DUBLIN</p>
+                          <div className="text-center border-b border-dashed pb-2 pt-1">
+                            <p className="font-extrabold text-[11px] tracking-wide">ALiCo DUBLIN</p>
                             
-                            <div className="my-2 py-2 px-6 bg-slate-900 text-teal-400 font-black text-4xl tracking-widest rounded-2xl inline-block shadow-lg">
+                            <div className="my-1 py-1 px-4 bg-slate-900 text-teal-400 font-black text-2xl tracking-widest rounded-xl inline-block shadow">
                               #{selectedOrderForPrint.id}
                             </div>
                           </div>
 
-                          <div className="space-y-1.5 pt-1 text-[11px] opacity-80">
+                          <div className="space-y-1 pt-0.5 text-[10px] opacity-85">
                             <p><strong>Customer:</strong> {selectedOrderForPrint.customerName}</p>
                             <p><strong>Phone:</strong> {selectedOrderForPrint.phone}</p>
                             {selectedOrderForPrint.customerEmail && <p><strong>Email:</strong> {selectedOrderForPrint.customerEmail}</p>}
                             <p><strong>Service:</strong> {selectedOrderForPrint.serviceType.toUpperCase()}</p>
                             {selectedOrderForPrint.serviceType === 'alteration' ? (
-                              <div className="space-y-2 pt-1">
+                              <div className="space-y-1 pt-0.5">
                                 <p className="font-bold underline">Items:</p>
                                 {selectedOrderForPrint.details.items?.map((item, i) => (
                                   <div key={i} className="pl-2 border-l-2 border-slate-300 space-y-0.5">
                                     <p className="font-bold text-slate-900">• {item.garmentType} (€{item.price.toFixed(2)})</p>
-                                    {item.alterations.length > 0 && <p className="text-[10px]">Tasks: {item.alterations.join(', ')}</p>}
-                                    {item.customNote && <p className="text-[10px]">Note: {item.customNote}</p>}
+                                    {item.alterations.length > 0 && <p className="text-[9px]">Tasks: {item.alterations.join(', ')}</p>}
+                                    {item.customNote && <p className="text-[9px]">Note: {item.customNote}</p>}
                                   </div>
                                 ))}
                               </div>
@@ -1426,13 +1426,13 @@ export default function App() {
                               </>
                             )}
                           </div>
-                          <div className="border-t border-dashed pt-3 flex justify-between font-bold text-xs">
+                          <div className="border-t border-dashed pt-2 flex justify-between font-bold text-[11px]">
                             <span>PAID ({selectedOrderForPrint.paymentMethod}):</span>
                             <span className={t.textAccent}>€{selectedOrderForPrint.total.toFixed(2)}</span>
                           </div>
-                          <div className="text-center pt-3 text-[10px] text-slate-500 border-t border-dashed">
+                          <div className="text-center pt-2 text-[9px] text-slate-500 border-t border-dashed">
                             <p>Due: {selectedOrderForPrint.dueDate}</p>
-                            <p className="font-bold text-slate-800 mt-1">*** PAID IN FULL ***</p>
+                            <p className="font-bold text-slate-800 mt-0.5">*** PAID IN FULL ***</p>
                           </div>
                         </div>
                       ))}
@@ -1448,7 +1448,7 @@ export default function App() {
                 {selectedOrderForPrint && (
                   <button 
                     onClick={() => window.print()}
-                    className={`mt-6 w-full font-semibold py-3 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                    className={`mt-4 w-full font-semibold py-3 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                   >
                     <Printer className="w-4 h-4" /> {text.printReceiptsNow}
                   </button>
