@@ -208,7 +208,6 @@ export default function App() {
       allStatuses: 'All Statuses',
       pending: 'Pending',
       inProgress: 'In Progress',
-      readyPickup: 'Ready for Pickup',
       completed: 'Completed',
       tagId: 'Tag ID',
       customer: 'Customer',
@@ -307,7 +306,6 @@ export default function App() {
       allStatuses: 'Все статусы',
       pending: 'В ожидании',
       inProgress: 'В работе',
-      readyPickup: 'Готов к выдаче',
       completed: 'Завершен',
       tagId: 'ID Бирки',
       customer: 'Клиент',
@@ -1413,7 +1411,6 @@ export default function App() {
                   <option value="All">{text.allStatuses}</option>
                   <option value="Pending">{text.pending}</option>
                   <option value="In Progress">{text.inProgress}</option>
-                  <option value="Ready for Pickup">{text.readyPickup}</option>
                   <option value="Completed">{text.completed}</option>
                 </select>
               </div>
@@ -1457,7 +1454,6 @@ export default function App() {
                           >
                             <option value="Pending">{text.pending}</option>
                             <option value="In Progress">{text.inProgress}</option>
-                            <option value="Ready for Pickup">{text.readyPickup}</option>
                             <option value="Completed">{text.completed}</option>
                           </select>
                         </td>
