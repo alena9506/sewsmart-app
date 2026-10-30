@@ -901,7 +901,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
-      {/* Strict Thermal Printer Styles: Forces 72mm width and prints all 3 copies stacked */}
+      {/* Strict Thermal Printer Styles: Forces 72mm width and prints from page top */}
       <style>{`
         @media print {
           body * {
@@ -916,17 +916,19 @@ export default function App() {
             top: 0 !important;
             width: 72mm !important;
             margin: 0 !important;
-            padding: 2mm !important;
+            padding: 0 !important;
             background: white !important;
             color: black !important;
           }
           .thermal-print-container > div {
-            page-break-after: always;
-            border: 1px dashed #000 !important;
-            margin-bottom: 5mm !important;
+            display: block !important;
+            width: 100% !important;
+            margin: 0 0 4mm 0 !important;
             padding: 4mm !important;
             background: white !important;
             color: black !important;
+            border: 1px dashed #000 !important;
+            page-break-inside: avoid;
           }
           @page {
             size: auto;
