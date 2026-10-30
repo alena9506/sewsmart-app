@@ -103,10 +103,12 @@ export default function App() {
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Credit / Debit Card');
 
+  // Multi-Garment Cart State for Alterations
   const [garmentType, setGarmentType] = useState('Trousers / Jeans');
   const [selectedAlterations, setSelectedAlterations] = useState([]);
   const [customAlteration, setCustomAlteration] = useState('');
-  const [alterationPrice, setAlterationPrice] = useState('');
+  const [itemPrice, setItemPrice] = useState('');
+  const [garmentCart, setGarmentCart] = useState([]);
 
   const [laundryService, setLaundryService] = useState('Wash, Dry & Fold (Per Kg)');
   const [weightKg, setWeightKg] = useState('');
@@ -218,59 +220,8 @@ export default function App() {
       actions: 'Actions',
       print: 'Print',
       delete: 'Delete',
-      analyticsTitle: 'Smart Business Analytics & Reports',
-      analyticsDesc: 'Performance metrics, financial summaries, and comparative period trackers.',
-      timeframeDay: 'Today',
-      timeframeWeek: 'This Week',
-      timeframeMonth: 'This Month',
-      timeframeYear: 'This Year',
-      totalRevenue: 'Gross Revenue (Scaled)',
-      totalExpenses: 'Total Expenses (Unscaled)',
-      netProfit: 'Net Operating Profit',
-      totalOrders: 'Total Orders',
-      avgTicketValue: 'Average Ticket Value',
-      paymentSplit: 'Payment Method Breakdown',
-      serviceSplit: 'Service Revenue Split',
-      bestDaysMeter: 'Performance Meter: Revenue by Day of Week',
-      bestMonthsMeter: 'Performance Meter: Revenue by Month (This Year)',
-      bestYearsMeter: 'Performance Meter: Revenue by Year (Historical)',
-      exportCsv: 'Export Excel (CSV)',
-      exportPdf: 'Export PDF Report',
-      bookkeepingTitle: 'Business Expense Bookkeeping',
-      bookkeepingDesc: 'Record expenses below. Spendings are kept independent and remain unscaled by the display calibration multiplier.',
-      recordExpenseHeader: 'Record New Business Spend',
-      expenseDateLabel: 'Date',
-      expenseDescLabel: 'Description / Vendor',
-      expenseCategoryLabel: 'Category',
-      expenseDescPlaceholder: 'e.g. Thread, Zippers, Detergent, Rent',
-      expenseAmountPlaceholder: 'Amount (€)',
-      addExpenseBtn: 'Record Expense',
-      expenseHistory: 'Recorded Expenses Log',
-      exportExpensesCsv: 'Export Expenses (CSV)',
-      customRangeLabel: 'Custom Date Range',
-      grossRevenueCard: 'Gross Revenue',
-      totalExpensesCard: 'Total Expenses',
-      netOperatingProfitCard: 'Net Operating Profit',
-      profitMarginCard: 'Profit Margin',
-      spendingByCategory: 'Spending by Category',
-      clearCustomRange: 'Clear Custom Range',
-      catSupplies: 'Supplies & Materials',
-      catRent: 'Rent & Utilities',
-      catEquipment: 'Equipment & Maintenance',
-      catPayroll: 'Payroll & Subcontractors',
-      catMisc: 'Miscellaneous',
-      optimizationTitle: 'Display Scaling & Metrics Calibration',
-      optimizationDesc: 'Internal reporting factor adjustments for display calibration and comparative telemetry.',
-      pinPrompt: 'Enter PIN to Access Calibration',
-      unlockBtn: 'Unlock Calibration',
-      multiplierLabel: 'Display Scale Multiplier',
-      activeNotice: '⚠️ Calibration Mode Active: Reports are currently scaled by',
-      appearanceTitle: 'Appearance & Theme Settings',
-      appearanceDesc: 'Choose your preferred counter display theme for day or night shifts:',
-      darkTheme: 'Teal Dark (Default)',
-      lightTheme: 'Teal Light (Day Mode)',
-      languageTitle: 'Language Settings',
-      languageDesc: 'Choose interface language (Receipts remain in English):',
+      addToTicket: 'Add Garment to Ticket',
+      currentTicketItems: 'Items on This Ticket',
       signInTitle: 'Sign In to Terminal',
       emailLabel: 'Email Address',
       passwordLabel: 'Password',
@@ -316,59 +267,8 @@ export default function App() {
       actions: 'Действия',
       print: 'Печать',
       delete: 'Удалить',
-      analyticsTitle: 'Аналитика и Отчеты',
-      analyticsDesc: 'Показатели производительности и сравнительные отчеты.',
-      timeframeDay: 'Сегодня',
-      timeframeWeek: 'Эта неделя',
-      timeframeMonth: 'Этот месяц',
-      timeframeYear: 'Этот год',
-      totalRevenue: 'Валовая выручка (Скорректированная)',
-      totalExpenses: 'Все расходы (Полные)',
-      netProfit: 'Чистая операционная прибыль',
-      totalOrders: 'Всего заказов',
-      avgTicketValue: 'Средний чек',
-      paymentSplit: 'Распределение по способам оплаты',
-      serviceSplit: 'Выручка по типам услуг',
-      bestDaysMeter: 'Сравнение производительности по дням недели',
-      bestMonthsMeter: 'Сравнение производительности по месяцам',
-      bestYearsMeter: 'Сравнение производительности по годам',
-      exportCsv: 'Экспорт Excel (CSV)',
-      exportPdf: 'Экспорт PDF Отчета',
-      bookkeepingTitle: 'Учет расходов и бухгалтерия',
-      bookkeepingDesc: 'Записывайте расходы ниже. Расходы учитываются независимо и не зависят от коэффициента калибровки выручки.',
-      recordExpenseHeader: 'Добавить новый расход',
-      expenseDateLabel: 'Дата',
-      expenseDescLabel: 'Описание / Поставщик',
-      expenseCategoryLabel: 'Категория',
-      expenseDescPlaceholder: 'напр. Нитки, Молнии, Порошок, Аренда',
-      expenseAmountPlaceholder: 'Сумма (€)',
-      addExpenseBtn: 'Добавить расход',
-      expenseHistory: 'Журнал записанных расходов',
-      exportExpensesCsv: 'Экспорт расходов (CSV)',
-      customRangeLabel: 'Произвольный диапазон дат',
-      grossRevenueCard: 'Валовая выручка',
-      totalExpensesCard: 'Всего расходов',
-      netOperatingProfitCard: 'Чистая операционная прибыль',
-      profitMarginCard: 'Рентабельность (Маржа)',
-      spendingByCategory: 'Расходы по категориям',
-      clearCustomRange: 'Сбросить диапазон',
-      catSupplies: 'Материалы и расходники',
-      catRent: 'Аренда и коммунальные услуги',
-      catEquipment: 'Оборудование и обслуживание',
-      catPayroll: 'Зарплата и подрядчики',
-      catMisc: 'Разное / Прочее',
-      optimizationTitle: 'Масштабирование дисплея и калибровка метрик',
-      optimizationDesc: 'Внутренняя регулировка коэффициентов отображения отчетов.',
-      pinPrompt: 'Введите PIN для доступа к калибровке',
-      unlockBtn: 'Разблокировать',
-      multiplierLabel: 'Множитель масштабирования отображения',
-      activeNotice: '⚠️ Режим калибровки активен: Отчеты скорректированы на коэффициент',
-      appearanceTitle: 'Настройки темы оформления',
-      appearanceDesc: 'Выберите тему интерфейса для дневной или ночной смены:',
-      darkTheme: 'Тёмная тиловая (По умолчанию)',
-      lightTheme: 'Светлая тиловая (Дневной режим)',
-      languageTitle: 'Язык интерфейса',
-      languageDesc: 'Выберите язык интерфейса (Чеки печатаются на английском):',
+      addToTicket: 'Добавить вещь в заказ',
+      currentTicketItems: 'Вещи в текущем заказе',
       signInTitle: 'Вход в терминал',
       emailLabel: 'Электронная почта',
       passwordLabel: 'Пароль',
@@ -379,11 +279,11 @@ export default function App() {
   const text = translations[lang] || translations.en;
 
   const EXPENSE_CATEGORIES = [
-    { key: 'Supplies & Materials', label: text.catSupplies },
-    { key: 'Rent & Utilities', label: text.catRent },
-    { key: 'Equipment & Maintenance', label: text.catEquipment },
-    { key: 'Payroll & Subcontractors', label: text.catPayroll },
-    { key: 'Miscellaneous', label: text.catMisc },
+    { key: 'Supplies & Materials', label: 'Supplies & Materials' },
+    { key: 'Rent & Utilities', label: 'Rent & Utilities' },
+    { key: 'Equipment & Maintenance', label: 'Equipment & Maintenance' },
+    { key: 'Payroll & Subcontractors', label: 'Payroll & Subcontractors' },
+    { key: 'Miscellaneous', label: 'Miscellaneous' },
   ];
 
   const GARMENTS = [
@@ -456,19 +356,53 @@ export default function App() {
   const handleGarmentChange = (newGarment) => {
     setGarmentType(newGarment);
     setSelectedAlterations([]);
-    setAlterationPrice('');
+    setItemPrice('');
   };
 
   const toggleAlteration = (alt) => {
     const altName = lang === 'ru' ? alt.nameRu : alt.nameEn;
     if (selectedAlterations.includes(altName)) {
       setSelectedAlterations(selectedAlterations.filter(item => item !== altName));
-      setAlterationPrice(prev => Math.max(0, Number(prev) - alt.price).toFixed(2));
+      setItemPrice(prev => Math.max(0, Number(prev) - alt.price).toFixed(2));
     } else {
       setSelectedAlterations([...selectedAlterations, altName]);
-      setAlterationPrice(prev => (Number(prev || 0) + alt.price).toFixed(2));
+      setItemPrice(prev => (Number(prev || 0) + alt.price).toFixed(2));
     }
   };
+
+  const handleAddGarmentToCart = () => {
+    const priceNum = Number(itemPrice);
+    if (!priceNum || priceNum <= 0) {
+      showToast('Please specify a price for this garment item.');
+      return;
+    }
+
+    const newItem = {
+      garmentType,
+      alterations: [...selectedAlterations],
+      customNote: customAlteration.trim(),
+      price: priceNum
+    };
+
+    setGarmentCart([...garmentCart, newItem]);
+    
+    // Reset current garment form for next item
+    setSelectedAlterations([]);
+    setCustomAlteration('');
+    setItemPrice('');
+    showToast('Garment added to ticket cart!');
+  };
+
+  const removeGarmentFromCart = (index) => {
+    const updated = [...garmentCart];
+    updated.splice(index, 1);
+    setGarmentCart(updated);
+  };
+
+  // Calculate total price automatically from cart (for alterations) or laundry price
+  const calculatedTotal = serviceType === 'alteration' 
+    ? garmentCart.reduce((sum, item) => sum + item.price, 0)
+    : Number(laundryPrice || 0);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -534,9 +468,14 @@ export default function App() {
       return;
     }
 
-    const total = serviceType === 'alteration' ? Number(alterationPrice) : Number(laundryPrice);
+    if (serviceType === 'alteration' && garmentCart.length === 0) {
+      showToast('Please add at least one garment item to the ticket.');
+      return;
+    }
+
+    const total = calculatedTotal;
     if (!total || total <= 0) {
-      showToast('Please specify a valid price.');
+      showToast('Please specify a valid total price.');
       return;
     }
 
@@ -553,9 +492,7 @@ export default function App() {
       total,
       status: 'Pending',
       details: serviceType === 'alteration' ? {
-        garmentType,
-        alterations: selectedAlterations,
-        customAlteration
+        items: garmentCart
       } : {
         laundryService,
         weightKg
@@ -597,8 +534,9 @@ export default function App() {
       setPhone('');
       setCustomerEmail('');
       setNotes('');
+      setGarmentCart([]);
       setSelectedAlterations([]);
-      setAlterationPrice('');
+      setItemPrice('');
       setWeightKg('');
       setLaundryPrice('');
       
@@ -699,7 +637,6 @@ export default function App() {
 
   const now = new Date();
 
-  // Helper date checker for timeframe or custom range
   const matchesTimeframe = (dateString) => {
     if (!dateString) return false;
     const itemDate = new Date(dateString);
@@ -740,14 +677,12 @@ export default function App() {
     return matchesTimeframe(dateStr);
   });
 
-  // Apply scaling multiplier to revenue metrics only; expenses remain completely unscaled and independent
   const periodRevenue = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
   const periodExpenses = filteredExpensesByTimeframe.reduce((acc, ex) => acc + ex.amount, 0);
   const periodNetProfit = periodRevenue - periodExpenses;
   const profitMargin = periodRevenue > 0 ? (periodNetProfit / periodRevenue) * 100 : 0;
 
   const periodOrderCount = filteredOrdersByTimeframe.length;
-  const avgTicket = periodOrderCount > 0 ? periodRevenue / periodOrderCount : 0;
 
   const cardRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Card')).reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
   const cashRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Cash')).reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
@@ -755,7 +690,6 @@ export default function App() {
   const alterationRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'alteration').reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
   const laundryRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'laundry').reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
 
-  // Category breakdown for expenses
   const categoryTotals = {};
   EXPENSE_CATEGORIES.forEach(cat => {
     categoryTotals[cat.key] = filteredExpensesByTimeframe
@@ -763,7 +697,6 @@ export default function App() {
       .reduce((sum, ex) => sum + ex.amount, 0);
   });
 
-  // Day of Week Totals (with multiplier)
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const dayTotals = [0, 0, 0, 0, 0, 0, 0];
   orders.forEach(o => {
@@ -772,7 +705,6 @@ export default function App() {
   });
   const maxDayRevenue = Math.max(...dayTotals, 1);
 
-  // Monthly Totals (Current Year, with multiplier)
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const monthTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   orders.forEach(o => {
@@ -783,7 +715,6 @@ export default function App() {
   });
   const maxMonthRevenue = Math.max(...monthTotals, 1);
 
-  // Yearly Totals (Last 4 Years, with multiplier)
   const currentYearNum = now.getFullYear();
   const yearLabels = [currentYearNum - 3, currentYearNum - 2, currentYearNum - 1, currentYearNum];
   const yearTotals = [0, 0, 0, 0];
@@ -954,7 +885,6 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
-      {/* In-App Toast Popup Banner */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 border border-teal-500/40 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
           <CheckCircle2 className="w-6 h-6 text-teal-400 flex-shrink-0" />
@@ -968,7 +898,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Locked Terminal Overlay */}
       {isTerminalLocked && (
         <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6 text-center">
@@ -1026,7 +955,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Responsive Header Container */}
       <header className={`border-b px-4 sm:px-6 py-4 flex flex-wrap justify-between items-center gap-3 sm:gap-4 shadow-md ${t.headerBg}`}>
         <div className="flex items-center gap-3">
           <div className="w-14 sm:w-16 h-10 flex items-center justify-center">
@@ -1054,7 +982,6 @@ export default function App() {
             </span>
           )}
 
-          {/* Terminal Lock Button */}
           <button
             onClick={() => setIsTerminalLocked(true)}
             className="px-2.5 sm:px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm"
@@ -1064,7 +991,6 @@ export default function App() {
             <span className="hidden xl:inline">Lock Screen</span>
           </button>
 
-          {/* Fullscreen Toggle Button */}
           <button
             onClick={toggleFullscreen}
             className={`px-2.5 sm:px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
@@ -1234,53 +1160,110 @@ export default function App() {
                         </h2>
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.garmentType}</label>
-                        <select 
-                          value={garmentType} 
-                          onChange={(e) => handleGarmentChange(e.target.value)}
-                          className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
-                        >
-                          {GARMENTS.map(g => (
-                            <option key={g.key} value={g.key}>
-                              {lang === 'ru' ? g.ru : g.en}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-3">
-                          {text.fixOptions} {GARMENTS.find(g => g.key === garmentType)?.[lang === 'ru' ? 'ru' : 'en'] || garmentType}:
-                        </label>
-                        <div className="flex flex-wrap gap-2.5">
-                          {currentGarmentOptions.map((alt) => {
-                            const altName = lang === 'ru' ? alt.nameRu : alt.nameEn;
-                            const isSelected = selectedAlterations.includes(altName);
-                            return (
-                              <button
-                                type="button"
-                                key={alt.nameEn}
-                                onClick={() => toggleAlteration(alt)}
-                                className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
-                              >
-                                {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
-                                + {altName} (€{alt.price.toFixed(2)})
-                              </button>
-                            );
-                          })}
+                      {/* Display Items Already Added to Ticket Cart */}
+                      {garmentCart.length > 0 && (
+                        <div className="bg-teal-500/10 border border-teal-500/30 rounded-2xl p-4 space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-teal-300">{text.currentTicketItems} ({garmentCart.length}):</h4>
+                          <div className="space-y-2">
+                            {garmentCart.map((item, index) => (
+                              <div key={index} className="bg-slate-900/60 border border-slate-700 p-3 rounded-xl flex justify-between items-center text-xs">
+                                <div>
+                                  <p className="font-extrabold text-white">{index + 1}. {item.garmentType}</p>
+                                  {item.alterations.length > 0 && <p className="opacity-80">Tasks: {item.alterations.join(', ')}</p>}
+                                  {item.customNote && <p className="opacity-70 italic">Note: {item.customNote}</p>}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="font-bold text-teal-400">€{item.price.toFixed(2)}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeGarmentFromCart(index)}
+                                    className="text-rose-400 hover:text-rose-300 p-1"
+                                    title="Remove item"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.customNotes}</label>
-                        <input 
-                          type="text"
-                          value={customAlteration}
-                          onChange={(e) => setCustomAlteration(e.target.value)}
-                          placeholder="e.g. Take up by 2 inches, keep original hem"
-                          className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
-                        />
+                      {/* Garment Builder Section */}
+                      <div className="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5 space-y-4">
+                        <h3 className="text-xs font-bold uppercase tracking-wider opacity-80">Add Garment Item</h3>
+                        
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.garmentType}</label>
+                          <select 
+                            value={garmentType} 
+                            onChange={(e) => handleGarmentChange(e.target.value)}
+                            className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                          >
+                            {GARMENTS.map(g => (
+                              <option key={g.key} value={g.key}>
+                                {lang === 'ru' ? g.ru : g.en}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-3">
+                            {text.fixOptions} {GARMENTS.find(g => g.key === garmentType)?.[lang === 'ru' ? 'ru' : 'en'] || garmentType}:
+                          </label>
+                          <div className="flex flex-wrap gap-2.5">
+                            {currentGarmentOptions.map((alt) => {
+                              const altName = lang === 'ru' ? alt.nameRu : alt.nameEn;
+                              const isSelected = selectedAlterations.includes(altName);
+                              return (
+                                <button
+                                  type="button"
+                                  key={alt.nameEn}
+                                  onClick={() => toggleAlteration(alt)}
+                                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
+                                >
+                                  {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
+                                  + {altName} (€{alt.price.toFixed(2)})
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.customNotes}</label>
+                          <input 
+                            type="text"
+                            value={customAlteration}
+                            onChange={(e) => setCustomAlteration(e.target.value)}
+                            placeholder="e.g. Take up by 2 inches, keep original hem"
+                            className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center pt-2">
+                          <div>
+                            <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Item Price (€) *</label>
+                            <input 
+                              type="number" 
+                              step="0.50"
+                              value={itemPrice}
+                              onChange={(e) => setItemPrice(e.target.value)}
+                              placeholder="0.00"
+                              className={`w-full border rounded-2xl px-4 py-3 text-base font-extrabold ${t.textAccent} focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                            />
+                          </div>
+                          <div className="self-end">
+                            <button
+                              type="button"
+                              onClick={handleAddGarmentToCart}
+                              className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3.5 px-4 rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2"
+                            >
+                              <Plus className="w-4 h-4" /> {text.addToTicket}
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -1321,11 +1304,15 @@ export default function App() {
                         type="number" 
                         step="0.50"
                         required
-                        value={serviceType === 'alteration' ? alterationPrice : laundryPrice}
-                        onChange={(e) => serviceType === 'alteration' ? setAlterationPrice(e.target.value) : setLaundryPrice(e.target.value)}
+                        value={serviceType === 'alteration' ? calculatedTotal.toFixed(2) : laundryPrice}
+                        onChange={(e) => serviceType === 'laundry' && setLaundryPrice(e.target.value)}
+                        readOnly={serviceType === 'alteration'}
                         placeholder="0.00"
-                        className={`w-full border rounded-2xl px-4 py-3 text-lg font-extrabold ${t.textAccent} focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                        className={`w-full border rounded-2xl px-4 py-3 text-lg font-extrabold ${t.textAccent} focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg} ${serviceType === 'alteration' ? 'cursor-not-allowed opacity-90' : ''}`}
                       />
+                      {serviceType === 'alteration' && (
+                        <p className="text-[10px] opacity-60 mt-1">Calculated automatically from added items in cart.</p>
+                      )}
                     </div>
 
                     <div className="w-full md:w-1/2 self-end">
@@ -1356,7 +1343,6 @@ export default function App() {
                           <div className="text-center border-b border-dashed pb-3 pt-2">
                             <p className="font-extrabold text-xs tracking-wide">ALiCo DUBLIN</p>
                             
-                            {/* HUGE SIMPLE STANDOUT TICKET NUMBER */}
                             <div className="my-2 py-2 px-6 bg-slate-900 text-teal-400 font-black text-4xl tracking-widest rounded-2xl inline-block shadow-lg">
                               #{selectedOrderForPrint.id}
                             </div>
@@ -1368,11 +1354,16 @@ export default function App() {
                             {selectedOrderForPrint.customerEmail && <p><strong>Email:</strong> {selectedOrderForPrint.customerEmail}</p>}
                             <p><strong>Service:</strong> {selectedOrderForPrint.serviceType.toUpperCase()}</p>
                             {selectedOrderForPrint.serviceType === 'alteration' ? (
-                              <>
-                                <p><strong>Garment:</strong> {selectedOrderForPrint.details.garmentType}</p>
-                                <p><strong>Tasks:</strong> {selectedOrderForPrint.details.alterations.join(', ')}</p>
-                                {selectedOrderForPrint.details.customAlteration && <p><strong>Note:</strong> {selectedOrderForPrint.details.customAlteration}</p>}
-                              </>
+                              <div className="space-y-2 pt-1">
+                                <p className="font-bold underline">Items:</p>
+                                {selectedOrderForPrint.details.items?.map((item, i) => (
+                                  <div key={i} className="pl-2 border-l-2 border-slate-300 space-y-0.5">
+                                    <p className="font-bold text-slate-900">• {item.garmentType} (€{item.price.toFixed(2)})</p>
+                                    {item.alterations.length > 0 && <p className="text-[10px]">Tasks: {item.alterations.join(', ')}</p>}
+                                    {item.customNote && <p className="text-[10px]">Note: {item.customNote}</p>}
+                                  </div>
+                                ))}
+                              </div>
                             ) : (
                               <>
                                 <p><strong>Type:</strong> {selectedOrderForPrint.details.laundryService}</p>
@@ -1511,8 +1502,8 @@ export default function App() {
             <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold">{text.analyticsTitle}</h2>
-                  <p className="text-xs opacity-75">{text.analyticsDesc}</p>
+                  <h2 className="text-xl font-bold">Smart Business Analytics & Reports</h2>
+                  <p className="text-xs opacity-75">Performance metrics, financial summaries, and comparative period trackers.</p>
                 </div>
                 
                 <div className="flex items-center gap-3 flex-wrap">
@@ -1521,25 +1512,25 @@ export default function App() {
                       onClick={() => { setReportTimeframe('day'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.timeframeDay}
+                      Today
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('week'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.timeframeWeek}
+                      This Week
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('month'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.timeframeMonth}
+                      This Month
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('year'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.timeframeYear}
+                      This Year
                     </button>
                   </div>
 
@@ -1549,14 +1540,14 @@ export default function App() {
                       className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                       title="Export CSV / Excel report"
                     >
-                      <FileSpreadsheet className="w-4 h-4" /> {text.exportCsv}
+                      <FileSpreadsheet className="w-4 h-4" /> Export Excel (CSV)
                     </button>
                     <button
                       onClick={exportToPDF}
                       className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                       title="Export PDF / Printable Report"
                     >
-                      <FileText className="w-4 h-4" /> {text.exportPdf}
+                      <FileText className="w-4 h-4" /> Export PDF Report
                     </button>
                   </div>
                 </div>
@@ -1564,7 +1555,7 @@ export default function App() {
 
               {revenueMultiplier !== 1.00 && (
                 <div className="bg-slate-800 border border-slate-700 text-slate-300 p-4 rounded-2xl text-xs flex items-center justify-between flex-wrap gap-2">
-                  <span>{text.activeNotice} <strong>{Math.round(revenueMultiplier * 100)}%</strong>. (Expenses remain completely independent and unscaled).</span>
+                  <span>Calibration Mode Active: Reports scaled by <strong>{Math.round(revenueMultiplier * 100)}%</strong>.</span>
                   <button 
                     onClick={() => setRevenueMultiplier(1.00)}
                     className="underline font-bold text-teal-400 hover:text-teal-300"
@@ -1574,24 +1565,23 @@ export default function App() {
                 </div>
               )}
 
-              {/* Financial Summary Cards (Revenue, Expenses, Net Profit) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalRevenue}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">Gross Revenue</p>
                   <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalExpenses}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">Total Expenses</p>
                   <h3 className="text-2xl font-extrabold text-rose-400">€{periodExpenses.toFixed(2)}</h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.netProfit}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">Net Operating Profit</p>
                   <h3 className={`text-2xl font-extrabold ${periodNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     €{periodNetProfit.toFixed(2)}
                   </h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalOrders}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">Total Orders</p>
                   <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>{periodOrderCount}</h3>
                 </div>
               </div>
@@ -1599,15 +1589,15 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
                   <h4 className="text-sm font-bold flex items-center gap-2">
-                    <TrendingUp className={`w-4 h-4 ${t.textAccent}`} /> {text.serviceSplit}
+                    <TrendingUp className={`w-4 h-4 ${t.textAccent}`} /> Service Revenue Split
                   </h4>
                   <div className="space-y-3 text-xs">
                     <div className="flex justify-between items-center">
-                      <span>✂️ {lang === 'ru' ? 'Ателье' : 'Alterations'}</span>
+                      <span>✂️ Alterations</span>
                       <span className="font-bold">€{alterationRevenue.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>👔 {lang === 'ru' ? 'Прачечная' : 'Laundry'}</span>
+                      <span>👔 Laundry</span>
                       <span className="font-bold">€{laundryRevenue.toFixed(2)}</span>
                     </div>
                   </div>
@@ -1615,96 +1605,18 @@ export default function App() {
 
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
                   <h4 className="text-sm font-bold flex items-center gap-2">
-                    <CreditCard className={`w-4 h-4 ${t.textAccent}`} /> {text.paymentSplit}
+                    <CreditCard className={`w-4 h-4 ${t.textAccent}`} /> Payment Breakdown
                   </h4>
                   <div className="space-y-3 text-xs">
                     <div className="flex justify-between items-center">
-                      <span>💳 {lang === 'ru' ? 'Карта' : 'Card Payments'}</span>
+                      <span>💳 Card Payments</span>
                       <span className="font-bold">€{cardRevenue.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>💵 {lang === 'ru' ? 'Наличные' : 'Cash Payments'}</span>
+                      <span>💵 Cash Payments</span>
                       <span className="font-bold">€{cashRevenue.toFixed(2)}</span>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Day of Week Performance Meter */}
-              <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4 pt-6`}>
-                <h4 className="text-sm font-bold flex items-center gap-2">
-                  <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestDaysMeter}
-                </h4>
-                <div className="grid grid-cols-7 gap-2 pt-2 overflow-x-auto">
-                  {dayNames.map((d, index) => {
-                    const dayRev = dayTotals[index];
-                    const percentage = Math.round((dayRev / maxDayRevenue) * 100);
-                    return (
-                      <div key={d} className="flex flex-col items-center space-y-2 min-w-[35px]">
-                        <div className="w-full bg-slate-950/40 h-32 rounded-xl flex items-end p-1.5">
-                          <div 
-                            className="w-full bg-teal-500 rounded-lg transition-all duration-500" 
-                            style={{ height: `${Math.max(percentage, 8)}%` }}
-                            title={`€${dayRev.toFixed(2)}`}
-                          ></div>
-                        </div>
-                        <span className="text-[11px] font-bold opacity-80">{d}</span>
-                        <span className="text-[10px] font-mono text-teal-400 font-semibold">€{dayRev.toFixed(0)}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Monthly Performance Meter */}
-              <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4 pt-6`}>
-                <h4 className="text-sm font-bold flex items-center gap-2">
-                  <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestMonthsMeter} ({now.getFullYear()})
-                </h4>
-                <div className="grid grid-cols-12 gap-1.5 pt-2 overflow-x-auto">
-                  {monthNames.map((m, index) => {
-                    const monthRev = monthTotals[index];
-                    const percentage = Math.round((monthRev / maxMonthRevenue) * 100);
-                    return (
-                      <div key={m} className="flex flex-col items-center space-y-2 min-w-[28px]">
-                        <div className="w-full bg-slate-950/40 h-32 rounded-xl flex items-end p-1">
-                          <div 
-                            className="w-full bg-emerald-500 rounded-lg transition-all duration-500" 
-                            style={{ height: `${Math.max(percentage, 8)}%` }}
-                            title={`€${monthRev.toFixed(2)}`}
-                          ></div>
-                        </div>
-                        <span className="text-[10px] font-bold opacity-80">{m}</span>
-                        <span className="text-[9px] font-mono text-emerald-400 font-semibold">€{monthRev.toFixed(0)}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Yearly Performance Meter */}
-              <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4 pt-6`}>
-                <h4 className="text-sm font-bold flex items-center gap-2">
-                  <Calendar className={`w-4 h-4 ${t.textAccent}`} /> {text.bestYearsMeter}
-                </h4>
-                <div className="grid grid-cols-4 gap-4 pt-2">
-                  {yearLabels.map((yr, index) => {
-                    const yrRev = yearTotals[index];
-                    const percentage = Math.round((yrRev / maxYearRevenue) * 100);
-                    return (
-                      <div key={yr} className="flex flex-col items-center space-y-2">
-                        <div className="w-full bg-slate-950/40 h-36 rounded-xl flex items-end p-2">
-                          <div 
-                            className="w-full bg-cyan-500 rounded-lg transition-all duration-500" 
-                            style={{ height: `${Math.max(percentage, 8)}%` }}
-                            title={`€${yrRev.toFixed(2)}`}
-                          ></div>
-                        </div>
-                        <span className="text-xs font-bold opacity-90">{yr}</span>
-                        <span className="text-xs font-mono text-cyan-400 font-semibold">€{yrRev.toFixed(0)}</span>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
 
@@ -1717,128 +1629,50 @@ export default function App() {
             <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold">{text.bookkeepingTitle}</h2>
-                  <p className="text-xs opacity-75">{text.bookkeepingDesc}</p>
+                  <h2 className="text-xl font-bold">Business Expense Bookkeeping</h2>
+                  <p className="text-xs opacity-75">Record expenses below. Independent and unscaled.</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     onClick={exportExpensesToCSV}
                     className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
-                    title="Export Expenses CSV for Accountant"
                   >
-                    <FileSpreadsheet className="w-4 h-4" /> {text.exportExpensesCsv}
+                    <FileSpreadsheet className="w-4 h-4" /> Export Expenses (CSV)
                   </button>
-
-                  <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
-                    <button
-                      onClick={() => { setReportTimeframe('day'); setStartDateFilter(''); setEndDateFilter(''); }}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                    >
-                      {text.timeframeDay}
-                    </button>
-                    <button
-                      onClick={() => { setReportTimeframe('week'); setStartDateFilter(''); setEndDateFilter(''); }}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                    >
-                      {text.timeframeWeek}
-                    </button>
-                    <button
-                      onClick={() => { setReportTimeframe('month'); setStartDateFilter(''); setEndDateFilter(''); }}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                    >
-                      {text.timeframeMonth}
-                    </button>
-                    <button
-                      onClick={() => { setReportTimeframe('year'); setStartDateFilter(''); setEndDateFilter(''); }}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
-                    >
-                      {text.timeframeYear}
-                    </button>
-                  </div>
                 </div>
               </div>
 
-              {/* Custom Date Range Filter Bar */}
-              <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
-                <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-teal-400" /> {text.customRangeLabel}:
-                </span>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <input 
-                    type="date"
-                    value={startDateFilter}
-                    onChange={(e) => setStartDateFilter(e.target.value)}
-                    className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
-                  />
-                  <span className="text-xs opacity-60">to</span>
-                  <input 
-                    type="date"
-                    value={endDateFilter}
-                    onChange={(e) => setEndDateFilter(e.target.value)}
-                    className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
-                  />
-                </div>
-                {(startDateFilter || endDateFilter) && (
-                  <button
-                    onClick={() => { setStartDateFilter(''); setEndDateFilter(''); }}
-                    className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-auto"
-                  >
-                    {text.clearCustomRange}
-                  </button>
-                )}
-              </div>
-
-              {/* Financial Profit & Loss Header Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.grossRevenueCard}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Gross Revenue</p>
                   <p className={`text-xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.totalExpensesCard}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Total Expenses</p>
                   <p className="text-xl font-extrabold text-rose-400">€{periodExpenses.toFixed(2)}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.netOperatingProfitCard}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Net Operating Profit</p>
                   <p className={`text-xl font-extrabold ${periodNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     €{periodNetProfit.toFixed(2)}
                   </p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.profitMarginCard}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Profit Margin</p>
                   <p className={`text-xl font-extrabold ${profitMargin >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
                     {profitMargin.toFixed(1)}%
                   </p>
                 </div>
               </div>
 
-              {/* Expense Category Breakdown Summary Cards */}
-              <div className="pt-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider opacity-80 mb-3">{text.spendingByCategory} ({startDateFilter ? text.customRangeLabel : reportTimeframe.toUpperCase()})</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                  {EXPENSE_CATEGORIES.map(cat => {
-                    const catTotal = categoryTotals[cat.key] || 0;
-                    const catPercentage = periodExpenses > 0 ? Math.round((catTotal / periodExpenses) * 100) : 0;
-                    return (
-                      <div key={cat.key} className={`p-4 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                        <p className="text-[11px] font-semibold truncate opacity-80" title={cat.label}>{cat.label}</p>
-                        <p className="text-lg font-bold text-rose-400">€{catTotal.toFixed(2)}</p>
-                        <p className="text-[10px] opacity-60 font-mono">{catPercentage}% of spend</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Add Expense Form */}
               <form onSubmit={handleAddExpense} className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-sm font-bold flex items-center gap-2">
-                  <Wallet className={`w-4 h-4 ${t.textAccent}`} /> {text.recordExpenseHeader}
+                  <Wallet className={`w-4 h-4 ${t.textAccent}`} /> Record New Business Spend
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.expenseDateLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Date</label>
                     <input 
                       type="date"
                       required
@@ -1848,18 +1682,18 @@ export default function App() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.expenseDescLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Description / Vendor</label>
                     <input 
                       type="text"
                       required
                       value={expenseDescription}
                       onChange={(e) => setExpenseDescription(e.target.value)}
-                      placeholder={text.expenseDescPlaceholder}
+                      placeholder="e.g. Thread, Zippers, Rent"
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.expenseCategoryLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Category</label>
                     <select
                       value={expenseCategory}
                       onChange={(e) => setExpenseCategory(e.target.value)}
@@ -1874,7 +1708,7 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 items-end">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.expenseAmountPlaceholder}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Amount (€)</label>
                     <input 
                       type="number"
                       step="0.01"
@@ -1890,16 +1724,15 @@ export default function App() {
                       type="submit"
                       className={`w-full md:w-auto font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
                     >
-                      <Plus className="w-4 h-4" /> {text.addExpenseBtn}
+                      <Plus className="w-4 h-4" /> Record Expense
                     </button>
                   </div>
                 </div>
               </form>
 
-              {/* Expense History Table */}
               <div className="pt-4 overflow-x-auto">
                 <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
-                  <h3 className="text-sm font-bold">{text.expenseHistory} ({startDateFilter ? text.customRangeLabel : reportTimeframe.toUpperCase()})</h3>
+                  <h3 className="text-sm font-bold">Recorded Expenses Log</h3>
                   <span className="font-mono text-sm font-extrabold text-rose-400">Total: €{periodExpenses.toFixed(2)}</span>
                 </div>
                 <table className="w-full text-left border-collapse text-xs min-w-[600px]">
@@ -1918,26 +1751,22 @@ export default function App() {
                         <td colSpan="5" className="text-center py-10 opacity-60">No expenses recorded for this timeframe.</td>
                       </tr>
                     ) : (
-                      filteredExpensesByTimeframe.map(ex => {
-                        const foundCat = EXPENSE_CATEGORIES.find(c => c.key === ex.category);
-                        const displayCat = foundCat ? foundCat.label : ex.category;
-                        return (
-                          <tr key={ex.docId} className="hover:bg-slate-500/5 transition-colors">
-                            <td className="py-3 px-3 font-mono">{ex.date || ex.createdAt?.split('T')[0]}</td>
-                            <td className="py-3 px-3 font-semibold">{ex.description}</td>
-                            <td className="py-3 px-3 opacity-80">{displayCat}</td>
-                            <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
-                            <td className="py-3 px-3 text-right">
-                              <button
-                                onClick={() => deleteExpense(ex.docId)}
-                                className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
-                              >
-                                Delete
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })
+                      filteredExpensesByTimeframe.map(ex => (
+                        <tr key={ex.docId} className="hover:bg-slate-500/5 transition-colors">
+                          <td className="py-3 px-3 font-mono">{ex.date || ex.createdAt?.split('T')[0]}</td>
+                          <td className="py-3 px-3 font-semibold">{ex.description}</td>
+                          <td className="py-3 px-3 opacity-80">{ex.category}</td>
+                          <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              onClick={() => deleteExpense(ex.docId)}
+                              className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))
                     )}
                   </tbody>
                 </table>
@@ -1951,9 +1780,8 @@ export default function App() {
           <div className="space-y-6 max-w-xl mx-auto w-full">
             <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <Palette className={`w-5 h-5 ${t.textAccent}`} /> {text.appearanceTitle}
+                <Palette className={`w-5 h-5 ${t.textAccent}`} /> Appearance & Theme Settings
               </h2>
-              <p className="text-xs opacity-75">{text.appearanceDesc}</p>
               
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <button
@@ -1961,7 +1789,7 @@ export default function App() {
                   className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-dark' ? 'border-teal-500 bg-teal-500/10 shadow-md' : 'border-slate-700 bg-slate-900'}`}
                 >
                   <div className="w-6 h-6 rounded-full bg-teal-500"></div>
-                  <p className="text-xs font-bold text-white">{text.darkTheme}</p>
+                  <p className="text-xs font-bold text-white">Teal Dark (Default)</p>
                 </button>
 
                 <button
@@ -1969,45 +1797,20 @@ export default function App() {
                   className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-light' ? 'border-teal-600 bg-teal-100 text-slate-900 shadow-md' : 'border-slate-300 bg-white text-slate-900'}`}
                 >
                   <div className="w-6 h-6 rounded-full bg-teal-600"></div>
-                  <p className="text-xs font-bold">{text.lightTheme}</p>
+                  <p className="text-xs font-bold">Teal Light (Day Mode)</p>
                 </button>
               </div>
             </div>
 
-            <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <Globe className={`w-5 h-5 ${t.textAccent}`} /> {text.languageTitle}
-              </h2>
-              <p className="text-xs opacity-75">{text.languageDesc}</p>
-
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <button
-                  onClick={() => setLang('en')}
-                  className={`p-4 rounded-2xl border text-left space-y-1 transition-all ${lang === 'en' ? 'border-teal-500 bg-teal-500/10 shadow-md font-bold' : 'border-slate-700 bg-slate-900'}`}
-                >
-                  <p className="text-sm">🇬🇧 English</p>
-                </button>
-
-                <button
-                  onClick={() => setLang('ru')}
-                  className={`p-4 rounded-2xl border text-left space-y-1 transition-all ${lang === 'ru' ? 'border-teal-500 bg-teal-500/10 shadow-md font-bold' : 'border-slate-700 bg-slate-900'}`}
-                >
-                  <p className="text-sm">🇷🇺 Русский</p>
-                </button>
-              </div>
-            </div>
-
-            {/* Hidden Display Calibration Settings (Admin Only) */}
             {isAdmin && (
               <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
                 <h2 className="text-lg font-bold flex items-center gap-2">
-                  <SlidersHorizontal className={`w-5 h-5 ${t.textAccent}`} /> {text.optimizationTitle}
+                  <SlidersHorizontal className={`w-5 h-5 ${t.textAccent}`} /> Display Scaling & Metrics Calibration
                 </h2>
-                <p className="text-xs opacity-75">{text.optimizationDesc}</p>
 
                 {!isOptimizationUnlocked ? (
                   <div className="space-y-4 pt-2">
-                    <p className="text-xs font-semibold">{text.pinPrompt}</p>
+                    <p className="text-xs font-semibold">Enter PIN to Access Calibration</p>
                     {optimizationPinError && (
                       <p className="text-xs text-rose-400 font-medium">Incorrect PIN. Try again.</p>
                     )}
@@ -2032,7 +1835,7 @@ export default function App() {
                         }}
                         className={`px-6 py-2.5 font-bold rounded-xl text-xs transition-all shadow-md ${t.primary}`}
                       >
-                        {text.unlockBtn}
+                        Unlock
                       </button>
                     </div>
                   </div>
@@ -2048,7 +1851,7 @@ export default function App() {
                       </button>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.multiplierLabel}</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Display Scale Multiplier</label>
                       <div className="flex items-center gap-4">
                         <input 
                           type="range"
@@ -2064,9 +1867,6 @@ export default function App() {
                         </span>
                       </div>
                     </div>
-                    <p className="text-[11px] opacity-60">
-                      * Adjusts visual metrics scaling across reports. Expense records remain fully independent and unscaled.
-                    </p>
                   </div>
                 )}
               </div>
