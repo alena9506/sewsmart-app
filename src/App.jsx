@@ -901,7 +901,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
-      {/* Strict Thermal Printer Styles: Forces 72mm width and prints from page top */}
+      {/* Universal Print Styles: Forces 80mm thermal receipt roll layout for all printer types */}
       <style>{`
         @media print {
           body * {
@@ -914,24 +914,25 @@ export default function App() {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 72mm !important;
+            width: 80mm !important;
             margin: 0 !important;
-            padding: 0 !important;
+            padding: 2mm !important;
             background: white !important;
             color: black !important;
           }
-          .thermal-print-container > div {
+          .thermal-receipt-item {
             display: block !important;
             width: 100% !important;
-            margin: 0 0 4mm 0 !important;
+            margin: 0 0 5mm 0 !important;
             padding: 4mm !important;
             background: white !important;
             color: black !important;
             border: 1px dashed #000 !important;
             page-break-inside: avoid;
+            page-break-after: always;
           }
           @page {
-            size: auto;
+            size: 80mm auto;
             margin: 0mm;
           }
         }
@@ -1389,7 +1390,7 @@ export default function App() {
                   {selectedOrderForPrint ? (
                     <div className="thermal-print-container space-y-4 max-h-[600px] overflow-y-auto pr-2">
                       {['CUSTOMER COPY', 'TAG / RACK COPY', 'ACCOUNTING COPY'].map((copyType, idx) => (
-                        <div key={idx} className="bg-white text-slate-900 p-5 rounded-2xl font-mono text-xs shadow-inner space-y-3 relative border-2 border-dashed border-slate-300">
+                        <div key={idx} className="thermal-receipt-item bg-white text-slate-900 p-5 rounded-2xl font-mono text-xs shadow-inner space-y-3 relative border-2 border-dashed border-slate-300">
                           <div className="absolute top-2 right-2 bg-slate-900 text-white text-[9px] px-2 py-0.5 rounded font-bold">
                             {copyType}
                           </div>
