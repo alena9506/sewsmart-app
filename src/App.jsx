@@ -654,6 +654,30 @@ export default function App() {
     try {
       const orderRef = doc(db, 'orders', docId);
       await updateDoc(orderRef, { status: newStatus });
+
+      // If status is changed to Completed and customer has email, send collection notification
+      const targetOrder = orders.find(o => o.docId === docId);
+      if (newStatus === 'Completed' && targetOrder && targetOrder.customerEmail) {
+        try {
+          const templateParams = {
+            to_email: targetOrder.customerEmail,
+            customer_name: targetOrder.customerName || 'Valued Customer',
+            order_id: targetOrder.id,
+            service_type: targetOrder.serviceType.toUpperCase(),
+            total: targetOrder.total.toFixed(2)
+          };
+
+          await emailjs.send(
+            'service_u334299',
+            'template_2ka75ti',
+            templateParams,
+            '50tnv-rcE0P4zclZ9'
+          );
+          showToast(`Completion notification emailed to ${targetOrder.customerEmail}!`);
+        } catch (emailErr) {
+          console.error('Failed to send completion email via EmailJS:', emailErr);
+        }
+      }
     } catch (error) {
       console.error('Error updating status: ', error);
     }
