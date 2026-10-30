@@ -62,7 +62,16 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('intake');
   const [serviceType, setServiceType] = useState('alteration');
   
-  const [themeMode, setThemeMode] = useState('teal-dark');
+  // Initialize theme from localStorage or default to 'teal-light'
+  const [themeMode, setThemeMode] = useState(() => {
+    return localStorage.getItem('alico_theme_mode') || 'teal-light';
+  });
+
+  // Save theme preference whenever it changes
+  useEffect(() => {
+    localStorage.setItem('alico_theme_mode', themeMode);
+  }, [themeMode]);
+
   const [reportTimeframe, setReportTimeframe] = useState('month');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTerminalLocked, setIsTerminalLocked] = useState(false);
@@ -887,7 +896,7 @@ export default function App() {
     }
   };
 
-  const t = themes[themeMode] || themes['teal-dark'];
+  const t = themes[themeMode] || themes['teal-light'];
   const dateInputColorScheme = themeMode.includes('dark') ? 'dark' : 'light';
 
   return (
@@ -1830,7 +1839,7 @@ export default function App() {
                   className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-dark' ? 'border-teal-500 bg-teal-500/10 shadow-md' : 'border-slate-700 bg-slate-900'}`}
                 >
                   <div className="w-6 h-6 rounded-full bg-teal-500"></div>
-                  <p className="text-xs font-bold text-white">Teal Dark (Default)</p>
+                  <p className="text-xs font-bold text-white">Teal Dark</p>
                 </button>
 
                 <button
@@ -1838,7 +1847,7 @@ export default function App() {
                   className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-light' ? 'border-teal-600 bg-teal-100 text-slate-900 shadow-md' : 'border-slate-300 bg-white text-slate-900'}`}
                 >
                   <div className="w-6 h-6 rounded-full bg-teal-600"></div>
-                  <p className="text-xs font-bold">Teal Light (Day Mode)</p>
+                  <p className="text-xs font-bold">Teal Light (Default)</p>
                 </button>
               </div>
             </div>
