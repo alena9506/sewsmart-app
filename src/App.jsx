@@ -862,6 +862,9 @@ export default function App() {
       buttonSelected: 'bg-teal-500/20 border-teal-500 text-teal-300 shadow-md',
       tabActive: 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20',
       serviceActive: 'bg-teal-500 text-slate-950 shadow-md font-extrabold',
+      cartContainerBg: 'bg-teal-500/10 border-teal-500/30 text-teal-200',
+      cartItemBg: 'bg-slate-900/60 border-slate-700 text-white',
+      cartItemText: 'text-white',
     },
     'teal-light': {
       isLight: true,
@@ -878,6 +881,9 @@ export default function App() {
       buttonSelected: 'bg-teal-100 border-teal-500 text-teal-900 shadow-sm font-bold',
       tabActive: 'bg-teal-600 text-white shadow-md shadow-teal-600/20',
       serviceActive: 'bg-teal-600 text-white shadow-md font-extrabold',
+      cartContainerBg: 'bg-teal-50 border-teal-300 text-teal-900',
+      cartItemBg: 'bg-white border-slate-200 text-slate-900 shadow-sm',
+      cartItemText: 'text-slate-900',
     }
   };
 
@@ -1164,18 +1170,18 @@ export default function App() {
 
                       {/* Display Items Already Added to Ticket Cart */}
                       {garmentCart.length > 0 && (
-                        <div className="bg-teal-500/10 border border-teal-500/30 rounded-2xl p-4 space-y-3">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-teal-300">{text.currentTicketItems} ({garmentCart.length}):</h4>
+                        <div className={`border rounded-2xl p-4 space-y-3 ${t.cartContainerBg}`}>
+                          <h4 className="text-xs font-bold uppercase tracking-wider">{text.currentTicketItems} ({garmentCart.length}):</h4>
                           <div className="space-y-2">
                             {garmentCart.map((item, index) => (
-                              <div key={index} className="bg-slate-900/60 border border-slate-700 p-3 rounded-xl flex justify-between items-center text-xs">
+                              <div key={index} className={`border p-3 rounded-xl flex justify-between items-center text-xs ${t.cartItemBg}`}>
                                 <div>
-                                  <p className="font-extrabold text-white">{index + 1}. {item.garmentType}</p>
+                                  <p className={`font-extrabold ${t.cartItemText}`}>{index + 1}. {item.garmentType}</p>
                                   {item.alterations.length > 0 && <p className="opacity-80">Tasks: {item.alterations.join(', ')}</p>}
                                   {item.customNote && <p className="opacity-70 italic">Note: {item.customNote}</p>}
                                 </div>
                                 <div className="flex items-center gap-3">
-                                  <span className="font-bold text-teal-400">€{item.price.toFixed(2)}</span>
+                                  <span className={`font-bold ${t.textAccent}`}>€{item.price.toFixed(2)}</span>
                                   <button
                                     type="button"
                                     onClick={() => removeGarmentFromCart(index)}
@@ -1192,7 +1198,7 @@ export default function App() {
                       )}
 
                       {/* Garment Builder Section */}
-                      <div className="bg-slate-900/40 border border-slate-700/60 rounded-2xl p-5 space-y-4">
+                      <div className={`border rounded-2xl p-5 space-y-4 ${t.subCardBg}`}>
                         <h3 className="text-xs font-bold uppercase tracking-wider opacity-80">Add Garment Item</h3>
                         
                         <div>
@@ -1223,7 +1229,7 @@ export default function App() {
                                   type="button"
                                   key={alt.nameEn}
                                   onClick={() => toggleAlteration(alt)}
-                                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
+                                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
                                 >
                                   {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
                                   + {altName} (€{alt.price.toFixed(2)})
@@ -1260,7 +1266,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={handleAddGarmentToCart}
-                              className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3.5 px-4 rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2"
+                              className={`w-full font-bold py-3.5 px-4 rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                             >
                               <Plus className="w-4 h-4" /> {text.addToTicket}
                             </button>
@@ -1395,7 +1401,7 @@ export default function App() {
                 {selectedOrderForPrint && (
                   <button 
                     onClick={() => window.print()}
-                    className="mt-6 w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-md"
+                    className={`mt-6 w-full font-semibold py-3 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                   >
                     <Printer className="w-4 h-4" /> {text.printReceiptsNow}
                   </button>
@@ -1477,7 +1483,7 @@ export default function App() {
                         <td className="py-4 px-4 text-right space-x-2">
                           <button
                             onClick={() => setSelectedOrderForPrint(o)}
-                            className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium"
+                            className={`px-3 py-1 rounded-lg font-medium text-white ${t.isLight ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-700 hover:bg-slate-600'}`}
                           >
                             {text.print}
                           </button>
@@ -1546,7 +1552,7 @@ export default function App() {
                     </button>
                     <button
                       onClick={exportToPDF}
-                      className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                      className={`px-4 py-2.5 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-700 hover:bg-slate-600'}`}
                       title="Export PDF / Printable Report"
                     >
                       <FileText className="w-4 h-4" /> Export PDF Report
