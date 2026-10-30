@@ -882,6 +882,7 @@ export default function App() {
   };
 
   const t = themes[themeMode] || themes['teal-dark'];
+  const dateInputColorScheme = themeMode.includes('dark') ? 'dark' : 'light';
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
@@ -1135,6 +1136,7 @@ export default function App() {
                       <input 
                         type="date" 
                         value={dueDate}
+                        style={{ colorScheme: dateInputColorScheme }}
                         onChange={(e) => setDueDate(e.target.value)}
                         className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
@@ -1643,6 +1645,38 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Custom Date Range Filter Bar */}
+              <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
+                <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-teal-400" /> Custom Date Range:
+                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input 
+                    type="date"
+                    value={startDateFilter}
+                    style={{ colorScheme: dateInputColorScheme }}
+                    onChange={(e) => setStartDateFilter(e.target.value)}
+                    className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
+                  />
+                  <span className="text-xs opacity-60">to</span>
+                  <input 
+                    type="date"
+                    value={endDateFilter}
+                    style={{ colorScheme: dateInputColorScheme }}
+                    onChange={(e) => setEndDateFilter(e.target.value)}
+                    className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
+                  />
+                </div>
+                {(startDateFilter || endDateFilter) && (
+                  <button
+                    onClick={() => { setStartDateFilter(''); setEndDateFilter(''); }}
+                    className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-auto"
+                  >
+                    Clear Custom Range
+                  </button>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
                   <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Gross Revenue</p>
@@ -1677,6 +1711,7 @@ export default function App() {
                       type="date"
                       required
                       value={expenseDate}
+                      style={{ colorScheme: dateInputColorScheme }}
                       onChange={(e) => setExpenseDate(e.target.value)}
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
