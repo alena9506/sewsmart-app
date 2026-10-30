@@ -1299,8 +1299,8 @@ export default function App() {
                     </div>
                   )}
 
-                  <div className="pt-6 border-t border-opacity-30 flex flex-col md:flex-row gap-6 items-center justify-between">
-                    <div className="w-full md:w-1/2">
+                  <div className="pt-6 border-t border-opacity-30 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.totalPrice}</label>
                       <input 
                         type="number" 
@@ -1317,7 +1317,7 @@ export default function App() {
                       )}
                     </div>
 
-                    <div className="w-full md:w-1/2 self-end">
+                    <div className="self-center">
                       <button 
                         type="submit"
                         className={`w-full font-bold py-3.5 px-6 rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm ${t.primary}`}
