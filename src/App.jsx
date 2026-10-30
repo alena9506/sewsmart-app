@@ -1491,7 +1491,10 @@ export default function App() {
                         </td>
                         <td className="py-4 px-4 text-right space-x-2">
                           <button
-                            onClick={() => setSelectedOrderForPrint(o)}
+                            onClick={() => {
+                              setSelectedOrderForPrint(o);
+                              setActiveTab('intake');
+                            }}
                             className={`px-3 py-1 rounded-lg font-medium text-white ${t.isLight ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-700 hover:bg-slate-600'}`}
                           >
                             {text.print}
