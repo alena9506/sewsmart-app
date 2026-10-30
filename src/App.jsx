@@ -901,6 +901,32 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
+      {/* CSS Print Styles to Isolate Thermal Receipts */}
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden !important;
+          }
+          .thermal-print-container, .thermal-print-container * {
+            visibility: visible !important;
+          }
+          .thermal-print-container {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 72mm !important;
+            margin: 0 !important;
+            padding: 4mm !important;
+            background: white !important;
+            color: black !important;
+          }
+          @page {
+            size: auto;
+            margin: 0mm;
+          }
+        }
+      `}</style>
+
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 border border-teal-500/40 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
           <CheckCircle2 className="w-6 h-6 text-teal-400 flex-shrink-0" />
@@ -1344,13 +1370,14 @@ export default function App() {
                 </form>
               </div>
 
+              {/* Thermal Print Preview Container (This is what gets printed) */}
               <div className={`border rounded-3xl p-6 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
                     <Printer className={`w-4 h-4 ${t.textAccent}`} /> {text.thermalPreview}
                   </h3>
                   {selectedOrderForPrint ? (
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                    <div className="thermal-print-container space-y-4 max-h-[600px] overflow-y-auto pr-2">
                       {['CUSTOMER COPY', 'TAG / RACK COPY', 'ACCOUNTING COPY'].map((copyType, idx) => (
                         <div key={idx} className="bg-white text-slate-900 p-5 rounded-2xl font-mono text-xs shadow-inner space-y-3 relative border-2 border-dashed border-slate-300">
                           <div className="absolute top-2 right-2 bg-slate-900 text-white text-[9px] px-2 py-0.5 rounded font-bold">
