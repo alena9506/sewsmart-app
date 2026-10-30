@@ -901,7 +901,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
-      {/* CSS Print Styles to Isolate Thermal Receipts */}
+      {/* Strict Thermal Printer Styles: Forces 72mm width and prints all 3 copies stacked */}
       <style>{`
         @media print {
           body * {
@@ -916,6 +916,14 @@ export default function App() {
             top: 0 !important;
             width: 72mm !important;
             margin: 0 !important;
+            padding: 2mm !important;
+            background: white !important;
+            color: black !important;
+          }
+          .thermal-print-container > div {
+            page-break-after: always;
+            border: 1px dashed #000 !important;
+            margin-bottom: 5mm !important;
             padding: 4mm !important;
             background: white !important;
             color: black !important;
@@ -1370,7 +1378,7 @@ export default function App() {
                 </form>
               </div>
 
-              {/* Thermal Print Preview Container (This is what gets printed) */}
+              {/* Thermal Print Preview Container (Contains all 3 copies) */}
               <div className={`border rounded-3xl p-6 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
