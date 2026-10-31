@@ -141,7 +141,7 @@ export default function App() {
   const [newTaskPrice, setNewTaskPrice] = useState('');
   const [priceBookSearchTerm, setPriceBookSearchTerm] = useState('');
 
-  // Editing Price Book Item State (Per-Item State to prevent global overrides)
+  // Editing Price Book Item State
   const [editingPriceId, setEditingPriceId] = useState(null);
   const [editValues, setEditValues] = useState({ name: '', price: '' });
 
@@ -167,7 +167,7 @@ export default function App() {
   const [weightKg, setWeightKg] = useState('');
   const [laundryPrice, setLaundryPrice] = useState('');
 
-  // Discount percentage state (e.g. 0, 5, 10, 15, 25, 30, 50)
+  // Discount percentage state
   const [selectedDiscountPercent, setSelectedDiscountPercent] = useState(0);
 
   // Express / Rush Fee State
@@ -288,7 +288,16 @@ export default function App() {
       signInTitle: 'Sign In to Terminal',
       emailLabel: 'Email Address',
       passwordLabel: 'Password',
-      signInBtn: 'Sign In to Terminal'
+      signInBtn: 'Sign In to Terminal',
+      expressRushOrder: 'EXPRESS / SAME-DAY RUSH ORDER',
+      rushFeeAdded: 'A €5.00 express fee has been added to this order.',
+      rushPercentAdded: 'A 20% rush surcharge has been applied to this order.',
+      fixedFee: '+€5.00 Fixed',
+      percentRush: '+20% Rush',
+      noDiscount: 'No Discount',
+      optionalDiscount: 'Optional Discount % (Click to apply)',
+      rushAddedLabel: 'RUSH ADDED',
+      discountLabel: 'Discount'
     },
     ru: {
       subtitle: 'POS для Ателье и Прачечной (Облачная синхронизация)',
@@ -338,7 +347,16 @@ export default function App() {
       signInTitle: 'Вход в терминал',
       emailLabel: 'Электронная почта',
       passwordLabel: 'Пароль',
-      signInBtn: 'Войти в систему'
+      signInBtn: 'Войти в систему',
+      expressRushOrder: 'ЭКСПРЕСС / СРОЧНЫЙ ЗАКАЗ В ТОТ ЖЕ ДЕНЬ',
+      rushFeeAdded: 'Добавлена экспресс-комиссия €5.00 к этому заказу.',
+      rushPercentAdded: 'Применена срочная надбавка 20% к этому заказу.',
+      fixedFee: '+€5.00 Фиксир.',
+      percentRush: '+20% Срочно',
+      noDiscount: 'Без скидки',
+      optionalDiscount: 'Дополнительная скидка % (Нажмите, чтобы применить)',
+      rushAddedLabel: 'СРОЧНО ДОБАВЛЕНО',
+      discountLabel: 'Скидка'
     }
   };
 
@@ -395,7 +413,6 @@ export default function App() {
     { category: 'Curtains / Home Textiles', name: 'Cushion Cover Zip Replacement', price: 12.00 }
   ];
 
-  // Derive dynamic garment categories and options from Firestore priceBook
   const activePriceBook = priceBook.length > 0 ? priceBook : DEFAULT_PRICE_BOOK;
   
   const uniqueGarments = Array.from(new Set(activePriceBook.map(item => item.category)));
@@ -422,7 +439,6 @@ export default function App() {
     setSelectedAlterations(updated);
   };
 
-  // Automatically recalculate item price whenever selectedAlterations changes
   useEffect(() => {
     const totalSum = selectedAlterations.reduce((sum, altName) => {
       const foundOption = currentGarmentOptions.find(opt => opt.nameEn === altName);
@@ -527,7 +543,6 @@ export default function App() {
     return () => unsubscribeInventory();
   }, [user]);
 
-  // Fetch Custom Price Book from Firestore and auto-seed defaults if empty
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, 'priceBook'), orderBy('category', 'asc'));
@@ -554,7 +569,6 @@ export default function App() {
     return () => unsubscribePrices();
   }, [user]);
 
-  // Helper to reset and clear duplicate / clean price book items
   const handleResetPriceBookDefaults = async () => {
     setConfirmModal({
       isOpen: true,
@@ -582,7 +596,6 @@ export default function App() {
     });
   };
 
-  // Add new price item to Firestore
   const handleAddPriceItem = async (e) => {
     e.preventDefault();
     const cat = newGarmentCategory.trim();
@@ -646,7 +659,6 @@ export default function App() {
     });
   };
 
-  // Derive Customer Visit Tracker dynamically from live orders grouped by phone number
   const loyaltyCustomersMap = {};
   orders.forEach(o => {
     const p = (o.phone || '').trim();
@@ -1837,7 +1849,7 @@ export default function App() {
                   {/* Optional Percentage Discount Buttons */}
                   <div className="pt-2">
                     <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2 flex items-center gap-1">
-                      <Percent className="w-3.5 h-3.5 text-teal-400" /> Optional Discount % (Click to apply)
+                      <Percent className="w-3.5 h-3.5 text-teal-400" /> {text.optionalDiscount}
                     </label>
                     <div className="flex flex-wrap gap-2">
                       {[0, 5, 10, 15, 25, 30, 50].map((pct) => {
@@ -1849,7 +1861,7 @@ export default function App() {
                             onClick={() => setSelectedDiscountPercent(pct)}
                             className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-300 text-slate-700 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
                           >
-                            {pct === 0 ? 'No Discount' : `${pct}% OFF`}
+                            {pct === 0 ? text.noDiscount : `${pct}% OFF`}
                           </button>
                         );
                       })}
@@ -1867,7 +1879,7 @@ export default function App() {
                           className="w-4 h-4 accent-teal-500 rounded cursor-pointer"
                         />
                         <span className="flex items-center gap-1.5 text-amber-500 font-extrabold">
-                          ⚡ Express / Same-Day Rush Order
+                          ⚡ {text.expressRushOrder}
                         </span>
                       </label>
 
@@ -1878,21 +1890,21 @@ export default function App() {
                             onClick={() => setRushFeeType('fixed')}
                             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${rushFeeType === 'fixed' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
                           >
-                            +€5.00 Fixed
+                            {text.fixedFee}
                           </button>
                           <button
                             type="button"
                             onClick={() => setRushFeeType('percent')}
                             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${rushFeeType === 'percent' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
                           >
-                            +20% Rush
+                            {text.percentRush}
                           </button>
                         </div>
                       )}
                     </div>
                     {isRushOrder && (
                       <p className="text-[11px] text-amber-500 font-medium">
-                        {rushFeeType === 'fixed' ? 'A €5.00 express fee has been added to this order.' : 'A 20% rush surcharge has been applied to this order.'}
+                        {rushFeeType === 'fixed' ? text.rushFeeAdded : text.rushPercentAdded}
                       </p>
                     )}
                   </div>
@@ -1900,7 +1912,7 @@ export default function App() {
                   <div className="pt-6 border-t border-opacity-30 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">
-                        {text.totalPrice} {selectedDiscountPercent > 0 && <span className="text-teal-400 font-bold">({selectedDiscountPercent}% Discount)</span>} {isRushOrder && <span className="text-amber-500 font-bold">(⚡ Rush Added)</span>}
+                        {text.totalPrice} {selectedDiscountPercent > 0 && <span className="text-teal-400 font-bold">({selectedDiscountPercent}% {text.discountLabel})</span>} {isRushOrder && <span className="text-amber-500 font-bold">(⚡ {text.rushAddedLabel})</span>}
                       </label>
                       <input 
                         type="number" 
@@ -2037,7 +2049,7 @@ export default function App() {
                 <h3 className="text-xs font-bold uppercase tracking-wider">Add New Repair Task or Garment</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Garment Category (Pre-written selection)</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Garment Category</label>
                     <select
                       value={newGarmentCategory}
                       onChange={(e) => setNewGarmentCategory(e.target.value)}
@@ -2049,7 +2061,7 @@ export default function App() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Task / Fix Name (e.g. Custom Taper)</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Task / Fix Name</label>
                     <input 
                       type="text"
                       required
@@ -2084,7 +2096,6 @@ export default function App() {
                 <div className="flex justify-between items-center flex-wrap gap-3">
                   <h3 className="text-sm font-bold">Current Price Book Items ({filteredPriceBook.length} of {activePriceBook.length})</h3>
                   
-                  {/* Search Bar for Price Book */}
                   <div className="relative">
                     <Search className="w-4 h-4 absolute left-3 top-3 opacity-50" />
                     <input 
