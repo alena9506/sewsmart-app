@@ -1008,110 +1008,135 @@ export default function App() {
         </div>
       )}
 
-      <header className={`border-b px-4 sm:px-6 py-4 flex flex-wrap justify-between items-center gap-3 sm:gap-4 shadow-md ${t.headerBg}`}>
-        <div className="flex items-center gap-3">
-          <div className="w-14 sm:w-16 h-10 flex items-center justify-center">
-            <img 
-              src={logoImg} 
-              alt="ALiCo Logo" 
-              className="w-full h-full object-contain"
-              onError={(e)=>{e.target.style.display='none'}}
-            />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight">ALiCo</h1>
-              <span className={`font-semibold text-xs sm:text-sm px-2 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
-              <span className="text-[10px] opacity-70 font-mono hidden md:inline">({user.email} - {isAdmin ? 'Admin' : 'Employee'})</span>
+      {/* Fully Responsive Header for Mobile & Desktop */}
+      <header className={`border-b px-3 sm:px-6 py-3 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-md ${t.headerBg}`}>
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <div className="flex items-center gap-2.5">
+            <div className="w-12 sm:w-16 h-8 sm:h-10 flex items-center justify-center">
+              <img 
+                src={logoImg} 
+                alt="ALiCo Logo" 
+                className="w-full h-full object-contain"
+                onError={(e)=>{e.target.style.display='none'}}
+              />
             </div>
-            <p className="text-[11px] sm:text-xs opacity-80 font-medium truncate max-w-[200px] sm:max-w-none">{text.subtitle}</p>
+            <div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h1 className="text-base sm:text-xl font-bold tracking-tight">ALiCo</h1>
+                <span className={`font-semibold text-[10px] sm:text-sm px-1.5 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
+              </div>
+              <p className="text-[10px] sm:text-xs opacity-80 font-medium truncate max-w-[220px] sm:max-w-none">{text.subtitle}</p>
+            </div>
+          </div>
+
+          {/* Mobile Right Quick Controls */}
+          <div className="flex items-center gap-1.5 sm:hidden">
+            <button
+              onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
+              className={`px-2 py-1.5 rounded-lg border text-[11px] font-bold flex items-center gap-1 ${t.navToggleBg}`}
+            >
+              <Globe className="w-3.5 h-3.5 text-teal-400" />
+              {lang === 'en' ? 'RU' : 'EN'}
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="p-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-400"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+        {/* Navigation & Controls Bar */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
           {revenueMultiplier !== 1.00 && (
-            <span className="bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1 rounded-xl text-xs font-semibold hidden lg:flex items-center gap-1.5">
+            <span className="bg-slate-800 border border-slate-700 text-slate-300 px-2.5 py-1 rounded-xl text-[11px] font-semibold hidden lg:flex items-center gap-1">
               <Sliders className="w-3.5 h-3.5 text-teal-400" /> Scale: {Math.round(revenueMultiplier * 100)}%
             </span>
           )}
 
           <button
             onClick={() => setIsTerminalLocked(true)}
-            className="px-2.5 sm:px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm"
-            title="Lock Terminal against accidental clicks"
+            className="p-2 sm:px-3 sm:py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-bold flex items-center gap-1 shadow-sm"
+            title="Lock Terminal"
           >
-            <Lock className="w-4 h-4" />
-            <span className="hidden xl:inline">Lock Screen</span>
+            <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden xl:inline">Lock</span>
           </button>
 
           <button
             onClick={toggleFullscreen}
-            className={`px-2.5 sm:px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
-            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            className={`p-2 sm:px-3 sm:py-2 rounded-xl border text-xs font-bold flex items-center gap-1 ${t.navToggleBg}`}
+            title="Fullscreen"
           >
-            {isFullscreen ? <Minimize className="w-4 h-4 text-teal-400" /> : <Maximize className="w-4 h-4 text-teal-400" />}
-            <span className="hidden xl:inline">{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
+            {isFullscreen ? <Minimize className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400" /> : <Maximize className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400" />}
           </button>
 
-          <button
-            onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
-            className={`px-2.5 sm:px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${t.navToggleBg}`}
-            title="Toggle Language / Сменить язык"
-          >
-            <Globe className="w-4 h-4 text-teal-400" />
-            {lang === 'en' ? '🇷🇺 RU' : '🇬🇧 EN'}
-          </button>
-
-          <div className={`flex flex-wrap p-1 rounded-2xl border shadow-inner gap-1 ${t.navToggleBg}`}>
+          <div className={`flex p-1 rounded-2xl border shadow-inner gap-1 ${t.navToggleBg}`}>
             <button 
               onClick={() => setActiveTab('intake')}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              title={text.newTicket}
             >
-              <PlusCircle className="w-4 h-4" /> <span className="hidden sm:inline">{text.newTicket}</span>
+              <PlusCircle className="w-4 h-4" /> <span className="hidden md:inline">{text.newTicket}</span>
             </button>
             <button 
               onClick={() => setActiveTab('orders')}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              title={text.orders}
             >
-              <Clock className="w-4 h-4" /> <span className="hidden sm:inline">{text.orders}</span> <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
+              <Clock className="w-4 h-4" /> <span className="hidden md:inline">{text.orders}</span> <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
             </button>
             
             {isAdmin && (
               <>
                 <button 
                   onClick={() => setActiveTab('analytics')}
-                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  title={text.reports}
                 >
-                  <BarChart3 className="w-4 h-4" /> <span className="hidden sm:inline">{text.reports}</span>
+                  <BarChart3 className="w-4 h-4" /> <span className="hidden md:inline">{text.reports}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('bookkeeping')}
-                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  title={text.bookkeeping}
                 >
-                  <Wallet className="w-4 h-4" /> <span className="hidden sm:inline">{text.bookkeeping}</span>
+                  <Wallet className="w-4 h-4" /> <span className="hidden md:inline">{text.bookkeeping}</span>
                 </button>
               </>
             )}
 
             <button 
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              title={text.settings}
             >
-              <Settings className="w-4 h-4" /> <span className="hidden sm:inline">{text.settings}</span>
+              <Settings className="w-4 h-4" /> <span className="hidden md:inline">{text.settings}</span>
             </button>
           </div>
 
-          <button 
-            onClick={handleLogout}
-            className="p-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold flex items-center gap-1.5"
-            title="Sign Out"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+          <div className="hidden sm:flex items-center gap-2">
+            <button
+              onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
+              className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 ${t.navToggleBg}`}
+            >
+              <Globe className="w-4 h-4 text-teal-400" />
+              {lang === 'en' ? '🇷🇺 RU' : '🇬🇧 EN'}
+            </button>
+
+            <button 
+              onClick={handleLogout}
+              className="p-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
+      <main className="flex-1 p-3 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
         {activeTab === 'intake' && (
           <div className="space-y-6">
             <div className="flex justify-center mb-6">
@@ -1134,7 +1159,7 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className={`lg:col-span-2 border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-sm space-y-8 ${t.cardBg}`}>
+              <div className={`lg:col-span-2 border rounded-3xl p-5 sm:p-8 shadow-2xl backdrop-blur-sm space-y-8 ${t.cardBg}`}>
                 <div className="flex justify-between items-center pb-4 border-b border-opacity-30">
                   <h2 className="text-base font-bold flex items-center gap-2">
                     <User className={`w-5 h-5 ${t.textAccent}`} /> {text.customerPayment}
@@ -1244,7 +1269,7 @@ export default function App() {
                       )}
 
                       {/* Garment Builder Section */}
-                      <div className={`border rounded-2xl p-5 space-y-4 ${t.subCardBg}`}>
+                      <div className={`border rounded-2xl p-4 sm:p-5 space-y-4 ${t.subCardBg}`}>
                         <h3 className="text-xs font-bold uppercase tracking-wider opacity-80">Add Garment Item</h3>
                         
                         <div>
@@ -1266,7 +1291,7 @@ export default function App() {
                           <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-3">
                             {text.fixOptions} {GARMENTS.find(g => g.key === garmentType)?.[lang === 'ru' ? 'ru' : 'en'] || garmentType}:
                           </label>
-                          <div className="flex flex-wrap gap-2.5">
+                          <div className="flex flex-wrap gap-2">
                             {currentGarmentOptions.map((alt) => {
                               const altName = lang === 'ru' ? alt.nameRu : alt.nameEn;
                               const isSelected = selectedAlterations.includes(altName);
@@ -1275,7 +1300,7 @@ export default function App() {
                                   type="button"
                                   key={alt.nameEn}
                                   onClick={() => toggleAlteration(alt)}
-                                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
+                                  className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
                                 >
                                   {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
                                   + {altName} (€{alt.price.toFixed(2)})
@@ -1382,7 +1407,7 @@ export default function App() {
               </div>
 
               {/* Thermal Print Preview Container (Contains all 3 copies) */}
-              <div className={`border rounded-3xl p-6 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
+              <div className={`border rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
                     <Printer className={`w-4 h-4 ${t.textAccent}`} /> {text.thermalPreview}
@@ -1459,7 +1484,7 @@ export default function App() {
         )}
 
         {activeTab === 'orders' && (
-          <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+          <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
             <div className="flex flex-wrap justify-between items-center gap-4">
               <h2 className="text-lg font-bold">{text.ticketHistory}</h2>
               <div className="flex items-center gap-3 flex-wrap">
@@ -1557,7 +1582,7 @@ export default function App() {
 
         {activeTab === 'analytics' && isAdmin && (
           <div className="space-y-6">
-            <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+            <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <h2 className="text-xl font-bold">Smart Business Analytics & Reports</h2>
@@ -1684,7 +1709,7 @@ export default function App() {
 
         {activeTab === 'bookkeeping' && isAdmin && (
           <div className="space-y-6">
-            <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+            <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <h2 className="text-xl font-bold">Business Expense Bookkeeping</h2>
@@ -1869,7 +1894,7 @@ export default function App() {
 
         {activeTab === 'settings' && (
           <div className="space-y-6 max-w-xl mx-auto w-full">
-            <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+            <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <Palette className={`w-5 h-5 ${t.textAccent}`} /> Appearance & Theme Settings
               </h2>
@@ -1894,7 +1919,7 @@ export default function App() {
             </div>
 
             {isAdmin && (
-              <div className={`border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
                 <h2 className="text-lg font-bold flex items-center gap-2">
                   <SlidersHorizontal className={`w-5 h-5 ${t.textAccent}`} /> Display Scaling & Metrics Calibration
                 </h2>
