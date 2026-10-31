@@ -139,10 +139,9 @@ export default function App() {
   const [newTaskName, setNewTaskName] = useState('');
   const [newTaskPrice, setNewTaskPrice] = useState('');
 
-  // Editing Price Book Item State
+  // Editing Price Book Item State (Per-Item State to prevent global overrides)
   const [editingPriceId, setEditingPriceId] = useState(null);
-  const [editTaskName, setEditTaskName] = useState('');
-  const [editTaskPrice, setEditTaskPrice] = useState('');
+  const [editValues, setEditValues] = useState({ name: '', price: '' });
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -504,7 +503,7 @@ export default function App() {
     return () => unsubscribeInventory();
   }, [user]);
 
-  // Fetch Custom Price Book from Firestore and auto-seed defaults using a batch if empty
+  // Fetch Custom Price Book from Firestore and auto-seed defaults if empty
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, 'priceBook'), orderBy('category', 'asc'));
@@ -530,6 +529,34 @@ export default function App() {
     });
     return () => unsubscribePrices();
   }, [user]);
+
+  // Helper to reset and clear duplicate / clean price book items
+  const handleResetPriceBookDefaults = async () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Reset & Clean Price Book',
+      message: 'This will clear all current price book entries in Firestore and re-seed clean default items without duplicates. Proceed?',
+      onConfirm: async () => {
+        try {
+          const snapshot = await getDocs(collection(db, 'priceBook'));
+          const batch = writeBatch(db);
+          snapshot.docs.forEach((d) => {
+            batch.delete(d.ref);
+          });
+          DEFAULT_PRICE_BOOK.forEach((defItem) => {
+            const newDocRef = doc(collection(db, 'priceBook'));
+            batch.set(newDocRef, defItem);
+          });
+          await batch.commit();
+          showToast('Price book successfully reset and cleaned!');
+        } catch (err) {
+          console.error('Error resetting price book:', err);
+          showToast('Failed to reset price book.');
+        }
+        setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+      }
+    });
+  };
 
   // Add new price item to Firestore
   const handleAddPriceItem = async (e) => {
@@ -559,22 +586,22 @@ export default function App() {
   };
 
   const handleUpdatePriceItem = async (docId) => {
-    const priceNum = Number(editTaskPrice);
-    if (!editTaskName.trim() || isNaN(priceNum) || priceNum <= 0) {
+    const priceNum = Number(editValues.price);
+    if (!editValues.name.trim() || isNaN(priceNum) || priceNum <= 0) {
       showToast('Please enter a valid name and price.');
       return;
     }
 
     try {
       await updateDoc(doc(db, 'priceBook', docId), {
-        name: editTaskName.trim(),
+        name: editValues.name.trim(),
         price: priceNum
       });
       setEditingPriceId(null);
       showToast('Price item updated successfully!');
     } catch (err) {
       console.error('Error updating price item:', err);
-      showToast('Failed to update price item.');
+      showToast('Failed to update price item. Check Firestore rules.');
     }
   };
 
@@ -1896,11 +1923,19 @@ export default function App() {
         {activeTab === 'priceBook' && isAdmin && (
           <div className="space-y-6">
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
-              <div>
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Tag className={`w-6 h-6 ${t.textAccent}`} /> Price Book & Alterations Customizer
-                </h2>
-                <p className="text-xs opacity-75">Add, edit, rename, or remove garment categories and repair options instantly. Click "Edit" on any row to change its name or price.</p>
+              <div className="flex justify-between items-center flex-wrap gap-4">
+                <div>
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <Tag className={`w-6 h-6 ${t.textAccent}`} /> Price Book & Alterations Customizer
+                  </h2>
+                  <p className="text-xs opacity-75">Add, edit, rename, or remove garment categories and repair options instantly.</p>
+                </div>
+                <button
+                  onClick={handleResetPriceBookDefaults}
+                  className="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-all"
+                >
+                  🔄 Reset & Clean Duplicates
+                </button>
               </div>
 
               <form onSubmit={handleAddPriceItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
@@ -1972,8 +2007,8 @@ export default function App() {
                             {isEditing ? (
                               <input 
                                 type="text"
-                                value={editTaskName}
-                                onChange={(e) => setEditTaskName(e.target.value)}
+                                value={editValues.name}
+                                onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
                                 className={`border rounded-lg px-2 py-1 text-xs w-full ${t.innerInputBg}`}
                               />
                             ) : (
@@ -1985,8 +2020,8 @@ export default function App() {
                               <input 
                                 type="number"
                                 step="0.50"
-                                value={editTaskPrice}
-                                onChange={(e) => setEditTaskPrice(e.target.value)}
+                                value={editValues.price}
+                                onChange={(e) => setEditValues({ ...editValues, price: e.target.value })}
                                 className={`border rounded-lg px-2 py-1 text-xs w-24 ${t.innerInputBg}`}
                               />
                             ) : (
@@ -2014,8 +2049,7 @@ export default function App() {
                                 <button
                                   onClick={() => {
                                     setEditingPriceId(item.docId);
-                                    setEditTaskName(item.name);
-                                    setEditTaskPrice(item.price);
+                                    setEditValues({ name: item.name, price: item.price });
                                   }}
                                   className="px-3 py-1 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] inline-flex items-center gap-1"
                                 >
