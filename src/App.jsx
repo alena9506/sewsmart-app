@@ -14,7 +14,8 @@ import {
   query, 
   orderBy,
   getDocs,
-  onSnapshot 
+  onSnapshot,
+  writeBatch 
 } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 import { 
@@ -390,7 +391,7 @@ export default function App() {
   ];
 
   // Derive dynamic garment categories and options from Firestore priceBook
-  const activePriceBook = priceBook;
+  const activePriceBook = priceBook.length > 0 ? priceBook : DEFAULT_PRICE_BOOK;
   
   const uniqueGarments = Array.from(new Set(activePriceBook.map(item => item.category)));
   const GARMENTS = uniqueGarments.map(g => ({ key: g, en: g, ru: g }));
@@ -503,15 +504,21 @@ export default function App() {
     return () => unsubscribeInventory();
   }, [user]);
 
-  // Fetch Custom Price Book from Firestore and auto-seed defaults if empty
+  // Fetch Custom Price Book from Firestore and auto-seed defaults using a batch if empty
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, 'priceBook'), orderBy('category', 'asc'));
     const unsubscribePrices = onSnapshot(q, async (snapshot) => {
       if (snapshot.empty) {
-        // Auto-seed defaults into Firestore so every item has an editable docId
-        for (const defItem of DEFAULT_PRICE_BOOK) {
-          await addDoc(collection(db, 'priceBook'), defItem);
+        try {
+          const batch = writeBatch(db);
+          DEFAULT_PRICE_BOOK.forEach((defItem) => {
+            const newDocRef = doc(collection(db, 'priceBook'));
+            batch.set(newDocRef, defItem);
+          });
+          await batch.commit();
+        } catch (err) {
+          console.error('Error auto-seeding price book:', err);
         }
       } else {
         const priceData = snapshot.docs.map(doc => ({
@@ -1959,7 +1966,7 @@ export default function App() {
                     {activePriceBook.map((item) => {
                       const isEditing = editingPriceId === item.docId;
                       return (
-                        <tr key={item.docId} className="hover:bg-slate-500/5 transition-colors">
+                        <tr key={item.docId || item.name} className="hover:bg-slate-500/5 transition-colors">
                           <td className="py-3 px-3 font-semibold text-teal-400">{item.category}</td>
                           <td className="py-3 px-3">
                             {isEditing ? (
