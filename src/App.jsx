@@ -283,19 +283,19 @@ export default function App() {
       actions: 'Actions',
       print: 'Print',
       delete: 'Delete',
-      addToTicket: 'Add Garment to Ticket',
+      addToTicket: 'Add Garment',
       currentTicketItems: 'Items on This Ticket',
       signInTitle: 'Sign In to Terminal',
       emailLabel: 'Email Address',
       passwordLabel: 'Password',
       signInBtn: 'Sign In to Terminal',
-      expressRushOrder: 'EXPRESS / SAME-DAY RUSH ORDER',
-      rushFeeAdded: 'A €5.00 express fee has been added to this order.',
-      rushPercentAdded: 'A 20% rush surcharge has been applied to this order.',
-      fixedFee: '+€5.00 Fixed',
+      expressRushOrder: 'EXPRESS / SAME-DAY RUSH',
+      rushFeeAdded: 'A €5.00 express fee added.',
+      rushPercentAdded: 'A 20% rush surcharge added.',
+      fixedFee: '+€5 Fixed',
       percentRush: '+20% Rush',
-      noDiscount: 'No Discount',
-      optionalDiscount: 'Optional Discount % (Click to apply)',
+      noDiscount: 'No Disc',
+      optionalDiscount: 'Discount %',
       rushAddedLabel: 'RUSH ADDED',
       discountLabel: 'Discount'
     },
@@ -314,7 +314,7 @@ export default function App() {
       customerPayment: 'Клиент и Оплата',
       customerName: 'Имя клиента',
       phone: 'Номер телефона *',
-      emailOptional: 'Email клиента (Необязательно для цифрового чека)',
+      emailOptional: 'Email клиента (Необязательно)',
       targetDate: 'Дата готовности',
       paymentMethod: 'Способ оплаты',
       garmentType: 'Тип одежды',
@@ -342,20 +342,20 @@ export default function App() {
       actions: 'Действия',
       print: 'Печать',
       delete: 'Удалить',
-      addToTicket: 'Добавить вещь в заказ',
+      addToTicket: 'Добавить вещь',
       currentTicketItems: 'Вещи в текущем заказе',
       signInTitle: 'Вход в терминал',
       emailLabel: 'Электронная почта',
       passwordLabel: 'Пароль',
       signInBtn: 'Войти в систему',
-      expressRushOrder: 'ЭКСПРЕСС / СРОЧНЫЙ ЗАКАЗ В ТОТ ЖЕ ДЕНЬ',
-      rushFeeAdded: 'Добавлена экспресс-комиссия €5.00 к этому заказу.',
-      rushPercentAdded: 'Применена срочная надбавка 20% к этому заказу.',
-      fixedFee: '+€5.00 Фиксир.',
+      expressRushOrder: 'ЭКСПРЕСС / СРОЧНЫЙ ЗАКАЗ',
+      rushFeeAdded: 'Экспресс-комиссия €5.00 добавлена.',
+      rushPercentAdded: 'Срочная надбавка 20% добавлена.',
+      fixedFee: '+€5 Фикс',
       percentRush: '+20% Срочно',
       noDiscount: 'Без скидки',
-      optionalDiscount: 'Дополнительная скидка % (Нажмите, чтобы применить)',
-      rushAddedLabel: 'СРОЧНО ДОБАВЛЕНО',
+      optionalDiscount: 'Скидка %',
+      rushAddedLabel: 'СРОЧНО',
       discountLabel: 'Скидка'
     }
   };
@@ -1429,10 +1429,10 @@ export default function App() {
       )}
 
       {/* Header */}
-      <header className={`border-b px-3 sm:px-6 py-3 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-md ${t.headerBg}`}>
+      <header className={`border-b px-3 sm:px-6 py-2.5 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-md ${t.headerBg}`}>
         <div className="flex items-center justify-between w-full sm:w-auto">
           <div className="flex items-center gap-2.5">
-            <div className="w-12 sm:w-16 h-8 sm:h-10 flex items-center justify-center">
+            <div className="w-10 sm:w-14 h-7 sm:h-9 flex items-center justify-center">
               <img 
                 src={logoImg} 
                 alt="ALiCo Logo" 
@@ -1442,10 +1442,10 @@ export default function App() {
             </div>
             <div>
               <div className="flex items-center gap-1.5 flex-wrap">
-                <h1 className="text-base sm:text-xl font-bold tracking-tight">ALiCo</h1>
-                <span className={`font-semibold text-[10px] sm:text-sm px-1.5 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
+                <h1 className="text-base sm:text-lg font-bold tracking-tight">ALiCo</h1>
+                <span className={`font-semibold text-[10px] sm:text-xs px-1.5 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
               </div>
-              <p className="text-[10px] sm:text-xs opacity-80 font-medium truncate max-w-[220px] sm:max-w-none">{text.subtitle}</p>
+              <p className="text-[10px] opacity-80 font-medium truncate max-w-[220px] sm:max-w-none">{text.subtitle}</p>
             </div>
           </div>
 
@@ -1476,156 +1476,156 @@ export default function App() {
 
           <button
             onClick={() => setIsTerminalLocked(true)}
-            className="p-2 sm:px-3 sm:py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-bold flex items-center gap-1 shadow-sm"
+            className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-bold flex items-center gap-1 shadow-sm"
             title="Lock Terminal"
           >
-            <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Lock className="w-3.5 h-3.5" />
             <span className="hidden xl:inline">Lock</span>
           </button>
 
           <button
             onClick={toggleFullscreen}
-            className={`p-2 sm:px-3 sm:py-2 rounded-xl border text-xs font-bold flex items-center gap-1 ${t.navToggleBg}`}
+            className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1 ${t.navToggleBg}`}
             title="Fullscreen"
           >
-            {isFullscreen ? <Minimize className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400" /> : <Maximize className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400" />}
+            {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-teal-400" /> : <Maximize className="w-3.5 h-3.5 text-teal-400" />}
           </button>
 
           <div className={`flex p-1 rounded-2xl border shadow-inner gap-1 ${t.navToggleBg}`}>
             <button 
               onClick={() => setActiveTab('intake')}
-              className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
               title={text.newTicket}
             >
-              <PlusCircle className="w-4 h-4" /> <span className="hidden md:inline">{text.newTicket}</span>
+              <PlusCircle className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.newTicket}</span>
             </button>
             <button 
               onClick={() => setActiveTab('orders')}
-              className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
               title={text.orders}
             >
-              <Clock className="w-4 h-4" /> <span className="hidden md:inline">{text.orders}</span> <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
+              <Clock className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.orders}</span> <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
             </button>
             
             {isAdmin && (
               <>
                 <button 
                   onClick={() => setActiveTab('priceBook')}
-                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'priceBook' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'priceBook' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={text.priceBookTab}
                 >
-                  <Tag className="w-4 h-4" /> <span className="hidden md:inline">{text.priceBookTab}</span>
+                  <Tag className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.priceBookTab}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('inventory')}
-                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'inventory' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'inventory' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={text.inventory}
                 >
-                  <Package className="w-4 h-4" /> <span className="hidden md:inline">{text.inventory}</span>
+                  <Package className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.inventory}</span>
                   {inventoryItems.some(i => i.quantity <= i.minQuantity) && (
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
                   )}
                 </button>
                 <button 
                   onClick={() => setActiveTab('loyalty')}
-                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'loyalty' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'loyalty' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={text.loyalty}
                 >
-                  <Award className="w-4 h-4" /> <span className="hidden md:inline">{text.loyalty}</span>
+                  <Award className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.loyalty}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('analytics')}
-                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={text.reports}
                 >
-                  <BarChart3 className="w-4 h-4" /> <span className="hidden md:inline">{text.reports}</span>
+                  <BarChart3 className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.reports}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('bookkeeping')}
-                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={text.bookkeeping}
                 >
-                  <Wallet className="w-4 h-4" /> <span className="hidden md:inline">{text.bookkeeping}</span>
+                  <Wallet className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.bookkeeping}</span>
                 </button>
               </>
             )}
 
             <button 
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
               title={text.settings}
             >
-              <Settings className="w-4 h-4" /> <span className="hidden md:inline">{text.settings}</span>
+              <Settings className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.settings}</span>
             </button>
           </div>
 
           <div className="hidden sm:flex items-center gap-2">
             <button
               onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
-              className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 ${t.navToggleBg}`}
+              className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1 ${t.navToggleBg}`}
             >
-              <Globe className="w-4 h-4 text-teal-400" />
+              <Globe className="w-3.5 h-3.5 text-teal-400" />
               {lang === 'en' ? '🇷🇺 RU' : '🇬🇧 EN'}
             </button>
 
             <button 
               onClick={handleLogout}
-              className="p-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold"
+              className="p-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold"
               title="Sign Out"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 p-3 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
+      <main className="flex-1 p-2 sm:p-4 max-w-7xl w-full mx-auto space-y-4">
         {activeTab === 'intake' && (
-          <div className="space-y-6">
-            <div className="flex justify-center mb-6">
-              <div className={`p-1.5 rounded-2xl border flex gap-2 shadow-lg ${t.headerBg}`}>
+          <div className="space-y-4">
+            <div className="flex justify-center mb-2">
+              <div className={`p-1 rounded-2xl border flex gap-1.5 shadow-md ${t.headerBg}`}>
                 <button
                   type="button"
                   onClick={() => setServiceType('alteration')}
-                  className={`flex items-center gap-2 px-6 sm:px-8 py-3 rounded-xl text-xs sm:text-sm transition-all ${serviceType === 'alteration' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
+                  className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs transition-all ${serviceType === 'alteration' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                 >
-                  <Scissors className="w-4 h-4" /> {text.alterationTicket}
+                  <Scissors className="w-3.5 h-3.5" /> {text.alterationTicket}
                 </button>
                 <button
                   type="button"
                   onClick={() => setServiceType('laundry')}
-                  className={`flex items-center gap-2 px-6 sm:px-8 py-3 rounded-xl text-xs sm:text-sm transition-all ${serviceType === 'laundry' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
+                  className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs transition-all ${serviceType === 'laundry' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                 >
-                  <Shirt className="w-4 h-4" /> {text.laundryTicket}
+                  <Shirt className="w-3.5 h-3.5" /> {text.laundryTicket}
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className={`lg:col-span-2 border rounded-3xl p-5 sm:p-8 shadow-2xl backdrop-blur-sm space-y-8 ${t.cardBg}`}>
-                <div className="flex justify-between items-center pb-4 border-b border-opacity-30">
-                  <h2 className="text-base font-bold flex items-center gap-2">
-                    <User className={`w-5 h-5 ${t.textAccent}`} /> {text.customerPayment}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className={`lg:col-span-2 border rounded-3xl p-4 sm:p-6 shadow-2xl backdrop-blur-sm space-y-4 ${t.cardBg}`}>
+                <div className="flex justify-between items-center pb-2.5 border-b border-opacity-30">
+                  <h2 className="text-sm font-bold flex items-center gap-1.5">
+                    <User className={`w-4 h-4 ${t.textAccent}`} /> {text.customerPayment}
                   </h2>
-                  <span className={`font-mono text-xs px-3 py-1 rounded-full font-semibold border ${t.primaryBadge}`}>
+                  <span className={`font-mono text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${t.primaryBadge}`}>
                     TAG: #{nextTagId}
                   </span>
                 </div>
 
-                <form onSubmit={handleCreateOrder} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={handleCreateOrder} className="space-y-3.5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.customerName}</label>
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.customerName}</label>
                       <input 
                         type="text" 
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="e.g. Siobhán O'Connor"
-                        className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                        className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.phone}</label>
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.phone}</label>
                       <input 
                         type="tel" 
                         required
@@ -1633,90 +1633,83 @@ export default function App() {
                         onChange={(e) => setPhone(e.target.value)}
                         onBlur={handlePhoneBlur}
                         placeholder="e.g. 087 123 4567"
-                        className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                        className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
                     </div>
                   </div>
 
                   {phone.trim() && (
-                    <div className={`p-4 rounded-2xl border flex items-center justify-between flex-wrap gap-3 ${
+                    <div className={`p-2.5 rounded-xl border flex items-center justify-between flex-wrap gap-2 text-xs ${
                       activeLoyaltyCustomer 
                         ? (t.isLight ? 'bg-teal-50 border-teal-300 text-teal-900 font-medium' : 'bg-teal-500/10 border-teal-500/30 text-teal-300')
                         : (t.isLight ? 'bg-teal-50/80 border-teal-200 text-slate-800 font-medium' : 'bg-slate-800/40 border-slate-700 text-slate-300')
                     }`}>
-                      <div className="flex items-center gap-2.5">
-                        <Award className="w-5 h-5 text-teal-500 flex-shrink-0" />
+                      <div className="flex items-center gap-2">
+                        <Award className="w-4 h-4 text-teal-500 flex-shrink-0" />
                         <div>
-                          <p className="text-xs font-bold">
+                          <p className="font-bold text-[11px]">
                             {activeLoyaltyCustomer 
-                              ? `Returning Customer: ${activeLoyaltyCustomer.totalVisits} previous visits recorded.` 
-                              : 'New Customer: First visit will be tracked.'}
-                          </p>
-                          <p className="text-[10px] opacity-80">
-                            {activeLoyaltyCustomer 
-                              ? `Total spent so far: €${activeLoyaltyCustomer.totalSpent.toFixed(2)}` 
-                              : 'Automatic history tracking enabled.'}
+                              ? `Returning Customer: ${activeLoyaltyCustomer.totalVisits} previous visits.` 
+                              : 'New Customer: First visit tracked.'}
                           </p>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2 flex items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-teal-400" /> {text.emailOptional}
-                    </label>
-                    <input 
-                      type="email" 
-                      value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)}
-                      placeholder="e.g. siobhanshop@gmail.com (Optional)"
-                      className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.targetDate}</label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="md:col-span-1">
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.targetDate}</label>
                       <input 
                         type="date" 
                         value={dueDate}
                         style={{ colorScheme: dateInputColorScheme }}
                         onChange={(e) => setDueDate(e.target.value)}
-                        className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                        className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.paymentMethod}</label>
+                    <div className="md:col-span-1">
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.paymentMethod}</label>
                       <select 
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
-                        className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                        className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       >
                         <option>Credit / Debit Card</option>
                         <option>Cash</option>
                       </select>
                     </div>
+                    <div className="md:col-span-1">
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1 flex items-center gap-1">
+                        <Mail className="w-3 h-3 text-teal-400" /> {text.emailOptional}
+                      </label>
+                      <input 
+                        type="email" 
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="email@example.com"
+                        className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                      />
+                    </div>
                   </div>
 
                   {serviceType === 'alteration' ? (
-                    <div className="space-y-6 pt-4 border-t border-opacity-30">
+                    <div className="space-y-3 pt-3 border-t border-opacity-30">
                       <div className="flex justify-between items-center">
-                        <h2 className="text-base font-bold flex items-center gap-2">
-                          <Scissors className={`w-5 h-5 ${t.textAccent}`} /> {text.alterationTicket}
+                        <h2 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                          <Scissors className={`w-4 h-4 ${t.textAccent}`} /> {text.alterationTicket}
                         </h2>
                       </div>
 
                       {garmentCart.length > 0 && (
-                        <div className={`border rounded-2xl p-4 space-y-3 ${t.cartContainerBg}`}>
-                          <h4 className="text-xs font-bold uppercase tracking-wider">{text.currentTicketItems} ({garmentCart.length}):</h4>
-                          <div className="space-y-2">
+                        <div className={`border rounded-xl p-3 space-y-2 ${t.cartContainerBg}`}>
+                          <h4 className="text-[10px] font-bold uppercase tracking-wider">{text.currentTicketItems} ({garmentCart.length}):</h4>
+                          <div className="space-y-1.5">
                             {garmentCart.map((item, index) => (
-                              <div key={index} className={`border p-3 rounded-xl flex justify-between items-center text-xs ${t.cartItemBg}`}>
+                              <div key={index} className={`border px-3 py-2 rounded-lg flex justify-between items-center text-xs ${t.cartItemBg}`}>
                                 <div>
-                                  <p className={`font-extrabold ${t.cartItemText}`}>{index + 1}. {item.garmentType}</p>
-                                  {item.alterations.length > 0 && <p className="opacity-80">Tasks: {item.alterations.join(', ')}</p>}
-                                  {item.customNote && <p className="opacity-70 italic">Note: {item.customNote}</p>}
+                                  <p className={`font-bold ${t.cartItemText}`}>{index + 1}. {item.garmentType} {item.alterations.length > 0 ? `(${item.alterations.join(', ')})` : ''}</p>
+                                  {item.customNote && <p className="opacity-70 text-[10px] italic">Note: {item.customNote}</p>}
                                 </div>
                                 <div className="flex items-center gap-3">
                                   <span className={`font-bold ${t.textAccent}`}>€{item.price.toFixed(2)}</span>
@@ -1726,7 +1719,7 @@ export default function App() {
                                     className="text-rose-400 hover:text-rose-300 p-1"
                                     title="Remove item"
                                   >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
                               </div>
@@ -1735,31 +1728,51 @@ export default function App() {
                         </div>
                       )}
 
-                      <div className={`border rounded-2xl p-3 sm:p-5 space-y-4 ${t.subCardBg}`}>
-                        <h3 className="text-xs font-bold uppercase tracking-wider opacity-80">Add Garment Item</h3>
-                        
-                        <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.garmentType}</label>
-                          <select 
-                            value={garmentType} 
-                            onChange={(e) => handleGarmentChange(e.target.value)}
-                            className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
-                          >
-                            {GARMENTS.map(g => (
-                              <option key={g.key} value={g.key}>
-                                {g.en}
-                              </option>
-                            ))}
-                          </select>
+                      <div className={`border rounded-xl p-3 space-y-3 ${t.subCardBg}`}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.garmentType}</label>
+                            <select 
+                              value={garmentType} 
+                              onChange={(e) => handleGarmentChange(e.target.value)}
+                              className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                            >
+                              {GARMENTS.map(g => (
+                                <option key={g.key} value={g.key}>
+                                  {g.en}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">Item Price (€) *</label>
+                            <div className="flex gap-2">
+                              <input 
+                                type="number" 
+                                step="0.50"
+                                value={itemPrice}
+                                onChange={(e) => setItemPrice(e.target.value)}
+                                placeholder="0.00"
+                                className={`w-full border rounded-xl px-3 py-2 text-xs font-bold ${t.textAccent} focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                              />
+                              <button
+                                type="button"
+                                onClick={handleAddGarmentToCart}
+                                className={`font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1 whitespace-nowrap ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                              >
+                                <Plus className="w-3.5 h-3.5" /> {text.addToTicket}
+                              </button>
+                            </div>
+                          </div>
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-3">
+                          <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1.5">
                             {text.fixOptions} {garmentType}:
                           </label>
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
                             {currentGarmentOptions.length === 0 ? (
-                              <p className="text-xs opacity-60">No custom repair tasks added for this category yet. Add them in the Price Book tab.</p>
+                              <p className="text-[11px] opacity-60">No custom repair tasks added for this category yet.</p>
                             ) : (
                               currentGarmentOptions.map((alt) => {
                                 const altName = alt.nameEn;
@@ -1769,10 +1782,10 @@ export default function App() {
                                     type="button"
                                     key={alt.docId || alt.nameEn}
                                     onClick={() => toggleAlteration(alt)}
-                                    className={`px-2.5 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1 border whitespace-nowrap ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
+                                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1 border whitespace-nowrap ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
                                   >
-                                    {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent} flex-shrink-0`} />}
-                                    <span>+ {altName} (From €{alt.price.toFixed(2)})</span>
+                                    {isSelected && <Check className={`w-3 h-3 ${t.textAccent} flex-shrink-0`} />}
+                                    <span>+ {altName} (€{alt.price.toFixed(2)})</span>
                                   </button>
                                 );
                               })
@@ -1781,137 +1794,116 @@ export default function App() {
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.customNotes}</label>
                           <input 
                             type="text"
                             value={customAlteration}
                             onChange={(e) => setCustomAlteration(e.target.value)}
-                            placeholder="e.g. Take up by 2 inches, keep original hem"
-                            className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                            placeholder="Custom Notes (e.g. Take up by 2 inches)"
+                            className={`w-full border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                           />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center pt-2">
-                          <div>
-                            <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Item Price (€) *</label>
-                            <input 
-                              type="number" 
-                              step="0.50"
-                              value={itemPrice}
-                              onChange={(e) => setItemPrice(e.target.value)}
-                              placeholder="0.00"
-                              className={`w-full border rounded-2xl px-4 py-3 text-base font-extrabold ${t.textAccent} focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
-                            />
-                          </div>
-                          <div className="self-end">
-                            <button
-                              type="button"
-                              onClick={handleAddGarmentToCart}
-                              className={`w-full font-bold py-3.5 px-4 rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
-                            >
-                              <Plus className="w-4 h-4" /> {text.addToTicket}
-                            </button>
-                          </div>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-6 pt-4 border-t border-opacity-30">
-                      <h2 className="text-base font-bold flex items-center gap-2">
-                        <Shirt className={`w-5 h-5 ${t.textAccent}`} /> {text.laundryTicket}
+                    <div className="space-y-3 pt-3 border-t border-opacity-30">
+                      <h2 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <Shirt className={`w-4 h-4 ${t.textAccent}`} /> {text.laundryTicket}
                       </h2>
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.laundryService}</label>
-                        <select 
-                          value={laundryService} 
-                          onChange={(e) => setLaundryService(e.target.value)}
-                          className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
-                        >
-                          <option>Wash, Dry & Fold (Per Kg)</option>
-                          <option>Dry Cleaning</option>
-                          <option>Duvet / Heavy Bedding</option>
-                          <option>Ironing Only</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.weightQty}</label>
-                        <input 
-                          type="text"
-                          value={weightKg}
-                          onChange={(e) => setWeightKg(e.target.value)}
-                          placeholder="e.g. 5.5 kg or 2 bags"
-                          className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.laundryService}</label>
+                          <select 
+                            value={laundryService} 
+                            onChange={(e) => setLaundryService(e.target.value)}
+                            className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                          >
+                            <option>Wash, Dry & Fold (Per Kg)</option>
+                            <option>Dry Cleaning</option>
+                            <option>Duvet / Heavy Bedding</option>
+                            <option>Ironing Only</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.weightQty}</label>
+                          <input 
+                            type="text"
+                            value={weightKg}
+                            onChange={(e) => setWeightKg(e.target.value)}
+                            placeholder="e.g. 5.5 kg or 2 bags"
+                            className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
 
-                  {/* Optional Percentage Discount Buttons */}
-                  <div className="pt-2">
-                    <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2 flex items-center gap-1">
-                      <Percent className="w-3.5 h-3.5 text-teal-400" /> {text.optionalDiscount}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {[0, 5, 10, 15, 25, 30, 50].map((pct) => {
-                        const isSelected = selectedDiscountPercent === pct;
-                        return (
-                          <button
-                            type="button"
-                            key={pct}
-                            onClick={() => setSelectedDiscountPercent(pct)}
-                            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-300 text-slate-700 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
-                          >
-                            {pct === 0 ? text.noDiscount : `${pct}% OFF`}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Express / Rush Fee Section */}
-                  <div className={`p-4 rounded-2xl border space-y-3 ${t.subCardBg}`}>
-                    <div className="flex justify-between items-center flex-wrap gap-2">
-                      <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider cursor-pointer">
-                        <input 
-                          type="checkbox"
-                          checked={isRushOrder}
-                          onChange={(e) => setIsRushOrder(e.target.checked)}
-                          className="w-4 h-4 accent-teal-500 rounded cursor-pointer"
-                        />
-                        <span className="flex items-center gap-1.5 text-amber-500 font-extrabold">
-                          ⚡ {text.expressRushOrder}
-                        </span>
+                  {/* Compact Discount & Rush Row */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1 flex items-center gap-1">
+                        <Percent className="w-3 h-3 text-teal-400" /> {text.optionalDiscount}
                       </label>
+                      <div className="flex flex-wrap gap-1">
+                        {[0, 5, 10, 15, 25, 30, 50].map((pct) => {
+                          const isSelected = selectedDiscountPercent === pct;
+                          return (
+                            <button
+                              type="button"
+                              key={pct}
+                              onClick={() => setSelectedDiscountPercent(pct)}
+                              className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-300 text-slate-700 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
+                            >
+                              {pct === 0 ? text.noDiscount : `${pct}%`}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
 
+                    <div className={`p-2.5 rounded-xl border flex flex-col justify-center space-y-1.5 ${t.subCardBg}`}>
+                      <div className="flex justify-between items-center">
+                        <label className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider cursor-pointer">
+                          <input 
+                            type="checkbox"
+                            checked={isRushOrder}
+                            onChange={(e) => setIsRushOrder(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-teal-500 rounded cursor-pointer"
+                          />
+                          <span className="text-amber-500 font-extrabold flex items-center gap-1">
+                            ⚡ {text.expressRushOrder}
+                          </span>
+                        </label>
+
+                        {isRushOrder && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setRushFeeType('fixed')}
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold border ${rushFeeType === 'fixed' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
+                            >
+                              {text.fixedFee}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setRushFeeType('percent')}
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold border ${rushFeeType === 'percent' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
+                            >
+                              {text.percentRush}
+                            </button>
+                          </div>
+                        )}
+                      </div>
                       {isRushOrder && (
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setRushFeeType('fixed')}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${rushFeeType === 'fixed' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
-                          >
-                            {text.fixedFee}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setRushFeeType('percent')}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${rushFeeType === 'percent' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
-                          >
-                            {text.percentRush}
-                          </button>
-                        </div>
+                        <p className="text-[10px] text-amber-500 font-medium">
+                          {rushFeeType === 'fixed' ? text.rushFeeAdded : text.rushPercentAdded}
+                        </p>
                       )}
                     </div>
-                    {isRushOrder && (
-                      <p className="text-[11px] text-amber-500 font-medium">
-                        {rushFeeType === 'fixed' ? text.rushFeeAdded : text.rushPercentAdded}
-                      </p>
-                    )}
                   </div>
 
-                  <div className="pt-6 border-t border-opacity-30 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  <div className="pt-2 border-t border-opacity-30 grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">
                         {text.totalPrice} {selectedDiscountPercent > 0 && <span className="text-teal-400 font-bold">({selectedDiscountPercent}% {text.discountLabel})</span>} {isRushOrder && <span className="text-amber-500 font-bold">(⚡ {text.rushAddedLabel})</span>}
                       </label>
                       <input 
@@ -1922,19 +1914,16 @@ export default function App() {
                         onChange={(e) => serviceType === 'laundry' && setLaundryPrice(e.target.value)}
                         readOnly={serviceType === 'alteration'}
                         placeholder="0.00"
-                        className={`w-full border rounded-2xl px-4 py-3 text-lg font-extrabold ${t.textAccent} focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg} ${serviceType === 'alteration' ? 'cursor-not-allowed opacity-90' : ''}`}
+                        className={`w-full border rounded-xl px-3 py-2 text-base font-extrabold ${t.textAccent} focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg} ${serviceType === 'alteration' ? 'cursor-not-allowed opacity-90' : ''}`}
                       />
-                      {serviceType === 'alteration' && (
-                        <p className="text-[10px] opacity-60 mt-1">Calculated automatically from added items in cart.</p>
-                      )}
                     </div>
 
-                    <div className="self-center">
+                    <div className="self-end">
                       <button 
                         type="submit"
-                        className={`w-full font-bold py-3.5 px-6 rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm ${t.primary}`}
+                        className={`w-full font-bold py-3 px-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-xs ${t.primary}`}
                       >
-                        <Printer className="w-5 h-5" /> {text.completePrint}
+                        <Printer className="w-4 h-4" /> {text.completePrint}
                       </button>
                     </div>
                   </div>
@@ -1942,34 +1931,34 @@ export default function App() {
               </div>
 
               {/* Thermal Print Preview Container */}
-              <div className={`border rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
+              <div className={`border rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <Printer className={`w-4 h-4 ${t.textAccent}`} /> {text.thermalPreview}
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <Printer className={`w-3.5 h-3.5 ${t.textAccent}`} /> {text.thermalPreview}
                   </h3>
                   {selectedOrderForPrint ? (
-                    <div className="thermal-print-container space-y-4 overflow-visible pr-1">
+                    <div className="thermal-print-container space-y-3 overflow-visible pr-1">
                       {['CUSTOMER COPY', 'TAG / RACK COPY', 'ACCOUNTING COPY'].map((copyType, idx) => (
-                        <div key={idx} className="thermal-receipt-card bg-white text-slate-900 p-4 rounded-xl font-mono text-xs space-y-3 relative border border-slate-300">
-                          <div className="absolute top-2 right-2 bg-slate-900 text-white text-[9px] px-2 py-0.5 rounded font-bold">
+                        <div key={idx} className="thermal-receipt-card bg-white text-slate-900 p-3 rounded-xl font-mono text-[11px] space-y-2 relative border border-slate-300">
+                          <div className="absolute top-2 right-2 bg-slate-900 text-white text-[8px] px-1.5 py-0.5 rounded font-bold">
                             {copyType}
                           </div>
                           
-                          <div className="text-center border-b border-dashed pb-3 pt-1">
-                            <div className="w-12 h-12 mx-auto mb-1 flex items-center justify-center">
+                          <div className="text-center border-b border-dashed pb-2 pt-1">
+                            <div className="w-10 h-10 mx-auto mb-1 flex items-center justify-center">
                               <img src={logoImg} alt="ALiCo Logo" className="w-full h-full object-contain" />
                             </div>
-                            <p className="font-extrabold text-xs tracking-wide">ALiCo DUBLIN</p>
+                            <p className="font-extrabold text-[11px] tracking-wide">ALiCo DUBLIN</p>
                             
-                            <div className="my-1.5 py-1 px-4 bg-slate-900 text-teal-400 font-black text-3xl tracking-widest rounded-xl inline-block">
+                            <div className="my-1 py-0.5 px-3 bg-slate-900 text-teal-400 font-black text-2xl tracking-widest rounded-lg inline-block">
                               #{selectedOrderForPrint.id}
                             </div>
                           </div>
 
-                          <div className="space-y-1 text-[11px]">
+                          <div className="space-y-0.5 text-[10px]">
                             {selectedOrderForPrint.isRush && (
-                              <div className="bg-amber-400 text-slate-950 text-[10px] px-2 py-1 rounded font-black text-center mb-2">
-                                ⚡ EXPRESS RUSH ORDER ({selectedOrderForPrint.rushType === 'fixed' ? '+€5.00' : '+20%'})
+                              <div className="bg-amber-400 text-slate-950 text-[9px] px-2 py-0.5 rounded font-black text-center mb-1">
+                                ⚡ EXPRESS RUSH ({selectedOrderForPrint.rushType === 'fixed' ? '+€5.00' : '+20%'})
                               </div>
                             )}
                             <p><strong>Customer:</strong> {selectedOrderForPrint.customerName}</p>
@@ -1977,13 +1966,13 @@ export default function App() {
                             {selectedOrderForPrint.customerEmail && <p><strong>Email:</strong> {selectedOrderForPrint.customerEmail}</p>}
                             <p><strong>Service:</strong> {selectedOrderForPrint.serviceType.toUpperCase()}</p>
                             {selectedOrderForPrint.serviceType === 'alteration' ? (
-                              <div className="space-y-1.5 pt-1">
+                              <div className="space-y-1 pt-1">
                                 <p className="font-bold underline">Items:</p>
                                 {selectedOrderForPrint.details.items?.map((item, i) => (
                                   <div key={i} className="pl-2 border-l-2 border-slate-300 space-y-0.5">
                                     <p className="font-bold text-slate-900">• {item.garmentType} (€{item.price.toFixed(2)})</p>
-                                    {item.alterations.length > 0 && <p className="text-[10px]">Tasks: {item.alterations.join(', ')}</p>}
-                                    {item.customNote && <p className="text-[10px]">Note: {item.customNote}</p>}
+                                    {item.alterations.length > 0 && <p className="text-[9px]">Tasks: {item.alterations.join(', ')}</p>}
+                                    {item.customNote && <p className="text-[9px]">Note: {item.customNote}</p>}
                                   </div>
                                 ))}
                               </div>
@@ -1994,11 +1983,11 @@ export default function App() {
                               </>
                             )}
                           </div>
-                          <div className="border-t border-dashed pt-2 flex justify-between font-bold text-xs">
+                          <div className="border-t border-dashed pt-1.5 flex justify-between font-bold text-[11px]">
                             <span>PAID ({selectedOrderForPrint.paymentMethod}):</span>
                             <span className={t.textAccent}>€{selectedOrderForPrint.total.toFixed(2)}</span>
                           </div>
-                          <div className="text-center pt-2 text-[10px] text-slate-500 border-t border-dashed">
+                          <div className="text-center pt-1.5 text-[9px] text-slate-500 border-t border-dashed">
                             <p>Due: {selectedOrderForPrint.dueDate}</p>
                             <p className="font-bold text-slate-800 mt-0.5">*** PAID IN FULL ***</p>
                           </div>
@@ -2006,8 +1995,8 @@ export default function App() {
                       ))}
                     </div>
                   ) : (
-                    <div className={`text-center py-16 opacity-70 border border-dashed rounded-2xl ${t.subCardBg}`}>
-                      <Printer className="w-8 h-8 mx-auto mb-3 opacity-60" />
+                    <div className={`text-center py-12 opacity-70 border border-dashed rounded-2xl ${t.subCardBg}`}>
+                      <Printer className="w-7 h-7 mx-auto mb-2 opacity-60" />
                       <p className="text-xs">{text.submitReceiptPrompt}</p>
                     </div>
                   )}
@@ -2016,9 +2005,9 @@ export default function App() {
                 {selectedOrderForPrint && (
                   <button 
                     onClick={() => window.print()}
-                    className={`mt-4 w-full font-semibold py-3 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                    className={`mt-3 w-full font-semibold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                   >
-                    <Printer className="w-4 h-4" /> {text.printReceiptsNow}
+                    <Printer className="w-3.5 h-3.5" /> {text.printReceiptsNow}
                   </button>
                 )}
               </div>
