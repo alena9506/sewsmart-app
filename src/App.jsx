@@ -407,14 +407,28 @@ export default function App() {
 
   const toggleAlteration = (alt) => {
     const altName = alt.nameEn;
+    let updated;
     if (selectedAlterations.includes(altName)) {
-      setSelectedAlterations(selectedAlterations.filter(item => item !== altName));
-      setItemPrice(prev => Math.max(0, Number(prev) - alt.price).toFixed(2));
+      updated = selectedAlterations.filter(item => item !== altName);
     } else {
-      setSelectedAlterations([...selectedAlterations, altName]);
-      setItemPrice(prev => (Number(prev || 0) + alt.price).toFixed(2));
+      updated = [...selectedAlterations, altName];
     }
+    setSelectedAlterations(updated);
   };
+
+  // Automatically recalculate item price whenever selectedAlterations changes
+  useEffect(() => {
+    const totalSum = selectedAlterations.reduce((sum, altName) => {
+      const foundOption = currentGarmentOptions.find(opt => opt.nameEn === altName);
+      return sum + (foundOption ? foundOption.price : 0);
+    }, 0);
+    
+    if (totalSum > 0) {
+      setItemPrice(totalSum.toFixed(2));
+    } else {
+      setItemPrice('');
+    }
+  }, [selectedAlterations, garmentType]);
 
   const handleAddGarmentToCart = () => {
     const priceNum = Number(itemPrice);
