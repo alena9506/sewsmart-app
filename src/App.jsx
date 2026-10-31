@@ -135,9 +135,10 @@ export default function App() {
 
   // Custom Price Book State (Synced with Firestore)
   const [priceBook, setPriceBook] = useState([]);
-  const [newGarmentCategory, setNewGarmentCategory] = useState('');
+  const [newGarmentCategory, setNewGarmentCategory] = useState('Trousers / Jeans');
   const [newTaskName, setNewTaskName] = useState('');
   const [newTaskPrice, setNewTaskPrice] = useState('');
+  const [priceBookSearchTerm, setPriceBookSearchTerm] = useState('');
 
   // Editing Price Book Item State (Per-Item State to prevent global overrides)
   const [editingPriceId, setEditingPriceId] = useState(null);
@@ -575,7 +576,7 @@ export default function App() {
   // Add new price item to Firestore
   const handleAddPriceItem = async (e) => {
     e.preventDefault();
-    const cat = newGarmentCategory.trim() || garmentType;
+    const cat = newGarmentCategory.trim();
     const name = newTaskName.trim();
     const priceNum = Number(newTaskPrice);
 
@@ -1057,6 +1058,11 @@ export default function App() {
     const matchesSearch = o.phone.includes(searchTerm) || (o.customerEmail && o.customerEmail.toLowerCase().includes(searchTerm.toLowerCase())) || o.id.toLowerCase().includes(searchTerm.toLowerCase()) || o.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' || o.status === statusFilter;
     return matchesSearch && matchesStatus;
+  });
+
+  const filteredPriceBook = activePriceBook.filter(item => {
+    const q = priceBookSearchTerm.toLowerCase();
+    return item.name.toLowerCase().includes(q) || item.category.toLowerCase().includes(q);
   });
 
   if (authLoading) {
@@ -1956,15 +1962,16 @@ export default function App() {
                 <h3 className="text-xs font-bold uppercase tracking-wider">Add New Repair Task or Garment</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Garment Category (e.g. Trousers / Jeans)</label>
-                    <input 
-                      type="text"
-                      required
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Garment Category (Pre-written selection)</label>
+                    <select
                       value={newGarmentCategory}
                       onChange={(e) => setNewGarmentCategory(e.target.value)}
-                      placeholder={garmentType}
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
-                    />
+                    >
+                      {GARMENTS.map(g => (
+                        <option key={g.key} value={g.key}>{g.en}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Task / Fix Name (e.g. Custom Taper)</label>
@@ -1998,91 +2005,112 @@ export default function App() {
                 </button>
               </form>
 
-              <div className="pt-2 overflow-x-auto">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-bold">Current Price Book Items ({activePriceBook.length})</h3>
+              <div className="pt-2 space-y-4">
+                <div className="flex justify-between items-center flex-wrap gap-3">
+                  <h3 className="text-sm font-bold">Current Price Book Items ({filteredPriceBook.length} of {activePriceBook.length})</h3>
+                  
+                  {/* Search Bar for Price Book */}
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-3 opacity-50" />
+                    <input 
+                      type="text"
+                      placeholder="Search price book..."
+                      value={priceBookSearchTerm}
+                      onChange={(e) => setPriceBookSearchTerm(e.target.value)}
+                      className={`pl-9 pr-4 py-2 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg} w-64`}
+                    />
+                  </div>
                 </div>
-                <table className="w-full text-left border-collapse text-xs min-w-[600px]">
-                  <thead>
-                    <tr className="border-b border-slate-700/50 opacity-70">
-                      <th className="py-3 px-3">Garment Category</th>
-                      <th className="py-3 px-3">Repair / Task Name</th>
-                      <th className="py-3 px-3">Price</th>
-                      <th className="py-3 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-700/20">
-                    {activePriceBook.map((item) => {
-                      const isEditing = editingPriceId === item.docId;
-                      return (
-                        <tr key={item.docId || item.name} className="hover:bg-slate-500/5 transition-colors">
-                          <td className="py-3 px-3 font-semibold text-teal-400">{item.category}</td>
-                          <td className="py-3 px-3">
-                            {isEditing ? (
-                              <input 
-                                type="text"
-                                value={editValues.name}
-                                onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
-                                className={`border rounded-lg px-2 py-1 text-xs w-full ${t.innerInputBg}`}
-                              />
-                            ) : (
-                              <span className="font-bold">{item.name}</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-3 font-mono font-extrabold">
-                            {isEditing ? (
-                              <input 
-                                type="number"
-                                step="0.50"
-                                value={editValues.price}
-                                onChange={(e) => setEditValues({ ...editValues, price: e.target.value })}
-                                className={`border rounded-lg px-2 py-1 text-xs w-24 ${t.innerInputBg}`}
-                              />
-                            ) : (
-                              `€${Number(item.price).toFixed(2)}`
-                            )}
-                          </td>
-                          <td className="py-3 px-3 text-right space-x-2">
-                            {isEditing ? (
-                              <>
-                                <button
-                                  onClick={() => handleUpdatePriceItem(item.docId)}
-                                  className="px-3 py-1 bg-teal-500 text-slate-950 font-bold rounded-lg text-[11px]"
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  onClick={() => setEditingPriceId(null)}
-                                  className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-[11px]"
-                                >
-                                  Cancel
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => {
-                                    setEditingPriceId(item.docId);
-                                    setEditValues({ name: item.name, price: item.price });
-                                  }}
-                                  className="px-3 py-1 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] inline-flex items-center gap-1"
-                                >
-                                  <Edit2 className="w-3 h-3" /> Edit
-                                </button>
-                                <button
-                                  onClick={() => deletePriceItem(item.docId)}
-                                  className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
-                                >
-                                  Delete
-                                </button>
-                              </>
-                            )}
-                          </td>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs min-w-[600px]">
+                    <thead>
+                      <tr className="border-b border-slate-700/50 opacity-70">
+                        <th className="py-3 px-3">Garment Category</th>
+                        <th className="py-3 px-3">Repair / Task Name</th>
+                        <th className="py-3 px-3">Price</th>
+                        <th className="py-3 px-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/20">
+                      {filteredPriceBook.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="text-center py-10 opacity-60">No price items match your search.</td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      ) : (
+                        filteredPriceBook.map((item) => {
+                          const isEditing = editingPriceId === item.docId;
+                          return (
+                            <tr key={item.docId || item.name} className="hover:bg-slate-500/5 transition-colors">
+                              <td className="py-3 px-3 font-semibold text-teal-400">{item.category}</td>
+                              <td className="py-3 px-3">
+                                {isEditing ? (
+                                  <input 
+                                    type="text"
+                                    value={editValues.name}
+                                    onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
+                                    className={`border rounded-lg px-2 py-1 text-xs w-full ${t.innerInputBg}`}
+                                  />
+                                ) : (
+                                  <span className="font-bold">{item.name}</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-3 font-mono font-extrabold">
+                                {isEditing ? (
+                                  <input 
+                                    type="number"
+                                    step="0.50"
+                                    value={editValues.price}
+                                    onChange={(e) => setEditValues({ ...editValues, price: e.target.value })}
+                                    className={`border rounded-lg px-2 py-1 text-xs w-24 ${t.innerInputBg}`}
+                                  />
+                                ) : (
+                                  `€${Number(item.price).toFixed(2)}`
+                                )}
+                              </td>
+                              <td className="py-3 px-3 text-right space-x-2">
+                                {isEditing ? (
+                                  <>
+                                    <button
+                                      onClick={() => handleUpdatePriceItem(item.docId)}
+                                      className="px-3 py-1 bg-teal-500 text-slate-950 font-bold rounded-lg text-[11px]"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => setEditingPriceId(null)}
+                                      className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-[11px]"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        setEditingPriceId(item.docId);
+                                        setEditValues({ name: item.name, price: item.price });
+                                      }}
+                                      className="px-3 py-1 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] inline-flex items-center gap-1"
+                                    >
+                                      <Edit2 className="w-3 h-3" /> Edit
+                                    </button>
+                                    <button
+                                      onClick={() => deletePriceItem(item.docId)}
+                                      className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                                    >
+                                      Delete
+                                    </button>
+                                  </>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
