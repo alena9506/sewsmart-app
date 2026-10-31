@@ -49,7 +49,8 @@ import {
   X,
   CheckCircle2,
   PieChart,
-  Repeat
+  Repeat,
+  AlertTriangle
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -82,6 +83,14 @@ export default function App() {
 
   // In-App Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Custom Modal Confirmation State (replacing ugly native window.confirm pop-ups)
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null
+  });
 
   // Inactivity Timer Ref (10 Minutes = 600,000 ms)
   const inactivityTimerRef = useRef(null);
@@ -598,15 +607,23 @@ export default function App() {
     }
   };
 
-  const deleteExpense = async (docId) => {
+  const deleteExpense = (docId) => {
     if (!isAdmin) return;
-    if (confirm('Delete this expense record?')) {
-      try {
-        await deleteDoc(doc(db, 'expenses', docId));
-      } catch (error) {
-        console.error('Error deleting expense:', error);
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Expense Record',
+      message: 'Are you sure you want to delete this expense record? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'expenses', docId));
+          showToast('Expense successfully deleted.');
+        } catch (error) {
+          console.error('Error deleting expense:', error);
+          showToast('Failed to delete expense.');
+        }
+        setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
       }
-    }
+    });
   };
 
   const updateStatus = async (docId, newStatus) => {
@@ -642,18 +659,26 @@ export default function App() {
     }
   };
 
-  const deleteOrder = async (docId) => {
+  const deleteOrder = (docId) => {
     if (!isAdmin) {
       showToast('Permission denied. Only Admin can delete orders.');
       return;
     }
-    if (confirm('Are you sure you want to delete this order?')) {
-      try {
-        await deleteDoc(doc(db, 'orders', docId));
-      } catch (error) {
-        console.error('Error deleting order: ', error);
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Order Ticket',
+      message: 'Are you sure you want to delete this order ticket? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'orders', docId));
+          showToast('Order successfully deleted.');
+        } catch (error) {
+          console.error('Error deleting order: ', error);
+          showToast('Failed to delete order.');
+        }
+        setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
       }
-    }
+    });
   };
 
   const now = new Date();
@@ -930,6 +955,35 @@ export default function App() {
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* Custom Modern Confirmation Modal (replacing native browser alerts) */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 text-center animate-in fade-in zoom-in duration-200">
+            <div className="w-14 h-14 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-white">{confirmModal.title}</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">{confirmModal.message}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                onClick={() => setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null })}
+                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-all border border-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmModal.onConfirm}
+                className="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-lg shadow-rose-600/25"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
