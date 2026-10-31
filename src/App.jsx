@@ -1658,7 +1658,7 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Row 2: Target Date, Payment Method & Email (Now properly aligned in 3 columns) */}
+                  {/* Row 2: Target Date, Payment Method & Email (3 Columns) */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.targetDate}</label>
@@ -1772,7 +1772,8 @@ export default function App() {
                           <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1.5">
                             {text.fixOptions} {garmentType}:
                           </label>
-                          <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                          {/* Expanded fix options container with full width layout */}
+                          <div className="flex flex-wrap gap-1.5">
                             {currentGarmentOptions.length === 0 ? (
                               <p className="text-[11px] opacity-60">No custom repair tasks added for this category yet.</p>
                             ) : (
