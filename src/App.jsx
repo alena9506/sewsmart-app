@@ -61,7 +61,9 @@ import {
   Percent,
   Tag,
   Edit2,
-  Zap
+  Zap,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -81,9 +83,19 @@ export default function App() {
     return localStorage.getItem('alico_theme_mode') || 'teal-light';
   });
 
+  // Initialize UI Zoom Scale from localStorage (default 100%)
+  const [uiZoomScale, setUiZoomScale] = useState(() => {
+    const saved = localStorage.getItem('alico_ui_zoom');
+    return saved ? Number(saved) : 100;
+  });
+
   useEffect(() => {
     localStorage.setItem('alico_theme_mode', themeMode);
   }, [themeMode]);
+
+  useEffect(() => {
+    localStorage.setItem('alico_ui_zoom', uiZoomScale);
+  }, [uiZoomScale]);
 
   const [reportTimeframe, setReportTimeframe] = useState('month');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -1203,7 +1215,10 @@ export default function App() {
   const activeLoyaltyCustomer = customers.find(c => c.phone && c.phone.trim() === phone.trim());
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
+    <div 
+      style={{ fontSize: `${uiZoomScale}%` }}
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}
+    >
       <style>{`
         @media print {
           body, html {
@@ -2915,6 +2930,52 @@ export default function App() {
 
         {activeTab === 'settings' && (
           <div className="space-y-6 max-w-xl mx-auto w-full">
+            {/* Zoom Control Card */}
+            <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-4 ${t.cardBg}`}>
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <ZoomIn className={`w-5 h-5 ${t.textAccent}`} /> Page Zoom & Text Size
+              </h2>
+              <p className="text-xs opacity-75">Adjust the zoom scale to make fonts and interface elements larger or more compact.</p>
+              
+              <div className="space-y-3 pt-2">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span className="flex items-center gap-1.5"><ZoomOut className="w-4 h-4 opacity-60" /> Current Zoom Scale</span>
+                  <span className={`font-mono text-sm font-extrabold ${t.textAccent}`}>{uiZoomScale}%</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <input 
+                    type="range"
+                    min="85"
+                    max="125"
+                    step="5"
+                    value={uiZoomScale}
+                    onChange={(e) => setUiZoomScale(Number(e.target.value))}
+                    className="w-full cursor-pointer accent-teal-500"
+                  />
+                </div>
+                <div className="flex justify-between items-center pt-2">
+                  <button
+                    onClick={() => setUiZoomScale(90)}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold"
+                  >
+                    Compact (90%)
+                  </button>
+                  <button
+                    onClick={() => setUiZoomScale(100)}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold"
+                  >
+                    Reset (100%)
+                  </button>
+                  <button
+                    onClick={() => setUiZoomScale(115)}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold"
+                  >
+                    Larger Text (115%)
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <Palette className={`w-5 h-5 ${t.textAccent}`} /> Appearance & Theme Settings
