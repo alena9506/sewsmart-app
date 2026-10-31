@@ -13,9 +13,7 @@ import {
   deleteDoc, 
   doc, 
   query, 
-  orderBy,
-  setDoc,
-  getDoc
+  orderBy 
 } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 import { 
@@ -150,7 +148,6 @@ export default function App() {
   const [laundryPrice, setLaundryPrice] = useState('');
 
   const [orders, setOrders] = useState([]);
-  const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
@@ -491,7 +488,6 @@ export default function App() {
         ...doc.data()
       }));
       if (invData.length === 0) {
-        // Seed default items if empty
         const defaults = [
           { name: 'Standard Black Zippers (20cm)', sku: 'ZIP-BLK-20', quantity: 18, minQuantity: 5, unit: 'pcs' },
           { name: 'Standard Blue Zippers (20cm)', sku: 'ZIP-BLU-20', quantity: 3, minQuantity: 5, unit: 'pcs' },
@@ -509,20 +505,33 @@ export default function App() {
     return () => unsubscribeInventory();
   }, [user]);
 
-  useEffect(() => {
-    if (!user) return;
-    const q = query(collection(db, 'customers'), orderBy('totalVisits', 'desc'));
-    const unsubscribeCustomers = onSnapshot(q, (snapshot) => {
-      const custData = snapshot.docs.map(doc => ({
-        docId: doc.id,
-        ...doc.data()
-      }));
-      setCustomers(custData);
-    });
-    return () => unsubscribeCustomers();
-  }, [user]);
+  // Derive Customer Loyalty dynamically from live orders grouped by phone number
+  const loyaltyCustomersMap = {};
+  orders.forEach(o => {
+    const p = (o.phone || '').trim();
+    if (!p) return;
+    if (!loyaltyCustomersMap[p]) {
+      loyaltyCustomersMap[p] = {
+        phone: p,
+        name: o.customerName || 'Valued Customer',
+        email: o.customerEmail || '',
+        totalVisits: 0,
+        totalSpent: 0,
+        lastVisit: o.dueDate || o.createdAt?.split('T')[0]
+      };
+    }
+    loyaltyCustomersMap[p].totalVisits += 1;
+    loyaltyCustomersMap[p].totalSpent += (o.total || 0);
+    if (o.customerName && o.customerName !== 'Valued Customer') {
+      loyaltyCustomersMap[p].name = o.customerName;
+    }
+    if (o.customerEmail) {
+      loyaltyCustomersMap[p].email = o.customerEmail;
+    }
+  });
+  const customers = Object.values(loyaltyCustomersMap);
 
-  // Lookup customer loyalty when typing phone number
+  // Auto-fill customer name & email if phone matches an existing customer
   const handlePhoneBlur = () => {
     if (!phone.trim()) return;
     const cleanPhone = phone.trim();
@@ -597,30 +606,6 @@ export default function App() {
     try {
       await addDoc(collection(db, 'orders'), newOrder);
       setSelectedOrderForPrint(newOrder);
-
-      // Update / Create Customer Loyalty Record by Phone Number
-      const existingCustDoc = customers.find(c => c.phone === cleanPhone);
-      if (existingCustDoc) {
-        const newVisits = (existingCustDoc.totalVisits || 0) + 1;
-        const newSpent = (existingCustDoc.totalSpent || 0) + total;
-        const custRef = doc(db, 'customers', existingCustDoc.docId);
-        await updateDoc(custRef, {
-          name: cleanName,
-          email: cleanEmail || existingCustDoc.email || '',
-          totalVisits: newVisits,
-          totalSpent: newSpent,
-          lastVisit: new Date().toISOString().split('T')[0]
-        });
-      } else {
-        await addDoc(collection(db, 'customers'), {
-          phone: cleanPhone,
-          name: cleanName,
-          email: cleanEmail,
-          totalVisits: 1,
-          totalSpent: total,
-          lastVisit: new Date().toISOString().split('T')[0]
-        });
-      }
 
       // Send Live Email via EmailJS if customer email is provided
       if (newOrder.customerEmail) {
@@ -1053,7 +1038,6 @@ export default function App() {
   const t = themes[themeMode] || themes['teal-light'];
   const dateInputColorScheme = themeMode.includes('dark') ? 'dark' : 'light';
 
-  // Check matched customer loyalty when typing phone
   const activeLoyaltyCustomer = customers.find(c => c.phone && c.phone.trim() === phone.trim());
 
   return (
@@ -1395,7 +1379,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Live Loyalty Status Banner for Customer */}
                   {phone.trim() && (
                     <div className={`p-4 rounded-2xl border flex items-center justify-between flex-wrap gap-3 ${activeLoyaltyCustomer ? 'bg-teal-500/10 border-teal-500/30 text-teal-300' : 'bg-slate-800/40 border-slate-700 text-slate-300'}`}>
                       <div className="flex items-center gap-2.5">
@@ -1708,7 +1691,7 @@ export default function App() {
           </div>
         )}
 
-        {/* INVENTORY TAB (Low Stock Alerts & Supplies) */}
+        {/* INVENTORY TAB */}
         {activeTab === 'inventory' && isAdmin && (
           <div className="space-y-6">
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
@@ -1721,7 +1704,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Add New Inventory Item Form */}
               <form onSubmit={handleAddInventoryItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-xs font-bold uppercase tracking-wider">Add New Supply Item</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1767,7 +1749,6 @@ export default function App() {
                 </button>
               </form>
 
-              {/* Inventory Table & Low Stock Warnings */}
               <div className="pt-2 overflow-x-auto">
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-sm font-bold">Current Supplies Stock</h3>
@@ -1840,7 +1821,7 @@ export default function App() {
           </div>
         )}
 
-        {/* LOYALTY TAB (Repeat Visit Tracker & 5th Alteration Reward) */}
+        {/* LOYALTY TAB */}
         {activeTab === 'loyalty' && isAdmin && (
           <div className="space-y-6">
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
@@ -1889,12 +1870,12 @@ export default function App() {
                         <td colSpan="6" className="text-center py-10 opacity-60">No customer loyalty records yet. Create tickets using customer phone numbers to begin tracking.</td>
                       </tr>
                     ) : (
-                      customers.map(c => {
+                      customers.map((c, i) => {
                         const visits = c.totalVisits || 1;
                         const remainder = visits % 5;
                         const isEligible = remainder === 0;
                         return (
-                          <tr key={c.docId} className="hover:bg-slate-500/5 transition-colors">
+                          <tr key={i} className="hover:bg-slate-500/5 transition-colors">
                             <td className="py-3 px-3 font-semibold">{c.name}</td>
                             <td className="py-3 px-3 font-mono">{c.phone}</td>
                             <td className="py-3 px-3 font-mono opacity-80">{c.email || '—'}</td>
