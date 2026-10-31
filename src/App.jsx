@@ -1734,7 +1734,7 @@ export default function App() {
                                     className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
                                   >
                                     {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
-                                    + {altName} (€{alt.price.toFixed(2)})
+                                    + {altName} (From €{alt.price.toFixed(2)})
                                   </button>
                                 );
                               })
