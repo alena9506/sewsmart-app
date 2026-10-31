@@ -55,7 +55,8 @@ import {
   Award,
   AlertCircle,
   ChevronRight,
-  Eye
+  Eye,
+  Percent
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -150,6 +151,9 @@ export default function App() {
   const [laundryService, setLaundryService] = useState('Wash, Dry & Fold (Per Kg)');
   const [weightKg, setWeightKg] = useState('');
   const [laundryPrice, setLaundryPrice] = useState('');
+
+  // Discount percentage state (e.g. 0, 5, 10, 15, 25, 30, 50)
+  const [selectedDiscountPercent, setSelectedDiscountPercent] = useState(0);
 
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -441,9 +445,13 @@ export default function App() {
     setGarmentCart(updated);
   };
 
-  const calculatedTotal = serviceType === 'alteration' 
+  const rawSubtotal = serviceType === 'alteration' 
     ? garmentCart.reduce((sum, item) => sum + item.price, 0)
     : Number(laundryPrice || 0);
+
+  const calculatedTotal = selectedDiscountPercent > 0 
+    ? rawSubtotal * (1 - selectedDiscountPercent / 100)
+    : rawSubtotal;
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -633,6 +641,7 @@ export default function App() {
       setItemPrice('');
       setWeightKg('');
       setLaundryPrice('');
+      setSelectedDiscountPercent(0);
       
       const successMsg = newOrder.customerEmail 
         ? 'Ticket created & digital receipt emailed successfully!' 
@@ -1650,14 +1659,38 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* Optional Percentage Discount Buttons */}
+                  <div className="pt-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2 flex items-center gap-1">
+                      <Percent className="w-3.5 h-3.5 text-teal-400" /> Optional Discount % (Click to apply)
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[0, 5, 10, 15, 25, 30, 50].map((pct) => {
+                        const isSelected = selectedDiscountPercent === pct;
+                        return (
+                          <button
+                            type="button"
+                            key={pct}
+                            onClick={() => setSelectedDiscountPercent(pct)}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-300 text-slate-700 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
+                          >
+                            {pct === 0 ? 'No Discount' : `${pct}% OFF`}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="pt-6 border-t border-opacity-30 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.totalPrice}</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">
+                        {text.totalPrice} {selectedDiscountPercent > 0 && <span className="text-teal-400 font-bold">({selectedDiscountPercent}% Discount Applied)</span>}
+                      </label>
                       <input 
                         type="number" 
                         step="0.50"
                         required
-                        value={serviceType === 'alteration' ? calculatedTotal.toFixed(2) : laundryPrice}
+                        value={serviceType === 'alteration' ? calculatedTotal.toFixed(2) : (selectedDiscountPercent > 0 ? calculatedTotal.toFixed(2) : laundryPrice)}
                         onChange={(e) => serviceType === 'laundry' && setLaundryPrice(e.target.value)}
                         readOnly={serviceType === 'alteration'}
                         placeholder="0.00"
