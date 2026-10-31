@@ -491,20 +491,7 @@ export default function App() {
         docId: doc.id,
         ...doc.data()
       }));
-      if (invData.length === 0) {
-        const defaults = [
-          { name: 'Standard Black Zippers (20cm)', sku: 'ZIP-BLK-20', quantity: 18, minQuantity: 5, unit: 'pcs' },
-          { name: 'Standard Blue Zippers (20cm)', sku: 'ZIP-BLU-20', quantity: 3, minQuantity: 5, unit: 'pcs' },
-          { name: 'Heavy-Duty Black Thread', sku: 'THR-BLK-HD', quantity: 2, minQuantity: 3, unit: 'spools' },
-          { name: 'Clear Dry Cleaning Bags (Roll)', sku: 'BAG-CLN-CLR', quantity: 4, minQuantity: 2, unit: 'rolls' },
-          { name: 'Standard Garment Hangers', sku: 'HNG-STD', quantity: 45, minQuantity: 20, unit: 'pcs' }
-        ];
-        defaults.forEach(async (d) => {
-          await addDoc(collection(db, 'inventory'), d);
-        });
-      } else {
-        setInventoryItems(invData);
-      }
+      setInventoryItems(invData);
     });
     return () => unsubscribeInventory();
   }, [user]);
