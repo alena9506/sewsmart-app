@@ -133,11 +133,12 @@ export default function App() {
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  
+  // FIXED: Default ready date now correctly initializes to today's date
   const [dueDate, setDueDate] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 3);
-    return d.toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0];
   });
+
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Credit / Debit Card');
 
