@@ -60,7 +60,8 @@ import {
   Eye,
   Percent,
   Tag,
-  Edit2
+  Edit2,
+  Zap
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -168,6 +169,10 @@ export default function App() {
 
   // Discount percentage state (e.g. 0, 5, 10, 15, 25, 30, 50)
   const [selectedDiscountPercent, setSelectedDiscountPercent] = useState(0);
+
+  // Express / Rush Fee State
+  const [isRushOrder, setIsRushOrder] = useState(false);
+  const [rushFeeType, setRushFeeType] = useState('fixed'); // 'fixed' (€5) or 'percent' (20%)
 
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -463,9 +468,13 @@ export default function App() {
     ? garmentCart.reduce((sum, item) => sum + item.price, 0)
     : Number(laundryPrice || 0);
 
-  const calculatedTotal = selectedDiscountPercent > 0 
+  const discountedSubtotal = selectedDiscountPercent > 0 
     ? rawSubtotal * (1 - selectedDiscountPercent / 100)
     : rawSubtotal;
+
+  const calculatedTotal = isRushOrder
+    ? (rushFeeType === 'fixed' ? discountedSubtotal + 5.00 : discountedSubtotal * 1.20)
+    : discountedSubtotal;
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -727,6 +736,8 @@ export default function App() {
       notes,
       paymentMethod,
       total,
+      isRush: isRushOrder,
+      rushType: isRushOrder ? rushFeeType : null,
       status: 'Pending',
       details: serviceType === 'alteration' ? {
         items: garmentCart
@@ -775,6 +786,8 @@ export default function App() {
       setWeightKg('');
       setLaundryPrice('');
       setSelectedDiscountPercent(0);
+      setIsRushOrder(false);
+      setRushFeeType('fixed');
       
       const successMsg = newOrder.customerEmail 
         ? 'Ticket created & digital receipt emailed successfully!' 
@@ -1264,6 +1277,9 @@ export default function App() {
                     <div className="text-xs space-y-1 text-slate-300">
                       <p><strong>Date:</strong> {ord.dueDate || ord.createdAt?.split('T')[0]}</p>
                       <p><strong>Service:</strong> <span className="uppercase font-semibold">{ord.serviceType}</span></p>
+                      {ord.isRush && (
+                        <p className="text-amber-400 font-bold">⚡ RUSH ORDER ({ord.rushType === 'fixed' ? '+€5.00' : '+20%'})</p>
+                      )}
                       {ord.serviceType === 'alteration' ? (
                         <div className="pt-1 space-y-1">
                           <p className="text-[11px] font-bold text-slate-400">Garment Items:</p>
@@ -1840,16 +1856,57 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Express / Rush Fee Section */}
+                  <div className={`p-4 rounded-2xl border space-y-3 ${t.subCardBg}`}>
+                    <div className="flex justify-between items-center flex-wrap gap-2">
+                      <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider cursor-pointer">
+                        <input 
+                          type="checkbox"
+                          checked={isRushOrder}
+                          onChange={(e) => setIsRushOrder(e.target.checked)}
+                          className="w-4 h-4 accent-teal-500 rounded cursor-pointer"
+                        />
+                        <span className="flex items-center gap-1.5 text-amber-500 font-extrabold">
+                          ⚡ Express / Same-Day Rush Order
+                        </span>
+                      </label>
+
+                      {isRushOrder && (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setRushFeeType('fixed')}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${rushFeeType === 'fixed' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
+                          >
+                            +€5.00 Fixed
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRushFeeType('percent')}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${rushFeeType === 'percent' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
+                          >
+                            +20% Rush
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {isRushOrder && (
+                      <p className="text-[11px] text-amber-500 font-medium">
+                        {rushFeeType === 'fixed' ? 'A €5.00 express fee has been added to this order.' : 'A 20% rush surcharge has been applied to this order.'}
+                      </p>
+                    )}
+                  </div>
+
                   <div className="pt-6 border-t border-opacity-30 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">
-                        {text.totalPrice} {selectedDiscountPercent > 0 && <span className="text-teal-400 font-bold">({selectedDiscountPercent}% Discount Applied)</span>}
+                        {text.totalPrice} {selectedDiscountPercent > 0 && <span className="text-teal-400 font-bold">({selectedDiscountPercent}% Discount)</span>} {isRushOrder && <span className="text-amber-500 font-bold">(⚡ Rush Added)</span>}
                       </label>
                       <input 
                         type="number" 
                         step="0.50"
                         required
-                        value={serviceType === 'alteration' ? calculatedTotal.toFixed(2) : (selectedDiscountPercent > 0 ? calculatedTotal.toFixed(2) : laundryPrice)}
+                        value={serviceType === 'alteration' ? calculatedTotal.toFixed(2) : (selectedDiscountPercent > 0 || isRushOrder ? calculatedTotal.toFixed(2) : laundryPrice)}
                         onChange={(e) => serviceType === 'laundry' && setLaundryPrice(e.target.value)}
                         readOnly={serviceType === 'alteration'}
                         placeholder="0.00"
@@ -1898,6 +1955,11 @@ export default function App() {
                           </div>
 
                           <div className="space-y-1 text-[11px]">
+                            {selectedOrderForPrint.isRush && (
+                              <div className="bg-amber-400 text-slate-950 text-[10px] px-2 py-1 rounded font-black text-center mb-2">
+                                ⚡ EXPRESS RUSH ORDER ({selectedOrderForPrint.rushType === 'fixed' ? '+€5.00' : '+20%'})
+                              </div>
+                            )}
                             <p><strong>Customer:</strong> {selectedOrderForPrint.customerName}</p>
                             <p><strong>Phone:</strong> {selectedOrderForPrint.phone}</p>
                             {selectedOrderForPrint.customerEmail && <p><strong>Email:</strong> {selectedOrderForPrint.customerEmail}</p>}
@@ -2367,7 +2429,12 @@ export default function App() {
                 filteredOrders.map(o => (
                   <div key={o.docId} className={`p-4 rounded-2xl border space-y-3 ${t.subCardBg}`}>
                     <div className="flex justify-between items-center">
-                      <span className={`font-mono font-black text-sm ${t.textAccent}`}>#{o.id}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-mono font-black text-sm ${t.textAccent}`}>#{o.id}</span>
+                        {o.isRush && (
+                          <span className="bg-amber-400 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded">⚡ RUSH</span>
+                        )}
+                      </div>
                       <select
                         value={o.status}
                         onChange={(e) => updateStatus(o.docId, e.target.value)}
@@ -2435,7 +2502,12 @@ export default function App() {
                   ) : (
                     filteredOrders.map(o => (
                       <tr key={o.docId} className="hover:bg-slate-500/5 transition-colors">
-                        <td className={`py-4 px-4 font-mono font-black text-sm ${t.textAccent}`}>#{o.id}</td>
+                        <td className="py-4 px-4 font-mono font-black text-sm">
+                          <span className={t.textAccent}>#{o.id}</span>
+                          {o.isRush && (
+                            <span className="ml-2 bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded">⚡ RUSH</span>
+                          )}
+                        </td>
                         <td className="py-4 px-4 font-semibold">{o.customerName}</td>
                         <td className="py-4 px-4 font-mono">{o.phone}</td>
                         <td className="py-4 px-4 font-mono opacity-80">{o.customerEmail || '—'}</td>
