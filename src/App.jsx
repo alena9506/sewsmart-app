@@ -56,7 +56,8 @@ import {
   AlertCircle,
   ChevronRight,
   Eye,
-  Percent
+  Percent,
+  Tag
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -76,7 +77,6 @@ export default function App() {
     return localStorage.getItem('alico_theme_mode') || 'teal-light';
   });
 
-  // Save theme preference whenever it changes
   useEffect(() => {
     localStorage.setItem('alico_theme_mode', themeMode);
   }, [themeMode]);
@@ -130,11 +130,16 @@ export default function App() {
   const [newItemMinQty, setNewItemMinQty] = useState('5');
   const [newItemUnit, setNewItemUnit] = useState('pcs');
 
+  // Custom Price Book State (Synced with Firestore)
+  const [priceBook, setPriceBook] = useState([]);
+  const [newGarmentCategory, setNewGarmentCategory] = useState('');
+  const [newTaskName, setNewTaskName] = useState('');
+  const [newTaskPrice, setNewTaskPrice] = useState('');
+
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   
-  // FIXED: Default ready date now correctly initializes to today's date
   const [dueDate, setDueDate] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
@@ -230,6 +235,7 @@ export default function App() {
       bookkeeping: 'Bookkeeping',
       inventory: 'Inventory',
       loyalty: 'Customer Visits',
+      priceBookTab: 'Price Book',
       settings: 'Settings',
       alterationTicket: 'Alteration Ticket',
       laundryTicket: 'Laundry Ticket',
@@ -279,6 +285,7 @@ export default function App() {
       bookkeeping: 'Бухгалтерия',
       inventory: 'Склад',
       loyalty: 'Клиенты',
+      priceBookTab: 'Цены',
       settings: 'Настройки',
       alterationTicket: 'Ателье (Ремонт одежды)',
       laundryTicket: 'Прачечная',
@@ -334,72 +341,57 @@ export default function App() {
     { key: 'Miscellaneous', label: 'Miscellaneous' },
   ];
 
-  const GARMENTS = [
-    { key: 'Trousers / Jeans', en: 'Trousers / Jeans', ru: 'Брюки / Джинсы' },
-    { key: 'Suit Jacket / Blazer', en: 'Suit Jacket / Blazer', ru: 'Пиджак / Блейзер' },
-    { key: 'Dress / Formal Wear', en: 'Dress / Formal Wear', ru: 'Платье / Нарядная одежда' },
-    { key: 'Skirt', en: 'Skirt', ru: 'Юбка' },
-    { key: 'Shirt / Blouse', en: 'Shirt / Blouse', ru: 'Рубашка / Блузка' },
-    { key: 'Coat / Jacket', en: 'Coat / Jacket', ru: 'Пальто / Куртка' },
-    { key: 'Curtains / Home Textiles', en: 'Curtains / Home Textiles', ru: 'Шторы / Домашний текстиль' }
+  // Default Fallback Alterations if Price Book is empty
+  const DEFAULT_PRICE_BOOK = [
+    { category: 'Trousers / Jeans', name: 'Standard Hemming', price: 12.00 },
+    { category: 'Trousers / Jeans', name: 'Original Hemming (Keep Fade)', price: 15.00 },
+    { category: 'Trousers / Jeans', name: 'Waist Take-in / Let-out', price: 16.00 },
+    { category: 'Trousers / Jeans', name: 'Full Zip Replacement', price: 18.00 },
+    { category: 'Trousers / Jeans', name: 'Zip Runner / Slider Replacement', price: 8.00 },
+    { category: 'Trousers / Jeans', name: 'Taper Legs', price: 18.00 },
+    { category: 'Trousers / Jeans', name: 'Patch / Mending', price: 8.00 },
+    { category: 'Trousers / Jeans', name: 'New Button / Hook & Bar', price: 5.00 },
+    { category: 'Suit Jacket / Blazer', name: 'Sleeve Shortening (Plain)', price: 22.00 },
+    { category: 'Suit Jacket / Blazer', name: 'Sleeve Shortening (Working Cuffs)', price: 35.00 },
+    { category: 'Suit Jacket / Blazer', name: 'Take in Side Seams', price: 28.00 },
+    { category: 'Suit Jacket / Blazer', name: 'Shorten Length from Bottom', price: 30.00 },
+    { category: 'Suit Jacket / Blazer', name: 'Replace Lining', price: 65.00 },
+    { category: 'Suit Jacket / Blazer', name: 'Shoulder Adjustment', price: 45.00 },
+    { category: 'Dress / Formal Wear', name: 'Hem Shortening (Single Layer)', price: 25.00 },
+    { category: 'Dress / Formal Wear', name: 'Hem Shortening (Multi-Layer / Pleated)', price: 40.00 },
+    { category: 'Dress / Formal Wear', name: 'Take in Side Seams', price: 25.00 },
+    { category: 'Dress / Formal Wear', name: 'Strap Adjustment', price: 15.00 },
+    { category: 'Dress / Formal Wear', name: 'Full Zip Replacement', price: 22.00 },
+    { category: 'Dress / Formal Wear', name: 'Zip Runner / Slider Replacement', price: 10.00 },
+    { category: 'Dress / Formal Wear', name: 'Add Darts for Fit', price: 18.00 },
+    { category: 'Skirt', name: 'Hem Shortening', price: 18.00 },
+    { category: 'Skirt', name: 'Waist Take-in / Let-out', price: 16.00 },
+    { category: 'Skirt', name: 'Full Zip Replacement', price: 18.00 },
+    { category: 'Skirt', name: 'Zip Runner / Slider Replacement', price: 8.00 },
+    { category: 'Shirt / Blouse', name: 'Sleeve Shortening', price: 18.00 },
+    { category: 'Shirt / Blouse', name: 'Take in Side Seams (Slim fit)', price: 16.00 },
+    { category: 'Shirt / Blouse', name: 'Shorten Shirt Length', price: 15.00 },
+    { category: 'Shirt / Blouse', name: 'Add Back Darts', price: 12.00 },
+    { category: 'Coat / Jacket', name: 'Sleeve Shortening', price: 25.00 },
+    { category: 'Coat / Jacket', name: 'Full Zip Replacement (Heavy Duty)', price: 28.00 },
+    { category: 'Coat / Jacket', name: 'Zip Runner / Slider Replacement', price: 12.00 },
+    { category: 'Coat / Jacket', name: 'Replace Buttons / Snaps', price: 10.00 },
+    { category: 'Coat / Jacket', name: 'Patch / Mending / Tear Repair', price: 15.00 },
+    { category: 'Curtains / Home Textiles', name: 'Hemming per metre', price: 15.00 },
+    { category: 'Curtains / Home Textiles', name: 'Alter Width per metre', price: 18.00 },
+    { category: 'Curtains / Home Textiles', name: 'Re-taping Header', price: 22.00 },
+    { category: 'Curtains / Home Textiles', name: 'Cushion Cover Zip Replacement', price: 12.00 }
   ];
 
-  const GARMENT_ALTERATIONS = {
-    'Trousers / Jeans': [
-      { nameEn: 'Standard Hemming', nameRu: 'Стандартный подшив низа', price: 12.00 },
-      { nameEn: 'Original Hemming (Keep Fade)', nameRu: 'Сохранение оригинального низа', price: 15.00 },
-      { nameEn: 'Waist Take-in / Let-out', nameRu: 'Ушив / Расшив по поясу', price: 16.00 },
-      { nameEn: 'Full Zip Replacement', nameRu: 'Замена молнии полностью', price: 18.00 },
-      { nameEn: 'Zip Runner / Slider Replacement', nameRu: 'Замена бегунка молнии', price: 8.00 },
-      { nameEn: 'Taper Legs', nameRu: 'Заужение штанин', price: 18.00 },
-      { nameEn: 'Patch / Mending', nameRu: 'Штопка / Заплатка', price: 8.00 },
-      { nameEn: 'New Button / Hook & Bar', nameRu: 'Новая пуговица / крючок', price: 5.00 }
-    ],
-    'Suit Jacket / Blazer': [
-      { nameEn: 'Sleeve Shortening (Plain)', nameRu: 'Укорачивание рукавов (простое)', price: 22.00 },
-      { nameEn: 'Sleeve Shortening (Working Cuffs)', nameRu: 'Укорачивание рукавов (шлицы/петли)', price: 35.00 },
-      { nameEn: 'Take in Side Seams', nameRu: 'Ушив по боковым швам', price: 28.00 },
-      { nameEn: 'Shorten Length from Bottom', nameRu: 'Укорачивание длины снизу', price: 30.00 },
-      { nameEn: 'Replace Lining', nameRu: 'Замена подкладки', price: 65.00 },
-      { nameEn: 'Shoulder Adjustment', nameRu: 'Подгонка по плечам', price: 45.00 }
-    ],
-    'Dress / Formal Wear': [
-      { nameEn: 'Hem Shortening (Single Layer)', nameRu: 'Укорачивание низа (однослойное)', price: 25.00 },
-      { nameEn: 'Hem Shortening (Multi-Layer / Pleated)', nameRu: 'Укорачивание низа (многослойное/плиссе)', price: 40.00 },
-      { nameEn: 'Take in Side Seams', nameRu: 'Ушив по боковым швам', price: 25.00 },
-      { nameEn: 'Strap Adjustment', nameRu: 'Регулировка бретелей', price: 15.00 },
-      { nameEn: 'Full Zip Replacement', nameRu: 'Замена молнии полностью', price: 22.00 },
-      { nameEn: 'Zip Runner / Slider Replacement', nameRu: 'Замена бегунка молнии', price: 10.00 },
-      { nameEn: 'Add Darts for Fit', nameRu: 'Добавление вытачек', price: 18.00 }
-    ],
-    'Skirt': [
-      { nameEn: 'Hem Shortening', nameRu: 'Укорачивание низа юбки', price: 18.00 },
-      { nameEn: 'Waist Take-in / Let-out', nameRu: 'Ушив / Расшив по поясу', price: 16.00 },
-      { nameEn: 'Full Zip Replacement', nameRu: 'Замена молнии полностью', price: 18.00 },
-      { nameEn: 'Zip Runner / Slider Replacement', nameRu: 'Замена бегунка молнии', price: 8.00 }
-    ],
-    'Shirt / Blouse': [
-      { nameEn: 'Sleeve Shortening', nameRu: 'Укорачивание рукавов', price: 18.00 },
-      { nameEn: 'Take in Side Seams (Slim fit)', nameRu: 'Ушив по бокам (притаивание)', price: 16.00 },
-      { nameEn: 'Shorten Shirt Length', nameRu: 'Укорачивание длины рубашки', price: 15.00 },
-      { nameEn: 'Add Back Darts', nameRu: 'Добавление вытачек на спине', price: 12.00 }
-    ],
-    'Coat / Jacket': [
-      { nameEn: 'Sleeve Shortening', nameRu: 'Укорачивание рукавов', price: 25.00 },
-      { nameEn: 'Full Zip Replacement (Heavy Duty)', nameRu: 'Замена молнии (тяжелая)', price: 28.00 },
-      { nameEn: 'Zip Runner / Slider Replacement', nameRu: 'Замена бегунка молнии', price: 12.00 },
-      { nameEn: 'Replace Buttons / Snaps', nameRu: 'Замена пуговиц / кнопок', price: 10.00 },
-      { nameEn: 'Patch / Mending / Tear Repair', nameRu: 'Ремонт разрыва / штопка', price: 15.00 }
-    ],
-    'Curtains / Home Textiles': [
-      { nameEn: 'Hemming per metre', nameRu: 'Подшив за метр', price: 15.00 },
-      { nameEn: 'Alter Width per metre', nameRu: 'Изменение ширины за метр', price: 18.00 },
-      { nameEn: 'Re-taping Header', nameRu: 'Замена шторной тесьмы', price: 22.00 },
-      { nameEn: 'Cushion Cover Zip Replacement', nameRu: 'Замена молнии на чехле подушки', price: 12.00 }
-    ]
-  };
+  // Derive dynamic garment categories and options from Firestore priceBook or fallback
+  const activePriceBook = priceBook.length > 0 ? priceBook : DEFAULT_PRICE_BOOK;
+  
+  const uniqueGarments = Array.from(new Set(activePriceBook.map(item => item.category)));
+  const GARMENTS = uniqueGarments.map(g => ({ key: g, en: g, ru: g }));
 
-  const currentGarmentOptions = GARMENT_ALTERATIONS[garmentType] || [];
+  const currentGarmentOptions = activePriceBook
+    .filter(item => item.category === garmentType)
+    .map(item => ({ nameEn: item.name, nameRu: item.name, price: item.price, docId: item.docId }));
 
   const handleGarmentChange = (newGarment) => {
     setGarmentType(newGarment);
@@ -408,7 +400,7 @@ export default function App() {
   };
 
   const toggleAlteration = (alt) => {
-    const altName = lang === 'ru' ? alt.nameRu : alt.nameEn;
+    const altName = alt.nameEn;
     if (selectedAlterations.includes(altName)) {
       setSelectedAlterations(selectedAlterations.filter(item => item !== altName));
       setItemPrice(prev => Math.max(0, Number(prev) - alt.price).toFixed(2));
@@ -504,6 +496,64 @@ export default function App() {
     });
     return () => unsubscribeInventory();
   }, [user]);
+
+  // Fetch Custom Price Book from Firestore
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'priceBook'), orderBy('category', 'asc'));
+    const unsubscribePrices = onSnapshot(q, (snapshot) => {
+      const priceData = snapshot.docs.map(doc => ({
+        docId: doc.id,
+        ...doc.data()
+      }));
+      setPriceBook(priceData);
+    });
+    return () => unsubscribePrices();
+  }, [user]);
+
+  // Add new price item to Firestore
+  const handleAddPriceItem = async (e) => {
+    e.preventDefault();
+    const cat = newGarmentCategory.trim() || garmentType;
+    const name = newTaskName.trim();
+    const priceNum = Number(newTaskPrice);
+
+    if (!name || isNaN(priceNum) || priceNum <= 0) {
+      showToast('Please enter a valid task name and price.');
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, 'priceBook'), {
+        category: cat,
+        name: name,
+        price: priceNum
+      });
+      setNewTaskName('');
+      setNewTaskPrice('');
+      showToast('New price item added successfully!');
+    } catch (err) {
+      console.error('Error adding price item:', err);
+      showToast('Failed to add price item.');
+    }
+  };
+
+  const deletePriceItem = (docId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Price Item',
+      message: 'Are you sure you want to remove this repair/alteration service from your price book?',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'priceBook', docId));
+          showToast('Price item deleted.');
+        } catch (err) {
+          console.error('Error deleting price item:', err);
+        }
+        setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+      }
+    });
+  };
 
   // Derive Customer Visit Tracker dynamically from live orders grouped by phone number
   const loyaltyCustomersMap = {};
@@ -1339,6 +1389,13 @@ export default function App() {
             {isAdmin && (
               <>
                 <button 
+                  onClick={() => setActiveTab('priceBook')}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'priceBook' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  title={text.priceBookTab}
+                >
+                  <Tag className="w-4 h-4" /> <span className="hidden md:inline">{text.priceBookTab}</span>
+                </button>
+                <button 
                   onClick={() => setActiveTab('inventory')}
                   className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'inventory' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={text.inventory}
@@ -1565,7 +1622,7 @@ export default function App() {
                           >
                             {GARMENTS.map(g => (
                               <option key={g.key} value={g.key}>
-                                {lang === 'ru' ? g.ru : g.en}
+                                {g.en}
                               </option>
                             ))}
                           </select>
@@ -1573,24 +1630,28 @@ export default function App() {
 
                         <div>
                           <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-3">
-                            {text.fixOptions} {GARMENTS.find(g => g.key === garmentType)?.[lang === 'ru' ? 'ru' : 'en'] || garmentType}:
+                            {text.fixOptions} {garmentType}:
                           </label>
                           <div className="flex flex-wrap gap-2">
-                            {currentGarmentOptions.map((alt) => {
-                              const altName = lang === 'ru' ? alt.nameRu : alt.nameEn;
-                              const isSelected = selectedAlterations.includes(altName);
-                              return (
-                                <button
-                                  type="button"
-                                  key={alt.nameEn}
-                                  onClick={() => toggleAlteration(alt)}
-                                  className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
-                                >
-                                  {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
-                                  + {altName} (€{alt.price.toFixed(2)})
-                                </button>
-                              );
-                            })}
+                            {currentGarmentOptions.length === 0 ? (
+                              <p className="text-xs opacity-60">No custom repair tasks added for this category yet. Add them in the Price Book tab.</p>
+                            ) : (
+                              currentGarmentOptions.map((alt) => {
+                                const altName = alt.nameEn;
+                                const isSelected = selectedAlterations.includes(altName);
+                                return (
+                                  <button
+                                    type="button"
+                                    key={alt.docId || alt.nameEn}
+                                    onClick={() => toggleAlteration(alt)}
+                                    className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
+                                  >
+                                    {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
+                                    + {altName} (€{alt.price.toFixed(2)})
+                                  </button>
+                                );
+                              })
+                            )}
                           </div>
                         </div>
 
@@ -1786,6 +1847,103 @@ export default function App() {
                     <Printer className="w-4 h-4" /> {text.printReceiptsNow}
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PRICE BOOK MANAGEMENT TAB */}
+        {activeTab === 'priceBook' && isAdmin && (
+          <div className="space-y-6">
+            <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Tag className={`w-6 h-6 ${t.textAccent}`} /> Price Book & Alterations Customizer
+                </h2>
+                <p className="text-xs opacity-75">Add, rename, or remove garment categories and repair options instantly. Any changes made here immediately update your intake form options.</p>
+              </div>
+
+              <form onSubmit={handleAddPriceItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <h3 className="text-xs font-bold uppercase tracking-wider">Add New Repair Task or Garment</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Garment Category (e.g. Trousers / Jeans)</label>
+                    <input 
+                      type="text"
+                      required
+                      value={newGarmentCategory}
+                      onChange={(e) => setNewGarmentCategory(e.target.value)}
+                      placeholder={garmentType}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Task / Fix Name (e.g. Custom Taper)</label>
+                    <input 
+                      type="text"
+                      required
+                      value={newTaskName}
+                      onChange={(e) => setNewTaskName(e.target.value)}
+                      placeholder="e.g. Heavy Duty Patch"
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Price (€)</label>
+                    <input 
+                      type="number"
+                      step="0.50"
+                      required
+                      value={newTaskPrice}
+                      onChange={(e) => setNewTaskPrice(e.target.value)}
+                      placeholder="15.00"
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className={`font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5 ${t.primary}`}
+                >
+                  <Plus className="w-4 h-4" /> Save to Price Book
+                </button>
+              </form>
+
+              <div className="pt-2 overflow-x-auto">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-bold">Current Price Book Items ({activePriceBook.length})</h3>
+                </div>
+                <table className="w-full text-left border-collapse text-xs min-w-[600px]">
+                  <thead>
+                    <tr className="border-b border-slate-700/50 opacity-70">
+                      <th className="py-3 px-3">Garment Category</th>
+                      <th className="py-3 px-3">Repair / Task Name</th>
+                      <th className="py-3 px-3">Price</th>
+                      <th className="py-3 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/20">
+                    {activePriceBook.map((item, index) => (
+                      <tr key={item.docId || index} className="hover:bg-slate-500/5 transition-colors">
+                        <td className="py-3 px-3 font-semibold text-teal-400">{item.category}</td>
+                        <td className="py-3 px-3 font-bold">{item.name}</td>
+                        <td className="py-3 px-3 font-mono font-extrabold">€{Number(item.price).toFixed(2)}</td>
+                        <td className="py-3 px-3 text-right">
+                          {item.docId ? (
+                            <button
+                              onClick={() => deletePriceItem(item.docId)}
+                              className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                            >
+                              Delete
+                            </button>
+                          ) : (
+                            <span className="text-[10px] opacity-50 italic">Default Item (Add custom to edit)</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
