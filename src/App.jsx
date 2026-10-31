@@ -1697,7 +1697,7 @@ export default function App() {
                         </div>
                       )}
 
-                      <div className={`border rounded-2xl p-4 sm:p-5 space-y-4 ${t.subCardBg}`}>
+                      <div className={`border rounded-2xl p-3 sm:p-5 space-y-4 ${t.subCardBg}`}>
                         <h3 className="text-xs font-bold uppercase tracking-wider opacity-80">Add Garment Item</h3>
                         
                         <div>
@@ -1731,10 +1731,10 @@ export default function App() {
                                     type="button"
                                     key={alt.docId || alt.nameEn}
                                     onClick={() => toggleAlteration(alt)}
-                                    className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
+                                    className={`px-2.5 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1 border whitespace-nowrap ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
                                   >
-                                    {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent}`} />}
-                                    + {altName} (From €{alt.price.toFixed(2)})
+                                    {isSelected && <Check className={`w-3.5 h-3.5 ${t.textAccent} flex-shrink-0`} />}
+                                    <span>+ {altName} (From €{alt.price.toFixed(2)})</span>
                                   </button>
                                 );
                               })
@@ -2065,7 +2065,7 @@ export default function App() {
                                     className={`border rounded-lg px-2 py-1 text-xs w-24 ${t.innerInputBg}`}
                                   />
                                 ) : (
-                                  `€${Number(item.price).toFixed(2)}`
+                                  `From €${Number(item.price).toFixed(2)}`
                                 )}
                               </td>
                               <td className="py-3 px-3 text-right space-x-2">
