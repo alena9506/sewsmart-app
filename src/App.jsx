@@ -8,12 +8,12 @@ import {
 import { 
   collection, 
   addDoc, 
-  onSnapshot, 
-  updateDoc, 
+  updateDoc,
   deleteDoc, 
   doc, 
   query, 
-  orderBy 
+  orderBy,
+  getDocs 
 } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 import { 
@@ -57,7 +57,8 @@ import {
   ChevronRight,
   Eye,
   Percent,
-  Tag
+  Tag,
+  Edit2
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -135,6 +136,11 @@ export default function App() {
   const [newGarmentCategory, setNewGarmentCategory] = useState('');
   const [newTaskName, setNewTaskName] = useState('');
   const [newTaskPrice, setNewTaskPrice] = useState('');
+
+  // Editing Price Book Item State
+  const [editingPriceId, setEditingPriceId] = useState(null);
+  const [editTaskName, setEditTaskName] = useState('');
+  const [editTaskPrice, setEditTaskPrice] = useState('');
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -341,7 +347,6 @@ export default function App() {
     { key: 'Miscellaneous', label: 'Miscellaneous' },
   ];
 
-  // Default Fallback Alterations if Price Book is empty
   const DEFAULT_PRICE_BOOK = [
     { category: 'Trousers / Jeans', name: 'Standard Hemming', price: 12.00 },
     { category: 'Trousers / Jeans', name: 'Original Hemming (Keep Fade)', price: 15.00 },
@@ -383,8 +388,8 @@ export default function App() {
     { category: 'Curtains / Home Textiles', name: 'Cushion Cover Zip Replacement', price: 12.00 }
   ];
 
-  // Derive dynamic garment categories and options from Firestore priceBook or fallback
-  const activePriceBook = priceBook.length > 0 ? priceBook : DEFAULT_PRICE_BOOK;
+  // Derive dynamic garment categories and options from Firestore priceBook
+  const activePriceBook = priceBook;
   
   const uniqueGarments = Array.from(new Set(activePriceBook.map(item => item.category)));
   const GARMENTS = uniqueGarments.map(g => ({ key: g, en: g, ru: g }));
@@ -497,16 +502,23 @@ export default function App() {
     return () => unsubscribeInventory();
   }, [user]);
 
-  // Fetch Custom Price Book from Firestore
+  // Fetch Custom Price Book from Firestore and auto-seed defaults if empty
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, 'priceBook'), orderBy('category', 'asc'));
-    const unsubscribePrices = onSnapshot(q, (snapshot) => {
-      const priceData = snapshot.docs.map(doc => ({
-        docId: doc.id,
-        ...doc.data()
-      }));
-      setPriceBook(priceData);
+    const unsubscribePrices = onSnapshot(q, async (snapshot) => {
+      if (snapshot.empty) {
+        // Auto-seed defaults into Firestore so every item has an editable docId
+        for (const defItem of DEFAULT_PRICE_BOOK) {
+          await addDoc(collection(db, 'priceBook'), defItem);
+        }
+      } else {
+        const priceData = snapshot.docs.map(doc => ({
+          docId: doc.id,
+          ...doc.data()
+        }));
+        setPriceBook(priceData);
+      }
     });
     return () => unsubscribePrices();
   }, [user]);
@@ -535,6 +547,26 @@ export default function App() {
     } catch (err) {
       console.error('Error adding price item:', err);
       showToast('Failed to add price item.');
+    }
+  };
+
+  const handleUpdatePriceItem = async (docId) => {
+    const priceNum = Number(editTaskPrice);
+    if (!editTaskName.trim() || isNaN(priceNum) || priceNum <= 0) {
+      showToast('Please enter a valid name and price.');
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, 'priceBook', docId), {
+        name: editTaskName.trim(),
+        price: priceNum
+      });
+      setEditingPriceId(null);
+      showToast('Price item updated successfully!');
+    } catch (err) {
+      console.error('Error updating price item:', err);
+      showToast('Failed to update price item.');
     }
   };
 
@@ -1860,7 +1892,7 @@ export default function App() {
                 <h2 className="text-xl font-bold flex items-center gap-2">
                   <Tag className={`w-6 h-6 ${t.textAccent}`} /> Price Book & Alterations Customizer
                 </h2>
-                <p className="text-xs opacity-75">Add, rename, or remove garment categories and repair options instantly. Any changes made here immediately update your intake form options.</p>
+                <p className="text-xs opacity-75">Add, edit, rename, or remove garment categories and repair options instantly. Click "Edit" on any row to change its name or price.</p>
               </div>
 
               <form onSubmit={handleAddPriceItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
@@ -1919,29 +1951,80 @@ export default function App() {
                       <th className="py-3 px-3">Garment Category</th>
                       <th className="py-3 px-3">Repair / Task Name</th>
                       <th className="py-3 px-3">Price</th>
-                      <th className="py-3 px-3 text-right">Action</th>
+                      <th className="py-3 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
-                    {activePriceBook.map((item, index) => (
-                      <tr key={item.docId || index} className="hover:bg-slate-500/5 transition-colors">
-                        <td className="py-3 px-3 font-semibold text-teal-400">{item.category}</td>
-                        <td className="py-3 px-3 font-bold">{item.name}</td>
-                        <td className="py-3 px-3 font-mono font-extrabold">€{Number(item.price).toFixed(2)}</td>
-                        <td className="py-3 px-3 text-right">
-                          {item.docId ? (
-                            <button
-                              onClick={() => deletePriceItem(item.docId)}
-                              className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
-                            >
-                              Delete
-                            </button>
-                          ) : (
-                            <span className="text-[10px] opacity-50 italic">Default Item (Add custom to edit)</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {activePriceBook.map((item) => {
+                      const isEditing = editingPriceId === item.docId;
+                      return (
+                        <tr key={item.docId} className="hover:bg-slate-500/5 transition-colors">
+                          <td className="py-3 px-3 font-semibold text-teal-400">{item.category}</td>
+                          <td className="py-3 px-3">
+                            {isEditing ? (
+                              <input 
+                                type="text"
+                                value={editTaskName}
+                                onChange={(e) => setEditTaskName(e.target.value)}
+                                className={`border rounded-lg px-2 py-1 text-xs w-full ${t.innerInputBg}`}
+                              />
+                            ) : (
+                              <span className="font-bold">{item.name}</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 font-mono font-extrabold">
+                            {isEditing ? (
+                              <input 
+                                type="number"
+                                step="0.50"
+                                value={editTaskPrice}
+                                onChange={(e) => setEditTaskPrice(e.target.value)}
+                                className={`border rounded-lg px-2 py-1 text-xs w-24 ${t.innerInputBg}`}
+                              />
+                            ) : (
+                              `€${Number(item.price).toFixed(2)}`
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-right space-x-2">
+                            {isEditing ? (
+                              <>
+                                <button
+                                  onClick={() => handleUpdatePriceItem(item.docId)}
+                                  className="px-3 py-1 bg-teal-500 text-slate-950 font-bold rounded-lg text-[11px]"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => setEditingPriceId(null)}
+                                  className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-[11px]"
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setEditingPriceId(item.docId);
+                                    setEditTaskName(item.name);
+                                    setEditTaskPrice(item.price);
+                                  }}
+                                  className="px-3 py-1 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] inline-flex items-center gap-1"
+                                >
+                                  <Edit2 className="w-3 h-3" /> Edit
+                                </button>
+                                <button
+                                  onClick={() => deletePriceItem(item.docId)}
+                                  className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
