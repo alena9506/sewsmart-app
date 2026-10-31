@@ -290,6 +290,7 @@ export default function App() {
 
   const EXPENSE_CATEGORIES = [
     { key: 'Supplies & Materials', label: 'Supplies & Materials' },
+    { key: 'Software, Apps & Domains', label: 'Software, Apps & Domains' },
     { key: 'Rent & Utilities', label: 'Rent & Utilities' },
     { key: 'Equipment & Maintenance', label: 'Equipment & Maintenance' },
     { key: 'Payroll & Subcontractors', label: 'Payroll & Subcontractors' },
@@ -1806,33 +1807,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Visual Spending Breakdown by Category (Pie Chart / Percentage Bars) */}
-              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <PieChart className={`w-4 h-4 ${t.textAccent}`} /> Spending Breakdown by Category
-                </h3>
-                <div className="space-y-3 pt-1">
-                  {EXPENSE_CATEGORIES.map(cat => {
-                    const catTotal = categoryTotals[cat.key] || 0;
-                    const percentage = periodExpenses > 0 ? (catTotal / periodExpenses) * 100 : 0;
-                    return (
-                      <div key={cat.key} className="space-y-1">
-                        <div className="flex justify-between items-center text-xs font-semibold">
-                          <span>{cat.label}</span>
-                          <span className="font-mono">€{catTotal.toFixed(2)} ({percentage.toFixed(1)}%)</span>
-                        </div>
-                        <div className="w-full bg-slate-900/40 rounded-full h-2.5 overflow-hidden border border-slate-700/40">
-                          <div 
-                            className="bg-teal-500 h-full rounded-full transition-all duration-500" 
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
               <form onSubmit={handleAddExpense} className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <Wallet className={`w-4 h-4 ${t.textAccent}`} /> Record New Business Spend
@@ -1856,7 +1830,7 @@ export default function App() {
                       required
                       value={expenseDescription}
                       onChange={(e) => setExpenseDescription(e.target.value)}
-                      placeholder="e.g. Thread, Zippers, Rent"
+                      placeholder="e.g. Domain Renewal, Hosting, Zippers"
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
@@ -1938,6 +1912,33 @@ export default function App() {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Visual Spending Breakdown by Category (Pie Chart / Percentage Bars) at the Bottom */}
+              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                  <PieChart className={`w-4 h-4 ${t.textAccent}`} /> Spending Breakdown by Category (%)
+                </h3>
+                <div className="space-y-3 pt-1">
+                  {EXPENSE_CATEGORIES.map(cat => {
+                    const catTotal = categoryTotals[cat.key] || 0;
+                    const percentage = periodExpenses > 0 ? (catTotal / periodExpenses) * 100 : 0;
+                    return (
+                      <div key={cat.key} className="space-y-1">
+                        <div className="flex justify-between items-center text-xs font-semibold">
+                          <span>{cat.label}</span>
+                          <span className="font-mono">€{catTotal.toFixed(2)} ({percentage.toFixed(1)}%)</span>
+                        </div>
+                        <div className="w-full bg-slate-900/40 rounded-full h-2.5 overflow-hidden border border-slate-700/40">
+                          <div 
+                            className="bg-teal-500 h-full rounded-full transition-all duration-500" 
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
             </div>
