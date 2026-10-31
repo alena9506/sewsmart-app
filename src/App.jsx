@@ -47,7 +47,8 @@ import {
   Unlock,
   Mail,
   X,
-  CheckCircle2
+  CheckCircle2,
+  PieChart
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -705,36 +706,6 @@ export default function App() {
       .filter(ex => ex.category === cat.key)
       .reduce((sum, ex) => sum + ex.amount, 0);
   });
-
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const dayTotals = [0, 0, 0, 0, 0, 0, 0];
-  orders.forEach(o => {
-    const d = new Date(o.createdAt).getDay();
-    dayTotals[d] += (o.total * revenueMultiplier);
-  });
-  const maxDayRevenue = Math.max(...dayTotals, 1);
-
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthTotals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  orders.forEach(o => {
-    const d = new Date(o.createdAt);
-    if (d.getFullYear() === now.getFullYear()) {
-      monthTotals[d.getMonth()] += (o.total * revenueMultiplier);
-    }
-  });
-  const maxMonthRevenue = Math.max(...monthTotals, 1);
-
-  const currentYearNum = now.getFullYear();
-  const yearLabels = [currentYearNum - 3, currentYearNum - 2, currentYearNum - 1, currentYearNum];
-  const yearTotals = [0, 0, 0, 0];
-  orders.forEach(o => {
-    const y = new Date(o.createdAt).getFullYear();
-    const idx = yearLabels.indexOf(y);
-    if (idx !== -1) {
-      yearTotals[idx] += (o.total * revenueMultiplier);
-    }
-  });
-  const maxYearRevenue = Math.max(...yearTotals, 1);
 
   const exportToCSV = () => {
     const headers = ['Tag ID', 'Date', 'Customer Name', 'Phone', 'Email', 'Service Type', 'Payment Method', 'Status', 'Total (€)'];
@@ -1832,6 +1803,33 @@ export default function App() {
                   <p className={`text-xl font-extrabold ${profitMargin >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
                     {profitMargin.toFixed(1)}%
                   </p>
+                </div>
+              </div>
+
+              {/* Visual Spending Breakdown by Category (Pie Chart / Percentage Bars) */}
+              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                  <PieChart className={`w-4 h-4 ${t.textAccent}`} /> Spending Breakdown by Category
+                </h3>
+                <div className="space-y-3 pt-1">
+                  {EXPENSE_CATEGORIES.map(cat => {
+                    const catTotal = categoryTotals[cat.key] || 0;
+                    const percentage = periodExpenses > 0 ? (catTotal / periodExpenses) * 100 : 0;
+                    return (
+                      <div key={cat.key} className="space-y-1">
+                        <div className="flex justify-between items-center text-xs font-semibold">
+                          <span>{cat.label}</span>
+                          <span className="font-mono">€{catTotal.toFixed(2)} ({percentage.toFixed(1)}%)</span>
+                        </div>
+                        <div className="w-full bg-slate-900/40 rounded-full h-2.5 overflow-hidden border border-slate-700/40">
+                          <div 
+                            className="bg-teal-500 h-full rounded-full transition-all duration-500" 
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
