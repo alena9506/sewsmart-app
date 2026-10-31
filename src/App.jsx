@@ -1484,18 +1484,18 @@ export default function App() {
         )}
 
         {activeTab === 'orders' && (
-          <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+          <div className={`border rounded-3xl p-4 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
             <div className="flex flex-wrap justify-between items-center gap-4">
               <h2 className="text-lg font-bold">{text.ticketHistory}</h2>
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="relative">
+              <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
                   <Search className="w-4 h-4 absolute left-3 top-3.5 opacity-50" />
                   <input 
                     type="text"
                     placeholder={text.searchPlaceholder}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className={`pl-9 pr-4 py-2.5 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    className={`w-full sm:w-auto pl-9 pr-4 py-2.5 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                   />
                 </div>
                 <select
@@ -1511,7 +1511,61 @@ export default function App() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile Card Layout (Visible only on small screens) */}
+            <div className="block sm:hidden space-y-3">
+              {filteredOrders.length === 0 ? (
+                <div className="text-center py-12 opacity-60 text-xs">No orders found.</div>
+              ) : (
+                filteredOrders.map(o => (
+                  <div key={o.docId} className={`p-4 rounded-2xl border space-y-3 ${t.subCardBg}`}>
+                    <div className="flex justify-between items-center">
+                      <span className={`font-mono font-black text-sm ${t.textAccent}`}>#{o.id}</span>
+                      <select
+                        value={o.status}
+                        onChange={(e) => updateStatus(o.docId, e.target.value)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${t.innerInputBg}`}
+                      >
+                        <option value="Pending">{text.pending}</option>
+                        <option value="In Progress">{text.inProgress}</option>
+                        <option value="Completed">{text.completed}</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1 text-xs">
+                      <p><strong>{text.customer}:</strong> {o.customerName}</p>
+                      <p><strong>{text.phone}:</strong> {o.phone}</p>
+                      {o.customerEmail && <p><strong>Email:</strong> {o.customerEmail}</p>}
+                      <p><strong>{text.service}:</strong> <span className="uppercase">{o.serviceType}</span></p>
+                      <p><strong>{text.readyDate}:</strong> {o.dueDate}</p>
+                      <p><strong>{text.total}:</strong> <span className="font-bold text-teal-500">€{o.total.toFixed(2)}</span></p>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2 border-t border-slate-700/30">
+                      <button
+                        onClick={() => {
+                          setSelectedOrderForPrint(o);
+                          setActiveTab('intake');
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-medium text-white ${t.isLight ? 'bg-slate-800' : 'bg-slate-700'}`}
+                      >
+                        {text.print}
+                      </button>
+                      {isAdmin && (
+                        <button
+                          onClick={() => deleteOrder(o.docId)}
+                          className="px-3 py-1.5 bg-rose-500/10 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-medium"
+                        >
+                          {text.delete}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Desktop Table Layout (Hidden on small mobile screens) */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className={`border-b text-xs uppercase opacity-70 ${t.isLight ? 'border-slate-200' : 'border-slate-700'}`}>
