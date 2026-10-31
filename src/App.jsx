@@ -1611,9 +1611,13 @@ export default function App() {
                   </div>
 
                   {phone.trim() && (
-                    <div className={`p-4 rounded-2xl border flex items-center justify-between flex-wrap gap-3 ${activeLoyaltyCustomer ? 'bg-teal-500/10 border-teal-500/30 text-teal-300' : 'bg-slate-800/40 border-slate-700 text-slate-300'}`}>
+                    <div className={`p-4 rounded-2xl border flex items-center justify-between flex-wrap gap-3 ${
+                      activeLoyaltyCustomer 
+                        ? (t.isLight ? 'bg-teal-50 border-teal-300 text-teal-900 font-medium' : 'bg-teal-500/10 border-teal-500/30 text-teal-300')
+                        : (t.isLight ? 'bg-teal-50/80 border-teal-200 text-slate-800 font-medium' : 'bg-slate-800/40 border-slate-700 text-slate-300')
+                    }`}>
                       <div className="flex items-center gap-2.5">
-                        <Award className="w-5 h-5 text-teal-400 flex-shrink-0" />
+                        <Award className="w-5 h-5 text-teal-500 flex-shrink-0" />
                         <div>
                           <p className="text-xs font-bold">
                             {activeLoyaltyCustomer 
