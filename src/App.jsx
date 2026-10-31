@@ -48,7 +48,8 @@ import {
   Mail,
   X,
   CheckCircle2,
-  PieChart
+  PieChart,
+  Repeat
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -101,6 +102,7 @@ export default function App() {
   const [expenseCategory, setExpenseCategory] = useState('Supplies & Materials');
   const [expenseAmount, setExpenseAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [isRecurringMonthly, setIsRecurringMonthly] = useState(false);
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -569,18 +571,25 @@ export default function App() {
       return;
     }
 
+    const descText = expenseDescription.trim() || 'General Business Expense';
+    const finalDescription = isRecurringMonthly 
+      ? `${descText} (Monthly Recurring)` 
+      : descText;
+
     const newExpense = {
       createdAt: new Date().toISOString(),
       date: expenseDate,
-      description: expenseDescription.trim() || 'General Business Expense',
+      description: finalDescription,
       category: expenseCategory,
-      amount: amountNum
+      amount: amountNum,
+      isRecurring: isRecurringMonthly
     };
 
     try {
       await addDoc(collection(db, 'expenses'), newExpense);
       setExpenseDescription('');
       setExpenseAmount('');
+      setIsRecurringMonthly(false);
       showToast('Expense recorded successfully!');
     } catch (error) {
       console.error('Error adding expense: ', error);
@@ -1808,9 +1817,21 @@ export default function App() {
               </div>
 
               <form onSubmit={handleAddExpense} className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <Wallet className={`w-4 h-4 ${t.textAccent}`} /> Record New Business Spend
-                </h3>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    <Wallet className={`w-4 h-4 ${t.textAccent}`} /> Record New Business Spend
+                  </h3>
+                  <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                    <input 
+                      type="checkbox"
+                      checked={isRecurringMonthly}
+                      onChange={(e) => setIsRecurringMonthly(e.target.checked)}
+                      className="w-4 h-4 accent-teal-500 rounded cursor-pointer"
+                    />
+                    <span className="flex items-center gap-1"><Repeat className="w-3.5 h-3.5 text-teal-400" /> Recurring Monthly Bill</span>
+                  </label>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
                   <div>
                     <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Date</label>
@@ -1830,7 +1851,7 @@ export default function App() {
                       required
                       value={expenseDescription}
                       onChange={(e) => setExpenseDescription(e.target.value)}
-                      placeholder="e.g. Domain Renewal, Hosting, Zippers"
+                      placeholder="e.g. Internet, Electricity, Domain Renewal"
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
@@ -1896,7 +1917,14 @@ export default function App() {
                       filteredExpensesByTimeframe.map(ex => (
                         <tr key={ex.docId} className="hover:bg-slate-500/5 transition-colors">
                           <td className="py-3 px-3 font-mono">{ex.date || ex.createdAt?.split('T')[0]}</td>
-                          <td className="py-3 px-3 font-semibold">{ex.description}</td>
+                          <td className="py-3 px-3 font-semibold flex items-center gap-2">
+                            {ex.description}
+                            {ex.isRecurring && (
+                              <span className="bg-teal-500/10 border border-teal-500/30 text-teal-400 text-[9px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                <Repeat className="w-3 h-3" /> Monthly
+                              </span>
+                            )}
+                          </td>
                           <td className="py-3 px-3 opacity-80">{ex.category}</td>
                           <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
                           <td className="py-3 px-3 text-right">
