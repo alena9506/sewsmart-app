@@ -53,7 +53,9 @@ import {
   AlertTriangle,
   Package,
   Award,
-  AlertCircle
+  AlertCircle,
+  ChevronRight,
+  Eye
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -94,6 +96,9 @@ export default function App() {
     message: '',
     onConfirm: null
   });
+
+  // Customer Detail History Modal State
+  const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState(null);
 
   // Inactivity Timer Ref (10 Minutes = 600,000 ms)
   const inactivityTimerRef = useRef(null);
@@ -516,11 +521,13 @@ export default function App() {
         email: o.customerEmail || '',
         totalVisits: 0,
         totalSpent: 0,
-        lastVisit: o.dueDate || o.createdAt?.split('T')[0]
+        lastVisit: o.dueDate || o.createdAt?.split('T')[0],
+        customerOrders: []
       };
     }
     loyaltyCustomersMap[p].totalVisits += 1;
     loyaltyCustomersMap[p].totalSpent += (o.total || 0);
+    loyaltyCustomersMap[p].customerOrders.push(o);
     if (o.customerName && o.customerName !== 'Valued Customer') {
       loyaltyCustomersMap[p].name = o.customerName;
     }
@@ -1073,6 +1080,87 @@ export default function App() {
           }
         }
       `}</style>
+
+      {/* Customer Order History Detail Modal */}
+      {selectedCustomerForHistory && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto text-white animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-start pb-4 border-b border-slate-800">
+              <div>
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Award className="w-5 h-5 text-teal-400" /> {selectedCustomerForHistory.name}
+                </h3>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">Phone: {selectedCustomerForHistory.phone} {selectedCustomerForHistory.email ? `• ${selectedCustomerForHistory.email}` : ''}</p>
+              </div>
+              <button 
+                onClick={() => setSelectedCustomerForHistory(null)}
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-slate-800/60 border border-slate-700 p-4 rounded-2xl">
+                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Total Orders</p>
+                <p className="text-xl font-black text-teal-400 mt-1">{selectedCustomerForHistory.totalVisits} visits</p>
+              </div>
+              <div className="bg-slate-800/60 border border-slate-700 p-4 rounded-2xl">
+                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Lifetime Spend</p>
+                <p className="text-xl font-black text-emerald-400 mt-1">€{selectedCustomerForHistory.totalSpent.toFixed(2)}</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">Complete Order History ({selectedCustomerForHistory.customerOrders.length})</h4>
+              <div className="space-y-3">
+                {selectedCustomerForHistory.customerOrders.map((ord, idx) => (
+                  <div key={idx} className="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-mono font-black text-teal-400">Tag #{ord.id}</span>
+                      <span className="bg-slate-800 px-2.5 py-0.5 rounded-md font-semibold">{ord.status}</span>
+                    </div>
+
+                    <div className="text-xs space-y-1 text-slate-300">
+                      <p><strong>Date:</strong> {ord.dueDate || ord.createdAt?.split('T')[0]}</p>
+                      <p><strong>Service:</strong> <span className="uppercase font-semibold">{ord.serviceType}</span></p>
+                      {ord.serviceType === 'alteration' ? (
+                        <div className="pt-1 space-y-1">
+                          <p className="text-[11px] font-bold text-slate-400">Garment Items:</p>
+                          {ord.details?.items?.map((item, i) => (
+                            <div key={i} className="pl-3 border-l border-teal-500/40 text-[11px]">
+                              <p className="font-semibold text-white">• {item.garmentType} (€{item.price.toFixed(2)})</p>
+                              {item.alterations?.length > 0 && <p className="text-slate-400">Tasks: {item.alterations.join(', ')}</p>}
+                              {item.customNote && <p className="text-slate-400 italic">Note: {item.customNote}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-[11px]">
+                          <p><strong>Laundry Service:</strong> {ord.details?.laundryService}</p>
+                          {ord.details?.weightKg && <p><strong>Weight/Qty:</strong> {ord.details?.weightKg}</p>}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-800 text-xs">
+                      <span className="text-slate-400">Paid via {ord.paymentMethod}</span>
+                      <span className="font-bold text-emerald-400 text-sm">€{ord.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedCustomerForHistory(null)}
+              className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg"
+            >
+              Close History
+            </button>
+          </div>
+        </div>
+      )}
 
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 border border-teal-500/40 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
@@ -1820,7 +1908,7 @@ export default function App() {
                 <h2 className="text-xl font-bold flex items-center gap-2">
                   <Award className={`w-6 h-6 ${t.textAccent}`} /> Customer Visit & Order History Tracker
                 </h2>
-                <p className="text-xs opacity-75">Track repeat customers, total visit counts, and lifetime spending automatically grouped by phone number.</p>
+                <p className="text-xs opacity-75">Track repeat customers, total visit counts, and lifetime spending automatically grouped by phone number. Click any customer row to view their full order history.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
@@ -1837,8 +1925,8 @@ export default function App() {
               </div>
 
               <div className="pt-4 overflow-x-auto">
-                <h3 className="text-sm font-bold mb-3">Customer Directory & Lifetime Spend</h3>
-                <table className="w-full text-left border-collapse text-xs min-w-[650px]">
+                <h3 className="text-sm font-bold mb-3">Customer Directory & Lifetime Spend (Click row to view history)</h3>
+                <table className="w-full text-left border-collapse text-xs min-w-[700px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
                       <th className="py-3 px-3">Customer Name</th>
@@ -1847,22 +1935,34 @@ export default function App() {
                       <th className="py-3 px-3">Total Orders</th>
                       <th className="py-3 px-3">Total Lifetime Spend</th>
                       <th className="py-3 px-3">Last Visit</th>
+                      <th className="py-3 px-3 text-right">View History</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
                     {customers.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-10 opacity-60">No customer records yet. Create tickets using customer phone numbers to begin tracking.</td>
+                        <td colSpan="7" className="text-center py-10 opacity-60">No customer records yet. Create tickets using customer phone numbers to begin tracking.</td>
                       </tr>
                     ) : (
                       customers.map((c, i) => (
-                        <tr key={i} className="hover:bg-slate-500/5 transition-colors">
-                          <td className="py-3 px-3 font-semibold">{c.name}</td>
+                        <tr 
+                          key={i} 
+                          onClick={() => setSelectedCustomerForHistory(c)}
+                          className="hover:bg-teal-500/10 cursor-pointer transition-colors group"
+                        >
+                          <td className="py-3 px-3 font-semibold group-hover:text-teal-400 flex items-center gap-1.5">
+                            {c.name}
+                          </td>
                           <td className="py-3 px-3 font-mono">{c.phone}</td>
                           <td className="py-3 px-3 font-mono opacity-80">{c.email || '—'}</td>
                           <td className="py-3 px-3 font-bold font-mono">{c.totalVisits} orders</td>
                           <td className="py-3 px-3 font-bold text-teal-400">€{(c.totalSpent || 0).toFixed(2)}</td>
                           <td className="py-3 px-3 opacity-80">{c.lastVisit || '—'}</td>
+                          <td className="py-3 px-3 text-right">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[11px] font-bold">
+                              <Eye className="w-3.5 h-3.5" /> History
+                            </span>
+                          </td>
                         </tr>
                       ))
                     )}
