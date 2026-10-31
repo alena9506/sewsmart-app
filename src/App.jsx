@@ -53,7 +53,6 @@ import {
   AlertTriangle,
   Package,
   Award,
-  Sparkles,
   AlertCircle
 } from 'lucide-react';
 import logoImg from './logo.png';
@@ -220,7 +219,7 @@ export default function App() {
       reports: 'Reports',
       bookkeeping: 'Bookkeeping',
       inventory: 'Inventory',
-      loyalty: 'Loyalty',
+      loyalty: 'Customer Visits',
       settings: 'Settings',
       alterationTicket: 'Alteration Ticket',
       laundryTicket: 'Laundry Ticket',
@@ -269,7 +268,7 @@ export default function App() {
       reports: 'Отчеты',
       bookkeeping: 'Бухгалтерия',
       inventory: 'Склад',
-      loyalty: 'Бонусы',
+      loyalty: 'Клиенты',
       settings: 'Настройки',
       alterationTicket: 'Ателье (Ремонт одежды)',
       laundryTicket: 'Прачечная',
@@ -505,7 +504,7 @@ export default function App() {
     return () => unsubscribeInventory();
   }, [user]);
 
-  // Derive Customer Loyalty dynamically from live orders grouped by phone number
+  // Derive Customer Visit Tracker dynamically from live orders grouped by phone number
   const loyaltyCustomersMap = {};
   orders.forEach(o => {
     const p = (o.phone || '').trim();
@@ -531,7 +530,6 @@ export default function App() {
   });
   const customers = Object.values(loyaltyCustomersMap);
 
-  // Auto-fill customer name & email if phone matches an existing customer
   const handlePhoneBlur = () => {
     if (!phone.trim()) return;
     const cleanPhone = phone.trim();
@@ -607,7 +605,6 @@ export default function App() {
       await addDoc(collection(db, 'orders'), newOrder);
       setSelectedOrderForPrint(newOrder);
 
-      // Send Live Email via EmailJS if customer email is provided
       if (newOrder.customerEmail) {
         try {
           const templateParams = {
@@ -626,7 +623,6 @@ export default function App() {
             templateParams,
             '50tnv-rcE0P4zclZ9'
           );
-          console.log('Digital receipt email successfully sent via EmailJS!');
         } catch (emailErr) {
           console.error('Failed to send email via EmailJS:', emailErr);
         }
@@ -1386,21 +1382,16 @@ export default function App() {
                         <div>
                           <p className="text-xs font-bold">
                             {activeLoyaltyCustomer 
-                              ? `Returning Customer: ${activeLoyaltyCustomer.totalVisits} previous visits!` 
-                              : 'New Customer: First visit reward tier unlocked!'}
+                              ? `Returning Customer: ${activeLoyaltyCustomer.totalVisits} previous visits recorded.` 
+                              : 'New Customer: First visit will be tracked.'}
                           </p>
                           <p className="text-[10px] opacity-80">
                             {activeLoyaltyCustomer 
-                              ? `Progress to 5th Alteration Reward: ${(activeLoyaltyCustomer.totalVisits % 5)} / 5 orders` 
-                              : 'Will be registered for loyalty rewards automatically.'}
+                              ? `Total spent so far: €${activeLoyaltyCustomer.totalSpent.toFixed(2)}` 
+                              : 'Automatic history tracking enabled.'}
                           </p>
                         </div>
                       </div>
-                      {activeLoyaltyCustomer && (activeLoyaltyCustomer.totalVisits + 1) % 5 === 0 && (
-                        <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] px-3 py-1 rounded-full font-bold flex items-center gap-1 animate-pulse">
-                          <Sparkles className="w-3.5 h-3.5" /> 5th Visit Reward Eligible!
-                        </span>
-                      )}
                     </div>
                   )}
 
@@ -1821,20 +1812,20 @@ export default function App() {
           </div>
         )}
 
-        {/* LOYALTY TAB */}
+        {/* CUSTOMER VISITS & HISTORY TAB */}
         {activeTab === 'loyalty' && isAdmin && (
           <div className="space-y-6">
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div>
                 <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Award className={`w-6 h-6 ${t.textAccent}`} /> Customer Loyalty & Repeat Visit Tracker
+                  <Award className={`w-6 h-6 ${t.textAccent}`} /> Customer Visit & Order History Tracker
                 </h2>
-                <p className="text-xs opacity-75">Track repeat customers by phone number and reward loyalty with the "5th Alteration Half Price" program.</p>
+                <p className="text-xs opacity-75">Track repeat customers, total visit counts, and lifetime spending automatically grouped by phone number.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Total Registered Customers</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Total Unique Customers</p>
                   <p className={`text-2xl font-extrabold ${t.textAccent}`}>{customers.length}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
@@ -1843,16 +1834,10 @@ export default function App() {
                     {customers.filter(c => c.totalVisits >= 2).length}
                   </p>
                 </div>
-                <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">5th Visit Rewards Ready</p>
-                  <p className="text-2xl font-extrabold text-amber-400">
-                    {customers.filter(c => c.totalVisits > 0 && c.totalVisits % 5 === 0).length}
-                  </p>
-                </div>
               </div>
 
               <div className="pt-4 overflow-x-auto">
-                <h3 className="text-sm font-bold mb-3">Customer Database & Visit History</h3>
+                <h3 className="text-sm font-bold mb-3">Customer Directory & Lifetime Spend</h3>
                 <table className="w-full text-left border-collapse text-xs min-w-[650px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
@@ -1860,41 +1845,26 @@ export default function App() {
                       <th className="py-3 px-3">Phone Number</th>
                       <th className="py-3 px-3">Email</th>
                       <th className="py-3 px-3">Total Orders</th>
-                      <th className="py-3 px-3">Total Spent</th>
-                      <th className="py-3 px-3">Loyalty Reward Status</th>
+                      <th className="py-3 px-3">Total Lifetime Spend</th>
+                      <th className="py-3 px-3">Last Visit</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
                     {customers.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-10 opacity-60">No customer loyalty records yet. Create tickets using customer phone numbers to begin tracking.</td>
+                        <td colSpan="6" className="text-center py-10 opacity-60">No customer records yet. Create tickets using customer phone numbers to begin tracking.</td>
                       </tr>
                     ) : (
-                      customers.map((c, i) => {
-                        const visits = c.totalVisits || 1;
-                        const remainder = visits % 5;
-                        const isEligible = remainder === 0;
-                        return (
-                          <tr key={i} className="hover:bg-slate-500/5 transition-colors">
-                            <td className="py-3 px-3 font-semibold">{c.name}</td>
-                            <td className="py-3 px-3 font-mono">{c.phone}</td>
-                            <td className="py-3 px-3 font-mono opacity-80">{c.email || '—'}</td>
-                            <td className="py-3 px-3 font-bold font-mono">{visits} visits</td>
-                            <td className="py-3 px-3 font-bold text-teal-400">€{(c.totalSpent || 0).toFixed(2)}</td>
-                            <td className="py-3 px-3">
-                              {isEligible ? (
-                                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-3 py-1 rounded-full font-bold flex items-center gap-1.5 w-fit">
-                                  <Sparkles className="w-3.5 h-3.5 animate-spin" /> 5th Visit! 50% Off Reward
-                                </span>
-                              ) : (
-                                <span className="opacity-80">
-                                  {5 - remainder} orders until 5th reward
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })
+                      customers.map((c, i) => (
+                        <tr key={i} className="hover:bg-slate-500/5 transition-colors">
+                          <td className="py-3 px-3 font-semibold">{c.name}</td>
+                          <td className="py-3 px-3 font-mono">{c.phone}</td>
+                          <td className="py-3 px-3 font-mono opacity-80">{c.email || '—'}</td>
+                          <td className="py-3 px-3 font-bold font-mono">{c.totalVisits} orders</td>
+                          <td className="py-3 px-3 font-bold text-teal-400">€{(c.totalSpent || 0).toFixed(2)}</td>
+                          <td className="py-3 px-3 opacity-80">{c.lastVisit || '—'}</td>
+                        </tr>
+                      ))
                     )}
                   </tbody>
                 </table>
