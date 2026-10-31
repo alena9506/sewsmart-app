@@ -1597,22 +1597,41 @@ export default function App() {
       <main className="flex-1 p-2 sm:p-4 max-w-7xl w-full mx-auto space-y-4">
         {activeTab === 'intake' && (
           <div className="space-y-4">
-            <div className="flex justify-center mb-2">
-              <div className={`p-1 rounded-2xl border flex gap-1.5 shadow-md ${t.headerBg}`}>
-                <button
-                  type="button"
-                  onClick={() => setServiceType('alteration')}
-                  className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs transition-all ${serviceType === 'alteration' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
-                >
-                  <Scissors className="w-3.5 h-3.5" /> {text.alterationTicket}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setServiceType('laundry')}
-                  className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs transition-all ${serviceType === 'laundry' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
-                >
-                  <Shirt className="w-3.5 h-3.5" /> {text.laundryTicket}
-                </button>
+            <div className="flex justify-between items-center flex-wrap gap-3">
+              <div className="flex justify-center flex-1">
+                <div className={`p-1 rounded-2xl border flex gap-1.5 shadow-md ${t.headerBg}`}>
+                  <button
+                    type="button"
+                    onClick={() => setServiceType('alteration')}
+                    className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs transition-all ${serviceType === 'alteration' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
+                  >
+                    <Scissors className="w-3.5 h-3.5" /> {text.alterationTicket}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setServiceType('laundry')}
+                    className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs transition-all ${serviceType === 'laundry' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
+                  >
+                    <Shirt className="w-3.5 h-3.5" /> {text.laundryTicket}
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Zoom Bar for Intake Screen */}
+              <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-2xl border shadow-sm ${t.headerBg}`}>
+                <ZoomOut className="w-3.5 h-3.5 opacity-60" />
+                <input 
+                  type="range"
+                  min="85"
+                  max="130"
+                  step="5"
+                  value={uiZoomScale}
+                  onChange={(e) => setUiZoomScale(Number(e.target.value))}
+                  className="w-24 cursor-pointer accent-teal-500"
+                  title="Zoom text size"
+                />
+                <ZoomIn className="w-3.5 h-3.5 opacity-60" />
+                <span className={`text-[11px] font-mono font-bold ${t.textAccent}`}>{uiZoomScale}%</span>
               </div>
             </div>
 
@@ -1622,9 +1641,28 @@ export default function App() {
                   <h2 className="text-sm font-bold flex items-center gap-1.5">
                     <User className={`w-4 h-4 ${t.textAccent}`} /> {text.customerPayment}
                   </h2>
-                  <span className={`font-mono text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${t.primaryBadge}`}>
-                    TAG: #{nextTagId}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {/* Mobile/Tablet Zoom Bar */}
+                    <div className="flex md:hidden items-center gap-1.5">
+                      <button 
+                        onClick={() => setUiZoomScale(Math.max(85, uiZoomScale - 5))}
+                        className="px-2 py-0.5 rounded bg-slate-800 text-white text-[10px] font-bold"
+                      >
+                        -
+                      </button>
+                      <span className={`text-[11px] font-mono font-bold ${t.textAccent}`}>{uiZoomScale}%</span>
+                      <button 
+                        onClick={() => setUiZoomScale(Math.min(130, uiZoomScale + 5))}
+                        className="px-2 py-0.5 rounded bg-slate-800 text-white text-[10px] font-bold"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <span className={`font-mono text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${t.primaryBadge}`}>
+                      TAG: #{nextTagId}
+                    </span>
+                  </div>
                 </div>
 
                 <form onSubmit={handleCreateOrder} className="space-y-3.5">
@@ -1787,7 +1825,6 @@ export default function App() {
                           <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1.5">
                             {text.fixOptions} {garmentType}:
                           </label>
-                          {/* Expanded fix options container with full width layout */}
                           <div className="flex flex-wrap gap-1.5">
                             {currentGarmentOptions.length === 0 ? (
                               <p className="text-[11px] opacity-60">No custom repair tasks added for this category yet.</p>
@@ -2930,52 +2967,6 @@ export default function App() {
 
         {activeTab === 'settings' && (
           <div className="space-y-6 max-w-xl mx-auto w-full">
-            {/* Zoom Control Card */}
-            <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-4 ${t.cardBg}`}>
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <ZoomIn className={`w-5 h-5 ${t.textAccent}`} /> Page Zoom & Text Size
-              </h2>
-              <p className="text-xs opacity-75">Adjust the zoom scale to make fonts and interface elements larger or more compact.</p>
-              
-              <div className="space-y-3 pt-2">
-                <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="flex items-center gap-1.5"><ZoomOut className="w-4 h-4 opacity-60" /> Current Zoom Scale</span>
-                  <span className={`font-mono text-sm font-extrabold ${t.textAccent}`}>{uiZoomScale}%</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <input 
-                    type="range"
-                    min="85"
-                    max="125"
-                    step="5"
-                    value={uiZoomScale}
-                    onChange={(e) => setUiZoomScale(Number(e.target.value))}
-                    className="w-full cursor-pointer accent-teal-500"
-                  />
-                </div>
-                <div className="flex justify-between items-center pt-2">
-                  <button
-                    onClick={() => setUiZoomScale(90)}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold"
-                  >
-                    Compact (90%)
-                  </button>
-                  <button
-                    onClick={() => setUiZoomScale(100)}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold"
-                  >
-                    Reset (100%)
-                  </button>
-                  <button
-                    onClick={() => setUiZoomScale(115)}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold"
-                  >
-                    Larger Text (115%)
-                  </button>
-                </div>
-              </div>
-            </div>
-
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <Palette className={`w-5 h-5 ${t.textAccent}`} /> Appearance & Theme Settings
