@@ -83,10 +83,10 @@ export default function App() {
     return localStorage.getItem('alico_theme_mode') || 'teal-light';
   });
 
-  // Initialize UI Zoom Scale from localStorage (default 100%)
+  // Initialize UI Zoom Scale from localStorage (default 16px base font size)
   const [uiZoomScale, setUiZoomScale] = useState(() => {
     const saved = localStorage.getItem('alico_ui_zoom');
-    return saved ? Number(saved) : 100;
+    return saved ? Number(saved) : 16;
   });
 
   useEffect(() => {
@@ -1216,7 +1216,7 @@ export default function App() {
 
   return (
     <div 
-      style={{ fontSize: `${uiZoomScale}%` }}
+      style={{ fontSize: `${uiZoomScale}px` }}
       className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}
     >
       <style>{`
@@ -1617,21 +1617,21 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Quick Zoom Bar for Intake Screen */}
-              <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-2xl border shadow-sm ${t.headerBg}`}>
+              {/* Quick Font Size Slider for Intake Screen */}
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border shadow-sm ${t.headerBg}`}>
                 <ZoomOut className="w-3.5 h-3.5 opacity-60" />
                 <input 
                   type="range"
-                  min="85"
-                  max="130"
-                  step="5"
+                  min="14"
+                  max="22"
+                  step="1"
                   value={uiZoomScale}
                   onChange={(e) => setUiZoomScale(Number(e.target.value))}
-                  className="w-24 cursor-pointer accent-teal-500"
-                  title="Zoom text size"
+                  className="w-28 cursor-pointer accent-teal-500"
+                  title="Adjust text size"
                 />
                 <ZoomIn className="w-3.5 h-3.5 opacity-60" />
-                <span className={`text-[11px] font-mono font-bold ${t.textAccent}`}>{uiZoomScale}%</span>
+                <span className={`text-[11px] font-mono font-bold ${t.textAccent}`}>{uiZoomScale}px</span>
               </div>
             </div>
 
@@ -1641,28 +1641,9 @@ export default function App() {
                   <h2 className="text-sm font-bold flex items-center gap-1.5">
                     <User className={`w-4 h-4 ${t.textAccent}`} /> {text.customerPayment}
                   </h2>
-                  <div className="flex items-center gap-2">
-                    {/* Mobile/Tablet Zoom Bar */}
-                    <div className="flex md:hidden items-center gap-1.5">
-                      <button 
-                        onClick={() => setUiZoomScale(Math.max(85, uiZoomScale - 5))}
-                        className="px-2 py-0.5 rounded bg-slate-800 text-white text-[10px] font-bold"
-                      >
-                        -
-                      </button>
-                      <span className={`text-[11px] font-mono font-bold ${t.textAccent}`}>{uiZoomScale}%</span>
-                      <button 
-                        onClick={() => setUiZoomScale(Math.min(130, uiZoomScale + 5))}
-                        className="px-2 py-0.5 rounded bg-slate-800 text-white text-[10px] font-bold"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    <span className={`font-mono text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${t.primaryBadge}`}>
-                      TAG: #{nextTagId}
-                    </span>
-                  </div>
+                  <span className={`font-mono text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${t.primaryBadge}`}>
+                    TAG: #{nextTagId}
+                  </span>
                 </div>
 
                 <form onSubmit={handleCreateOrder} className="space-y-3.5">
