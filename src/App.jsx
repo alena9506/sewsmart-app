@@ -13,7 +13,9 @@ import {
   deleteDoc, 
   doc, 
   query, 
-  orderBy 
+  orderBy,
+  setDoc,
+  getDoc
 } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 import { 
@@ -50,7 +52,11 @@ import {
   CheckCircle2,
   PieChart,
   Repeat,
-  AlertTriangle
+  AlertTriangle,
+  Package,
+  Award,
+  Sparkles,
+  AlertCircle
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -84,7 +90,7 @@ export default function App() {
   // In-App Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Custom Modal Confirmation State (replacing ugly native window.confirm pop-ups)
+  // Custom Modal Confirmation State
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
@@ -113,6 +119,14 @@ export default function App() {
   const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [isRecurringMonthly, setIsRecurringMonthly] = useState(false);
 
+  // Inventory / Supplies State
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemSku, setNewItemSku] = useState('');
+  const [newItemQty, setNewItemQty] = useState('');
+  const [newItemMinQty, setNewItemMinQty] = useState('5');
+  const [newItemUnit, setNewItemUnit] = useState('pcs');
+
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -136,6 +150,7 @@ export default function App() {
   const [laundryPrice, setLaundryPrice] = useState('');
 
   const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
@@ -207,6 +222,8 @@ export default function App() {
       orders: 'Orders',
       reports: 'Reports',
       bookkeeping: 'Bookkeeping',
+      inventory: 'Inventory',
+      loyalty: 'Loyalty',
       settings: 'Settings',
       alterationTicket: 'Alteration Ticket',
       laundryTicket: 'Laundry Ticket',
@@ -254,6 +271,8 @@ export default function App() {
       orders: 'Заказы',
       reports: 'Отчеты',
       bookkeeping: 'Бухгалтерия',
+      inventory: 'Склад',
+      loyalty: 'Бонусы',
       settings: 'Настройки',
       alterationTicket: 'Ателье (Ремонт одежды)',
       laundryTicket: 'Прачечная',
@@ -409,7 +428,6 @@ export default function App() {
 
     setGarmentCart([...garmentCart, newItem]);
     
-    // Reset current garment form for next item
     setSelectedAlterations([]);
     setCustomAlteration('');
     setItemPrice('');
@@ -422,7 +440,6 @@ export default function App() {
     setGarmentCart(updated);
   };
 
-  // Calculate total price automatically from cart (for alterations) or laundry price
   const calculatedTotal = serviceType === 'alteration' 
     ? garmentCart.reduce((sum, item) => sum + item.price, 0)
     : Number(laundryPrice || 0);
@@ -465,6 +482,57 @@ export default function App() {
     return () => unsubscribeExpenses();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'inventory'), orderBy('name', 'asc'));
+    const unsubscribeInventory = onSnapshot(q, (snapshot) => {
+      const invData = snapshot.docs.map(doc => ({
+        docId: doc.id,
+        ...doc.data()
+      }));
+      if (invData.length === 0) {
+        // Seed default items if empty
+        const defaults = [
+          { name: 'Standard Black Zippers (20cm)', sku: 'ZIP-BLK-20', quantity: 18, minQuantity: 5, unit: 'pcs' },
+          { name: 'Standard Blue Zippers (20cm)', sku: 'ZIP-BLU-20', quantity: 3, minQuantity: 5, unit: 'pcs' },
+          { name: 'Heavy-Duty Black Thread', sku: 'THR-BLK-HD', quantity: 2, minQuantity: 3, unit: 'spools' },
+          { name: 'Clear Dry Cleaning Bags (Roll)', sku: 'BAG-CLN-CLR', quantity: 4, minQuantity: 2, unit: 'rolls' },
+          { name: 'Standard Garment Hangers', sku: 'HNG-STD', quantity: 45, minQuantity: 20, unit: 'pcs' }
+        ];
+        defaults.forEach(async (d) => {
+          await addDoc(collection(db, 'inventory'), d);
+        });
+      } else {
+        setInventoryItems(invData);
+      }
+    });
+    return () => unsubscribeInventory();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'customers'), orderBy('totalVisits', 'desc'));
+    const unsubscribeCustomers = onSnapshot(q, (snapshot) => {
+      const custData = snapshot.docs.map(doc => ({
+        docId: doc.id,
+        ...doc.data()
+      }));
+      setCustomers(custData);
+    });
+    return () => unsubscribeCustomers();
+  }, [user]);
+
+  // Lookup customer loyalty when typing phone number
+  const handlePhoneBlur = () => {
+    if (!phone.trim()) return;
+    const cleanPhone = phone.trim();
+    const existingCust = customers.find(c => c.phone === cleanPhone);
+    if (existingCust) {
+      if (existingCust.name && !customerName) setCustomerName(existingCust.name);
+      if (existingCust.email && !customerEmail) setCustomerEmail(existingCust.email);
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
@@ -502,13 +570,17 @@ export default function App() {
       return;
     }
 
+    const cleanPhone = phone.trim();
+    const cleanName = customerName.trim() || 'Valued Customer';
+    const cleanEmail = customerEmail.trim() || '';
+
     const newOrder = {
       id: nextTagId,
       createdAt: new Date().toISOString(),
       serviceType,
-      customerName: customerName.trim() || 'Valued Customer',
-      phone,
-      customerEmail: customerEmail.trim() || '',
+      customerName: cleanName,
+      phone: cleanPhone,
+      customerEmail: cleanEmail,
       dueDate: dueDate || new Date().toISOString().split('T')[0],
       notes,
       paymentMethod,
@@ -525,6 +597,30 @@ export default function App() {
     try {
       await addDoc(collection(db, 'orders'), newOrder);
       setSelectedOrderForPrint(newOrder);
+
+      // Update / Create Customer Loyalty Record by Phone Number
+      const existingCustDoc = customers.find(c => c.phone === cleanPhone);
+      if (existingCustDoc) {
+        const newVisits = (existingCustDoc.totalVisits || 0) + 1;
+        const newSpent = (existingCustDoc.totalSpent || 0) + total;
+        const custRef = doc(db, 'customers', existingCustDoc.docId);
+        await updateDoc(custRef, {
+          name: cleanName,
+          email: cleanEmail || existingCustDoc.email || '',
+          totalVisits: newVisits,
+          totalSpent: newSpent,
+          lastVisit: new Date().toISOString().split('T')[0]
+        });
+      } else {
+        await addDoc(collection(db, 'customers'), {
+          phone: cleanPhone,
+          name: cleanName,
+          email: cleanEmail,
+          totalVisits: 1,
+          totalSpent: total,
+          lastVisit: new Date().toISOString().split('T')[0]
+        });
+      }
 
       // Send Live Email via EmailJS if customer email is provided
       if (newOrder.customerEmail) {
@@ -626,12 +722,63 @@ export default function App() {
     });
   };
 
+  const handleAddInventoryItem = async (e) => {
+    e.preventDefault();
+    const qty = Number(newItemQty);
+    if (!newItemName.trim() || isNaN(qty)) {
+      showToast('Please enter a valid item name and quantity.');
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, 'inventory'), {
+        name: newItemName.trim(),
+        sku: newItemSku.trim() || 'SKU-' + Math.floor(1000 + Math.random() * 9000),
+        quantity: qty,
+        minQuantity: Number(newItemMinQty) || 5,
+        unit: newItemUnit || 'pcs'
+      });
+      setNewItemName('');
+      setNewItemSku('');
+      setNewItemQty('');
+      showToast('Inventory item added successfully!');
+    } catch (err) {
+      console.error('Error adding inventory:', err);
+      showToast('Failed to add inventory item.');
+    }
+  };
+
+  const updateInventoryQty = async (docId, currentQty, delta) => {
+    const newQty = Math.max(0, currentQty + delta);
+    try {
+      await updateDoc(doc(db, 'inventory', docId), { quantity: newQty });
+    } catch (err) {
+      console.error('Error updating inventory qty:', err);
+    }
+  };
+
+  const deleteInventoryItem = (docId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Supply Item',
+      message: 'Are you sure you want to remove this item from your supply inventory?',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'inventory', docId));
+          showToast('Supply item deleted.');
+        } catch (err) {
+          console.error('Error deleting inventory:', err);
+        }
+        setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+      }
+    });
+  };
+
   const updateStatus = async (docId, newStatus) => {
     try {
       const orderRef = doc(db, 'orders', docId);
       await updateDoc(orderRef, { status: newStatus });
 
-      // If status is changed to Completed and customer has email, send collection notification using template_boon6r6
       const targetOrder = orders.find(o => o.docId === docId);
       if (newStatus === 'Completed' && targetOrder && targetOrder.customerEmail) {
         try {
@@ -906,9 +1053,11 @@ export default function App() {
   const t = themes[themeMode] || themes['teal-light'];
   const dateInputColorScheme = themeMode.includes('dark') ? 'dark' : 'light';
 
+  // Check matched customer loyalty when typing phone
+  const activeLoyaltyCustomer = customers.find(c => c.phone && c.phone.trim() === phone.trim());
+
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
-      {/* Universal Continuous Print Styles for Thermal Rolls */}
       <style>{`
         @media print {
           body * {
@@ -958,7 +1107,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Custom Modern Confirmation Modal (replacing native browser alerts) */}
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 text-center animate-in fade-in zoom-in duration-200">
@@ -1044,7 +1192,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Fully Responsive Header for Mobile & Desktop */}
+      {/* Header */}
       <header className={`border-b px-3 sm:px-6 py-3 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-md ${t.headerBg}`}>
         <div className="flex items-center justify-between w-full sm:w-auto">
           <div className="flex items-center gap-2.5">
@@ -1065,7 +1213,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Mobile Right Quick Controls */}
           <div className="flex items-center gap-1.5 sm:hidden">
             <button
               onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
@@ -1111,14 +1258,14 @@ export default function App() {
           <div className={`flex p-1 rounded-2xl border shadow-inner gap-1 ${t.navToggleBg}`}>
             <button 
               onClick={() => setActiveTab('intake')}
-              className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
               title={text.newTicket}
             >
               <PlusCircle className="w-4 h-4" /> <span className="hidden md:inline">{text.newTicket}</span>
             </button>
             <button 
               onClick={() => setActiveTab('orders')}
-              className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
               title={text.orders}
             >
               <Clock className="w-4 h-4" /> <span className="hidden md:inline">{text.orders}</span> <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
@@ -1127,15 +1274,32 @@ export default function App() {
             {isAdmin && (
               <>
                 <button 
+                  onClick={() => setActiveTab('inventory')}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'inventory' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  title={text.inventory}
+                >
+                  <Package className="w-4 h-4" /> <span className="hidden md:inline">{text.inventory}</span>
+                  {inventoryItems.some(i => i.quantity <= i.minQuantity) && (
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                  )}
+                </button>
+                <button 
+                  onClick={() => setActiveTab('loyalty')}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'loyalty' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  title={text.loyalty}
+                >
+                  <Award className="w-4 h-4" /> <span className="hidden md:inline">{text.loyalty}</span>
+                </button>
+                <button 
                   onClick={() => setActiveTab('analytics')}
-                  className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={text.reports}
                 >
                   <BarChart3 className="w-4 h-4" /> <span className="hidden md:inline">{text.reports}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('bookkeeping')}
-                  className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={text.bookkeeping}
                 >
                   <Wallet className="w-4 h-4" /> <span className="hidden md:inline">{text.bookkeeping}</span>
@@ -1145,7 +1309,7 @@ export default function App() {
 
             <button 
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+              className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
               title={text.settings}
             >
               <Settings className="w-4 h-4" /> <span className="hidden md:inline">{text.settings}</span>
@@ -1224,11 +1388,38 @@ export default function App() {
                         required
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
+                        onBlur={handlePhoneBlur}
                         placeholder="e.g. 087 123 4567"
                         className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
                     </div>
                   </div>
+
+                  {/* Live Loyalty Status Banner for Customer */}
+                  {phone.trim() && (
+                    <div className={`p-4 rounded-2xl border flex items-center justify-between flex-wrap gap-3 ${activeLoyaltyCustomer ? 'bg-teal-500/10 border-teal-500/30 text-teal-300' : 'bg-slate-800/40 border-slate-700 text-slate-300'}`}>
+                      <div className="flex items-center gap-2.5">
+                        <Award className="w-5 h-5 text-teal-400 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs font-bold">
+                            {activeLoyaltyCustomer 
+                              ? `Returning Customer: ${activeLoyaltyCustomer.totalVisits} previous visits!` 
+                              : 'New Customer: First visit reward tier unlocked!'}
+                          </p>
+                          <p className="text-[10px] opacity-80">
+                            {activeLoyaltyCustomer 
+                              ? `Progress to 5th Alteration Reward: ${(activeLoyaltyCustomer.totalVisits % 5)} / 5 orders` 
+                              : 'Will be registered for loyalty rewards automatically.'}
+                          </p>
+                        </div>
+                      </div>
+                      {activeLoyaltyCustomer && (activeLoyaltyCustomer.totalVisits + 1) % 5 === 0 && (
+                        <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] px-3 py-1 rounded-full font-bold flex items-center gap-1 animate-pulse">
+                          <Sparkles className="w-3.5 h-3.5" /> 5th Visit Reward Eligible!
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2 flex items-center gap-1.5">
@@ -1275,7 +1466,6 @@ export default function App() {
                         </h2>
                       </div>
 
-                      {/* Display Items Already Added to Ticket Cart */}
                       {garmentCart.length > 0 && (
                         <div className={`border rounded-2xl p-4 space-y-3 ${t.cartContainerBg}`}>
                           <h4 className="text-xs font-bold uppercase tracking-wider">{text.currentTicketItems} ({garmentCart.length}):</h4>
@@ -1304,7 +1494,6 @@ export default function App() {
                         </div>
                       )}
 
-                      {/* Garment Builder Section */}
                       <div className={`border rounded-2xl p-4 sm:p-5 space-y-4 ${t.subCardBg}`}>
                         <h3 className="text-xs font-bold uppercase tracking-wider opacity-80">Add Garment Item</h3>
                         
@@ -1442,7 +1631,7 @@ export default function App() {
                 </form>
               </div>
 
-              {/* Thermal Print Preview Container (Contains all 3 copies) */}
+              {/* Thermal Print Preview Container */}
               <div className={`border rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -1519,6 +1708,220 @@ export default function App() {
           </div>
         )}
 
+        {/* INVENTORY TAB (Low Stock Alerts & Supplies) */}
+        {activeTab === 'inventory' && isAdmin && (
+          <div className="space-y-6">
+            <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <div className="flex flex-wrap justify-between items-center gap-4">
+                <div>
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <Package className={`w-6 h-6 ${t.textAccent}`} /> Low Stock Alert & Tailoring Supplies Inventory
+                  </h2>
+                  <p className="text-xs opacity-75">Track essential threads, zippers, hangers, and cleaning bags to prevent running out mid-week.</p>
+                </div>
+              </div>
+
+              {/* Add New Inventory Item Form */}
+              <form onSubmit={handleAddInventoryItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <h3 className="text-xs font-bold uppercase tracking-wider">Add New Supply Item</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Item Name</label>
+                    <input 
+                      type="text"
+                      required
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      placeholder="e.g. Heavy Duty Thread (Navy)"
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Initial Quantity</label>
+                    <input 
+                      type="number"
+                      required
+                      value={newItemQty}
+                      onChange={(e) => setNewItemQty(e.target.value)}
+                      placeholder="10"
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Low Stock Alert Min</label>
+                    <input 
+                      type="number"
+                      required
+                      value={newItemMinQty}
+                      onChange={(e) => setNewItemMinQty(e.target.value)}
+                      placeholder="3"
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className={`font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5 ${t.primary}`}
+                >
+                  <Plus className="w-4 h-4" /> Add to Inventory
+                </button>
+              </form>
+
+              {/* Inventory Table & Low Stock Warnings */}
+              <div className="pt-2 overflow-x-auto">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-bold">Current Supplies Stock</h3>
+                  <span className="text-xs opacity-75">{inventoryItems.length} items tracked</span>
+                </div>
+                <table className="w-full text-left border-collapse text-xs min-w-[600px]">
+                  <thead>
+                    <tr className="border-b border-slate-700/50 opacity-70">
+                      <th className="py-3 px-3">Supply Item</th>
+                      <th className="py-3 px-3">SKU / Code</th>
+                      <th className="py-3 px-3">Current Qty</th>
+                      <th className="py-3 px-3">Status</th>
+                      <th className="py-3 px-3 text-right">Quick Adjust</th>
+                      <th className="py-3 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/20">
+                    {inventoryItems.map(item => {
+                      const isLow = item.quantity <= item.minQuantity;
+                      return (
+                        <tr key={item.docId} className={`hover:bg-slate-500/5 transition-colors ${isLow ? 'bg-rose-500/5' : ''}`}>
+                          <td className="py-3 px-3 font-semibold flex items-center gap-2">
+                            {isLow && <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 animate-bounce" />}
+                            {item.name}
+                          </td>
+                          <td className="py-3 px-3 font-mono opacity-80">{item.sku}</td>
+                          <td className={`py-3 px-3 font-mono font-extrabold ${isLow ? 'text-rose-400 text-sm' : ''}`}>
+                            {item.quantity} {item.unit}
+                          </td>
+                          <td className="py-3 px-3">
+                            {isLow ? (
+                              <span className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                                LOW STOCK ALERT
+                              </span>
+                            ) : (
+                              <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                                In Stock
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-right space-x-1">
+                            <button
+                              onClick={() => updateInventoryQty(item.docId, item.quantity, -1)}
+                              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold"
+                            >
+                              -
+                            </button>
+                            <button
+                              onClick={() => updateInventoryQty(item.docId, item.quantity, 1)}
+                              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold"
+                            >
+                              +
+                            </button>
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              onClick={() => deleteInventoryItem(item.docId)}
+                              className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LOYALTY TAB (Repeat Visit Tracker & 5th Alteration Reward) */}
+        {activeTab === 'loyalty' && isAdmin && (
+          <div className="space-y-6">
+            <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Award className={`w-6 h-6 ${t.textAccent}`} /> Customer Loyalty & Repeat Visit Tracker
+                </h2>
+                <p className="text-xs opacity-75">Track repeat customers by phone number and reward loyalty with the "5th Alteration Half Price" program.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
+                <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Total Registered Customers</p>
+                  <p className={`text-2xl font-extrabold ${t.textAccent}`}>{customers.length}</p>
+                </div>
+                <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Repeat Visitors (2+ Orders)</p>
+                  <p className="text-2xl font-extrabold text-teal-400">
+                    {customers.filter(c => c.totalVisits >= 2).length}
+                  </p>
+                </div>
+                <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">5th Visit Rewards Ready</p>
+                  <p className="text-2xl font-extrabold text-amber-400">
+                    {customers.filter(c => c.totalVisits > 0 && c.totalVisits % 5 === 0).length}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 overflow-x-auto">
+                <h3 className="text-sm font-bold mb-3">Customer Database & Visit History</h3>
+                <table className="w-full text-left border-collapse text-xs min-w-[650px]">
+                  <thead>
+                    <tr className="border-b border-slate-700/50 opacity-70">
+                      <th className="py-3 px-3">Customer Name</th>
+                      <th className="py-3 px-3">Phone Number</th>
+                      <th className="py-3 px-3">Email</th>
+                      <th className="py-3 px-3">Total Orders</th>
+                      <th className="py-3 px-3">Total Spent</th>
+                      <th className="py-3 px-3">Loyalty Reward Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/20">
+                    {customers.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-10 opacity-60">No customer loyalty records yet. Create tickets using customer phone numbers to begin tracking.</td>
+                      </tr>
+                    ) : (
+                      customers.map(c => {
+                        const visits = c.totalVisits || 1;
+                        const remainder = visits % 5;
+                        const isEligible = remainder === 0;
+                        return (
+                          <tr key={c.docId} className="hover:bg-slate-500/5 transition-colors">
+                            <td className="py-3 px-3 font-semibold">{c.name}</td>
+                            <td className="py-3 px-3 font-mono">{c.phone}</td>
+                            <td className="py-3 px-3 font-mono opacity-80">{c.email || '—'}</td>
+                            <td className="py-3 px-3 font-bold font-mono">{visits} visits</td>
+                            <td className="py-3 px-3 font-bold text-teal-400">€{(c.totalSpent || 0).toFixed(2)}</td>
+                            <td className="py-3 px-3">
+                              {isEligible ? (
+                                <span className="bg-amber-500/20 border border-amber-500/40 text-amber-300 px-3 py-1 rounded-full font-bold flex items-center gap-1.5 w-fit">
+                                  <Sparkles className="w-3.5 h-3.5 animate-spin" /> 5th Visit! 50% Off Reward
+                                </span>
+                              ) : (
+                                <span className="opacity-80">
+                                  {5 - remainder} orders until 5th reward
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'orders' && (
           <div className={`border rounded-3xl p-4 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
             <div className="flex flex-wrap justify-between items-center gap-4">
@@ -1547,7 +1950,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Mobile Card Layout (Visible only on small screens) */}
             <div className="block sm:hidden space-y-3">
               {filteredOrders.length === 0 ? (
                 <div className="text-center py-12 opacity-60 text-xs">No orders found.</div>
@@ -1600,7 +2002,6 @@ export default function App() {
               )}
             </div>
 
-            {/* Desktop Table Layout (Hidden on small mobile screens) */}
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
@@ -1816,7 +2217,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Custom Date Range Filter Bar */}
               <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
                 <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-teal-400" /> Custom Date Range:
@@ -1997,7 +2397,7 @@ export default function App() {
                 </table>
               </div>
 
-              {/* Visual Spending Breakdown by Category (Pie Chart / Percentage Bars) at the Bottom */}
+              {/* Spending Breakdown by Category */}
               <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <PieChart className={`w-4 h-4 ${t.textAccent}`} /> Spending Breakdown by Category (%)
