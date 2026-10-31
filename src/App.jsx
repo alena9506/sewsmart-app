@@ -1613,6 +1613,7 @@ export default function App() {
                 </div>
 
                 <form onSubmit={handleCreateOrder} className="space-y-3.5">
+                  {/* Row 1: Customer Name & Phone */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.customerName}</label>
@@ -1657,8 +1658,9 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* Row 2: Target Date, Payment Method & Email (Now properly aligned in 3 columns) */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div className="md:col-span-1">
+                    <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.targetDate}</label>
                       <input 
                         type="date" 
@@ -1668,7 +1670,7 @@ export default function App() {
                         className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       />
                     </div>
-                    <div className="md:col-span-1">
+                    <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.paymentMethod}</label>
                       <select 
                         value={paymentMethod}
@@ -1679,9 +1681,9 @@ export default function App() {
                         <option>Cash</option>
                       </select>
                     </div>
-                    <div className="md:col-span-1">
+                    <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1 flex items-center gap-1">
-                        <Mail className="w-3 h-3 text-teal-400" /> {text.emailOptional}
+                        <Mail className="w-3 h-3 text-teal-400" /> Customer Email
                       </label>
                       <input 
                         type="email" 
