@@ -293,7 +293,8 @@ export default function App() {
   const EXPENSE_CATEGORIES = [
     { key: 'Supplies & Materials', label: 'Supplies & Materials' },
     { key: 'Software, Apps & Domains', label: 'Software, Apps & Domains' },
-    { key: 'Rent & Utilities', label: 'Rent & Utilities' },
+    { key: 'Rent', label: 'Rent' },
+    { key: 'Utilities & Internet', label: 'Utilities & Internet' },
     { key: 'Equipment & Maintenance', label: 'Equipment & Maintenance' },
     { key: 'Payroll & Subcontractors', label: 'Payroll & Subcontractors' },
     { key: 'Miscellaneous', label: 'Miscellaneous' },
@@ -1851,7 +1852,7 @@ export default function App() {
                       required
                       value={expenseDescription}
                       onChange={(e) => setExpenseDescription(e.target.value)}
-                      placeholder="e.g. Internet, Electricity, Domain Renewal"
+                      placeholder="e.g. Electric Ireland, Virgin Media, Rent"
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
