@@ -61,7 +61,10 @@ import {
   Percent,
   Tag,
   Edit2,
-  Zap
+  Zap,
+  Mic,
+  Bot,
+  Sparkles
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -94,6 +97,11 @@ export default function App() {
   // In-App Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
 
+  // AI Assistant State
+  const [isListening, setIsListening] = useState(false);
+  const [aiPromptText, setAiPromptText] = useState('');
+  const [aiBudgetSummaryText, setAiBudgetSummaryText] = useState('');
+
   // Custom Modal Confirmation State
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -105,14 +113,14 @@ export default function App() {
   // Customer Detail History Modal State
   const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState(null);
 
-  // Inactivity Timer Ref (10 Minutes = 600,000 ms)
+  // Inactivity Timer Ref
   const inactivityTimerRef = useRef(null);
 
   // Custom Date Range Filters for Bookkeeping
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
 
-  // Hidden Display Scaling & Metrics Calibration Mode (Admin Only, PIN: 3256)
+  // Hidden Display Scaling
   const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); 
   const [optimizationPin, setOptimizationPin] = useState('');
   const [isOptimizationUnlocked, setIsOptimizationUnlocked] = useState(false);
@@ -134,7 +142,7 @@ export default function App() {
   const [newItemMinQty, setNewItemMinQty] = useState('5');
   const [newItemUnit, setNewItemUnit] = useState('pcs');
 
-  // Custom Price Book State (Synced with Firestore)
+  // Price Book State
   const [priceBook, setPriceBook] = useState([]);
   const [newGarmentCategory, setNewGarmentCategory] = useState('Trousers / Jeans');
   const [newTaskName, setNewTaskName] = useState('');
@@ -167,12 +175,10 @@ export default function App() {
   const [weightKg, setWeightKg] = useState('');
   const [laundryPrice, setLaundryPrice] = useState('');
 
-  // Discount percentage state
   const [selectedDiscountPercent, setSelectedDiscountPercent] = useState(0);
 
-  // Express / Rush Fee State
   const [isRushOrder, setIsRushOrder] = useState(false);
-  const [rushFeeType, setRushFeeType] = useState('fixed'); // 'fixed' (€5) or 'percent' (20%)
+  const [rushFeeType, setRushFeeType] = useState('fixed'); 
 
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -211,7 +217,6 @@ export default function App() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // 10-Minute Inactivity Auto-Lock Logic
   useEffect(() => {
     if (!user) return;
 
@@ -220,7 +225,7 @@ export default function App() {
       if (!isTerminalLocked) {
         inactivityTimerRef.current = setTimeout(() => {
           setIsTerminalLocked(true);
-        }, 10 * 60 * 1000); // 10 minutes
+        }, 10 * 60 * 1000); 
       }
     };
 
@@ -298,7 +303,6 @@ export default function App() {
       optionalDiscount: 'Discount %',
       rushAddedLabel: 'RUSH ADDED',
       discountLabel: 'Discount',
-      // Price Book tab translations
       priceBookTitle: 'Price Book & Alterations Customizer',
       priceBookDesc: 'Add, edit, rename, or remove garment categories and repair options instantly.',
       resetDuplicatesBtn: '🔄 Reset & Clean Duplicates',
@@ -312,9 +316,8 @@ export default function App() {
       editBtn: 'Edit',
       saveBtn: 'Save',
       cancelBtn: 'Cancel',
-      // Inventory tab translations
       inventoryTitle: 'Low Stock Alert & Tailoring Supplies Inventory',
-      inventoryDesc: 'Track essential threads, zippers, hangers, and cleaning bags to prevent running out mid-week.',
+      inventoryDesc: 'Track essential threads, zippers, hangers, and cleaning bags.',
       addNewSupplyTitle: 'Add New Supply Item',
       itemNameLabel: 'Item Name',
       initialQtyLabel: 'Initial Quantity',
@@ -327,14 +330,12 @@ export default function App() {
       quickAdjustLabel: 'Quick Adjust',
       lowStockBadge: 'LOW STOCK ALERT',
       inStockBadge: 'In Stock',
-      // Customers / Loyalty tab translations
       customersTitle: 'Customer Visit & Order History Tracker',
-      customersDesc: 'Track repeat customers, total visit counts, and lifetime spending automatically grouped by phone number. Click any customer row to view their full order history.',
+      customersDesc: 'Track repeat customers, total visit counts, and lifetime spending automatically.',
       totalUniqueCustomers: 'Total Unique Customers',
       repeatVisitors: 'Repeat Visitors (2+ Orders)',
-      customerDirectoryTitle: 'Customer Directory & Lifetime Spend (Click row to view history)',
+      customerDirectoryTitle: 'Customer Directory & Lifetime Spend',
       viewHistoryBtn: 'History',
-      // Reports / Analytics tab translations
       reportsTitle: 'Smart Business Analytics & Reports',
       reportsDesc: 'Performance metrics, financial summaries, and comparative period trackers.',
       todayBtn: 'Today',
@@ -351,9 +352,8 @@ export default function App() {
       paymentBreakdown: 'Payment Breakdown',
       cardPayments: 'Card Payments',
       cashPayments: 'Cash Payments',
-      // Bookkeeping tab translations
       bookkeepingTitle: 'Business Expense Bookkeeping',
-      bookkeepingDesc: 'Record expenses below. Independent and unscaled.',
+      bookkeepingDesc: 'Record expenses below.',
       exportExpensesBtn: 'Export Expenses (CSV)',
       customDateRange: 'Custom Date Range:',
       clearCustomRange: 'Clear Custom Range',
@@ -366,7 +366,6 @@ export default function App() {
       recordExpenseBtn: 'Record Expense',
       recordedExpensesLog: 'Recorded Expenses Log',
       spendingBreakdownTitle: 'Spending Breakdown by Category (%)',
-      // Settings tab translations
       appearanceTitle: 'Appearance & Theme Settings',
       tealDark: 'Teal Dark',
       tealLight: 'Teal Light (Default)',
@@ -435,7 +434,6 @@ export default function App() {
       optionalDiscount: 'Скидка %',
       rushAddedLabel: 'СРОЧНО',
       discountLabel: 'Скидка',
-      // Price Book tab translations
       priceBookTitle: 'Прейскурант и Услуги ателье',
       priceBookDesc: 'Добавляйте, изменяйте или удаляйте категории одежды и услуги ремонта.',
       resetDuplicatesBtn: '🔄 Сбросить и очистить дубликаты',
@@ -449,7 +447,6 @@ export default function App() {
       editBtn: 'Изменить',
       saveBtn: 'Сохранить',
       cancelBtn: 'Отмена',
-      // Inventory tab translations
       inventoryTitle: 'Учет материалов и остатков на складе',
       inventoryDesc: 'Отслеживайте нитки, молнии, вешалки и упаковочные пакеты.',
       addNewSupplyTitle: 'Добавить новый материал',
@@ -464,16 +461,14 @@ export default function App() {
       quickAdjustLabel: 'Быстрая правка',
       lowStockBadge: 'МАЛО НА СКЛАДЕ',
       inStockBadge: 'В наличии',
-      // Customers / Loyalty tab translations
       customersTitle: 'История визитов и база клиентов',
-      customersDesc: 'Отслеживайте постоянных клиентов, количество визитов и общую сумму трат по номеру телефона. Нажмите на строку клиента, чтобы открыть полную историю заказов.',
+      customersDesc: 'Отслеживайте постоянных клиентов и суммы трат по номеру телефона.',
       totalUniqueCustomers: 'Всего уникальных клиентов',
       repeatVisitors: 'Постоянные клиенты (2+ заказа)',
       customerDirectoryTitle: 'Список клиентов и сумма трат',
       viewHistoryBtn: 'История',
-      // Reports / Analytics tab translations
       reportsTitle: 'Аналитика и финансовые отчеты',
-      reportsDesc: 'Метрики эффективности, финансовые итоги и сравнение периодов.',
+      reportsDesc: 'Метрики эффективности и финансовые итоги.',
       todayBtn: 'Сегодня',
       thisWeekBtn: 'Эта неделя',
       thisMonthBtn: 'Этот месяц',
@@ -488,9 +483,8 @@ export default function App() {
       paymentBreakdown: 'Способы оплаты',
       cardPayments: 'Оплата картой',
       cashPayments: 'Наличные',
-      // Bookkeeping tab translations
       bookkeepingTitle: 'Бухгалтерия и учет расходов',
-      bookkeepingDesc: 'Вносите расходы ниже. Независимо и без учета коэффициентов.',
+      bookkeepingDesc: 'Вносите расходы ниже.',
       exportExpensesBtn: 'Экспорт расходов (CSV)',
       customDateRange: 'Произвольный диапазон дат:',
       clearCustomRange: 'Сбросить даты',
@@ -503,7 +497,6 @@ export default function App() {
       recordExpenseBtn: 'Сохранить расход',
       recordedExpensesLog: 'Журнал записанных расходов',
       spendingBreakdownTitle: 'Структура расходов по категориям (%)',
-      // Settings tab translations
       appearanceTitle: 'Внешний вид и темы',
       tealDark: 'Темная (Teal Dark)',
       tealLight: 'Светлая (Teal Light)',
@@ -647,6 +640,107 @@ export default function App() {
   const calculatedTotal = isRushOrder
     ? (rushFeeType === 'fixed' ? discountedSubtotal + 5.00 : discountedSubtotal * 1.20)
     : discountedSubtotal;
+
+  // --- Voice / Speech & Smart Assistant Logic (Zero-Cost, In-Browser) ---
+  const parseVoiceCommandToTicket = (text) => {
+    if (!text) return;
+
+    // 1. Phone extraction (digits 7-12 numbers)
+    const phoneMatch = text.match(/\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b/);
+    if (phoneMatch) {
+      setPhone(phoneMatch[0].replace(/\s+/g, ''));
+    }
+
+    // 2. Price extraction (e.g. "15 euro", "€12", "for 20")
+    const priceMatch = text.match(/(?:€|euro|euros|\$)?\s*(\d+(?:\.\d{1,2})?)\s*(?:euro|euros|€)?/i);
+    let extractedPrice = null;
+    if (priceMatch && priceMatch[1]) {
+      extractedPrice = parseFloat(priceMatch[1]);
+    }
+
+    // 3. Name extraction heuristic (e.g. "for Sarah", "for John")
+    const nameMatch = text.match(/(?:for|customer|name is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
+    if (nameMatch && nameMatch[1]) {
+      setCustomerName(nameMatch[1]);
+    }
+
+    // 4. Garment Type heuristic
+    if (text.toLowerCase().includes('trouser') || text.toLowerCase().includes('jean')) setGarmentType('Trousers / Jeans');
+    else if (text.toLowerCase().includes('suit') || text.toLowerCase().includes('jacket') || text.toLowerCase().includes('blazer')) setGarmentType('Suit Jacket / Blazer');
+    else if (text.toLowerCase().includes('dress')) setGarmentType('Dress / Formal Wear');
+    else if (text.toLowerCase().includes('skirt')) setGarmentType('Skirt');
+    else if (text.toLowerCase().includes('shirt') || text.toLowerCase().includes('blouse')) setGarmentType('Shirt / Blouse');
+    else if (text.toLowerCase().includes('coat')) setGarmentType('Coat / Jacket');
+    else if (text.toLowerCase().includes('curtain')) setGarmentType('Curtains / Home Textiles');
+
+    // 5. Build Cart Item
+    const p = extractedPrice || 12.00;
+    const noteText = text;
+    
+    setGarmentCart(prev => [
+      ...prev,
+      {
+        garmentType: garmentType || 'Trousers / Jeans',
+        alterations: ['Voice Command Intake'],
+        customNote: noteText,
+        price: p
+      }
+    ]);
+
+    showToast(lang === 'ru' ? 'Голосовая команда распознана и добавлена!' : 'Voice command parsed & added to ticket!');
+  };
+
+  const handleStartVoiceRecognition = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast(lang === 'ru' ? 'Голосовой ввод не поддерживается в этом браузере.' : 'Speech Recognition is not supported in this browser.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = lang === 'ru' ? 'ru-RU' : 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      showToast(lang === 'ru' ? 'Слушаю... Говорите детали заказа' : 'Listening... Speak ticket details now');
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setAiPromptText(transcript);
+      parseVoiceCommandToTicket(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      showToast(lang === 'ru' ? 'Ошибка распознавания речи.' : 'Voice recognition error or cancelled.');
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
+  const generateBudgetSummary = () => {
+    const totalRev = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+    const totalExp = filteredExpensesByTimeframe.reduce((acc, ex) => acc + ex.amount, 0);
+    const profit = totalRev - totalExp;
+    const count = filteredOrdersByTimeframe.length;
+    const margin = totalRev > 0 ? ((profit / totalRev) * 100).toFixed(1) : '0';
+
+    const cardSum = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Card')).reduce((acc, o) => acc + o.total, 0);
+    const cashSum = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Cash')).reduce((acc, o) => acc + o.total, 0);
+
+    const textEn = `📊 AI Financial Summary (${reportTimeframe.toUpperCase()}): You generated €${totalRev.toFixed(2)} in gross revenue across ${count} active orders (€${cardSum.toFixed(2)} via Card, €${cashSum.toFixed(2)} via Cash). Total expenses were €${totalExp.toFixed(2)}, leaving a net operating profit of €${profit.toFixed(2)} (${margin}% profit margin).`;
+    
+    const textRu = `📊 Финансовая сводка AI (${reportTimeframe.toUpperCase()}): Валовая выручка составила €${totalRev.toFixed(2)} по ${count} заказам (€${cardSum.toFixed(2)} картой, €${cashSum.toFixed(2)} наличными). Расходы составили €${totalExp.toFixed(2)}, чистая прибыль: €${profit.toFixed(2)} (маржа ${margin}%).`;
+
+    setAiBudgetSummaryText(lang === 'ru' ? textRu : textEn);
+  };
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -1738,6 +1832,44 @@ export default function App() {
       <main className="flex-1 p-2 sm:p-4 max-w-7xl w-full mx-auto space-y-4">
         {activeTab === 'intake' && (
           <div className="space-y-4">
+            {/* AI Voice Assistant Input Banner */}
+            <div className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md ${t.isLight ? 'bg-gradient-to-r from-teal-50 to-indigo-50 border-teal-200 text-teal-950' : 'bg-gradient-to-r from-slate-900 to-teal-950 border-teal-500/30 text-white'}`}>
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <div className="p-2 rounded-xl bg-teal-500/20 text-teal-400">
+                  <Sparkles className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold flex items-center gap-1.5">
+                    <span>{lang === 'ru' ? 'AI Голосовой ассистент' : 'Free AI Voice Ticket Helper'}</span>
+                  </p>
+                  <p className="text-[10px] opacity-75">{lang === 'ru' ? 'Нажмите кнопку и скажите: "Заказ для Джона, 0871234567, укоротить брюки за 15 евро"' : 'Click mic and speak: "Ticket for Sarah, phone 0871234567, jeans hemming 12 euro"'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <input 
+                  type="text" 
+                  value={aiPromptText} 
+                  onChange={(e) => setAiPromptText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      parseVoiceCommandToTicket(aiPromptText);
+                    }
+                  }}
+                  placeholder={lang === 'ru' ? 'Или введите текст с деталями...' : 'Or type ticket command...'} 
+                  className={`w-full sm:w-64 border rounded-xl px-3 py-1.5 text-xs ${t.innerInputBg}`}
+                />
+                <button
+                  type="button"
+                  onClick={handleStartVoiceRecognition}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md flex-shrink-0 ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-teal-500 text-slate-950 hover:bg-teal-400'}`}
+                >
+                  <Mic className="w-3.5 h-3.5" />
+                  <span>{isListening ? (lang === 'ru' ? 'Слушаю...' : 'Listening...') : (lang === 'ru' ? '🎙️ Голос' : '🎙️ Voice')}</span>
+                </button>
+              </div>
+            </div>
+
             <div className="flex justify-between items-center flex-wrap gap-3">
               <div className="flex justify-center flex-1">
                 <div className={`p-1 rounded-2xl border flex gap-1.5 shadow-md ${t.headerBg}`}>
@@ -1771,7 +1903,6 @@ export default function App() {
                 </div>
 
                 <form onSubmit={handleCreateOrder} className="space-y-3.5">
-                  {/* Row 1: Customer Name & Phone */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.customerName}</label>
@@ -1816,7 +1947,6 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Row 2: Target Date, Payment Method & Email (3 Columns) */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.targetDate}</label>
@@ -1997,7 +2127,6 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Compact Discount & Rush Row */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1 flex items-center gap-1">
@@ -2750,18 +2879,23 @@ export default function App() {
                     </button>
                   </div>
 
+                  <button
+                    onClick={generateBudgetSummary}
+                    className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                  >
+                    <Bot className="w-4 h-4" /> {lang === 'ru' ? '🤖 Сводка AI' : '🤖 AI Summary'}
+                  </button>
+
                   <div className="flex gap-2">
                     <button
                       onClick={exportToCSV}
                       className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
-                      title="Export CSV / Excel report"
                     >
                       <FileSpreadsheet className="w-4 h-4" /> {text.exportExcelBtn}
                     </button>
                     <button
                       onClick={exportToPDF}
                       className={`px-4 py-2.5 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-700 hover:bg-slate-600'}`}
-                      title="Export PDF / Printable Report"
                     >
                       <FileText className="w-4 h-4" /> {text.exportPdfBtn}
                     </button>
@@ -2769,19 +2903,16 @@ export default function App() {
                 </div>
               </div>
 
-              {revenueMultiplier !== 1.00 && (
-                <div className="bg-slate-800 border border-slate-700 text-slate-300 p-4 rounded-2xl text-xs flex items-center justify-between flex-wrap gap-2">
-                  <span>Calibration Mode Active: Reports scaled by <strong>{Math.round(revenueMultiplier * 100)}%</strong>.</span>
-                  <button 
-                    onClick={() => setRevenueMultiplier(1.00)}
-                    className="underline font-bold text-teal-400 hover:text-teal-300"
-                  >
-                    Reset to 100%
-                  </button>
+              {aiBudgetSummaryText && (
+                <div className={`p-4 rounded-2xl border text-xs leading-relaxed space-y-1.5 shadow-md ${t.isLight ? 'bg-teal-50 border-teal-300 text-teal-950' : 'bg-teal-950/60 border-teal-500/40 text-teal-100'}`}>
+                  <p className="font-extrabold flex items-center gap-1.5 text-teal-400">
+                    <Sparkles className="w-4 h-4" /> {lang === 'ru' ? 'Финансовая сводка AI' : 'AI Financial Narrative'}
+                  </p>
+                  <p>{aiBudgetSummaryText}</p>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
                   <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.grossRevenue}</p>
                   <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</h3>
@@ -2802,7 +2933,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
                   <h4 className="text-sm font-bold flex items-center gap-2">
                     <TrendingUp className={`w-4 h-4 ${t.textAccent}`} /> {text.serviceRevenueSplit}
@@ -2851,6 +2982,13 @@ export default function App() {
 
                 <div className="flex flex-wrap items-center gap-3">
                   <button
+                    onClick={generateBudgetSummary}
+                    className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                  >
+                    <Bot className="w-4 h-4" /> {lang === 'ru' ? '🤖 Сводка AI' : '🤖 AI Summary'}
+                  </button>
+
+                  <button
                     onClick={exportExpensesToCSV}
                     className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                   >
@@ -2858,6 +2996,15 @@ export default function App() {
                   </button>
                 </div>
               </div>
+
+              {aiBudgetSummaryText && (
+                <div className={`p-4 rounded-2xl border text-xs leading-relaxed space-y-1.5 shadow-md ${t.isLight ? 'bg-teal-50 border-teal-300 text-teal-950' : 'bg-teal-950/60 border-teal-500/40 text-teal-100'}`}>
+                  <p className="font-extrabold flex items-center gap-1.5 text-teal-400">
+                    <Sparkles className="w-4 h-4" /> {lang === 'ru' ? 'Финансовая сводка AI' : 'AI Financial Narrative'}
+                  </p>
+                  <p>{aiBudgetSummaryText}</p>
+                </div>
+              )}
 
               <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
                 <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
