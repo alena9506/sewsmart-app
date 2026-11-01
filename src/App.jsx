@@ -61,9 +61,7 @@ import {
   Percent,
   Tag,
   Edit2,
-  Zap,
-  ZoomIn,
-  ZoomOut
+  Zap
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -83,19 +81,9 @@ export default function App() {
     return localStorage.getItem('alico_theme_mode') || 'teal-light';
   });
 
-  // Initialize UI Zoom Scale from localStorage (default 16px base font size)
-  const [uiZoomScale, setUiZoomScale] = useState(() => {
-    const saved = localStorage.getItem('alico_ui_zoom');
-    return saved ? Number(saved) : 16;
-  });
-
   useEffect(() => {
     localStorage.setItem('alico_theme_mode', themeMode);
   }, [themeMode]);
-
-  useEffect(() => {
-    localStorage.setItem('alico_ui_zoom', uiZoomScale);
-  }, [uiZoomScale]);
 
   const [reportTimeframe, setReportTimeframe] = useState('month');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -1215,10 +1203,7 @@ export default function App() {
   const activeLoyaltyCustomer = customers.find(c => c.phone && c.phone.trim() === phone.trim());
 
   return (
-    <div 
-      style={{ fontSize: `${uiZoomScale}px` }}
-      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}
-    >
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${t.appBg} relative`}>
       <style>{`
         @media print {
           body, html {
@@ -1615,23 +1600,6 @@ export default function App() {
                     <Shirt className="w-3.5 h-3.5" /> {text.laundryTicket}
                   </button>
                 </div>
-              </div>
-
-              {/* Quick Font Size Slider for Intake Screen */}
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border shadow-sm ${t.headerBg}`}>
-                <ZoomOut className="w-3.5 h-3.5 opacity-60" />
-                <input 
-                  type="range"
-                  min="14"
-                  max="22"
-                  step="1"
-                  value={uiZoomScale}
-                  onChange={(e) => setUiZoomScale(Number(e.target.value))}
-                  className="w-28 cursor-pointer accent-teal-500"
-                  title="Adjust text size"
-                />
-                <ZoomIn className="w-3.5 h-3.5 opacity-60" />
-                <span className={`text-[11px] font-mono font-bold ${t.textAccent}`}>{uiZoomScale}px</span>
               </div>
             </div>
 
