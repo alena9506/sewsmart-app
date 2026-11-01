@@ -38,12 +38,15 @@ import {
   CreditCard,
   FileSpreadsheet,
   FileText,
+  SlidersHorizontal,
   Sliders,
   Wallet,
+  Receipt,
   Plus,
   Maximize,
   Minimize,
   Lock,
+  Unlock,
   Mail,
   X,
   CheckCircle2,
@@ -53,13 +56,12 @@ import {
   Package,
   Award,
   AlertCircle,
+  ChevronRight,
   Eye,
   Percent,
   Tag,
   Edit2,
-  Bot,
-  Sparkles,
-  Send
+  Zap
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -74,6 +76,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('intake');
   const [serviceType, setServiceType] = useState('alteration');
   
+  // Initialize theme from localStorage or default to 'teal-light'
   const [themeMode, setThemeMode] = useState(() => {
     return localStorage.getItem('alico_theme_mode') || 'teal-light';
   });
@@ -91,15 +94,7 @@ export default function App() {
   // In-App Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
 
-  // AI Virtual Assistant State & Voice Recognition
-  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [aiChatHistory, setAiChatHistory] = useState([
-    { sender: 'ai', text: "Hello! I am your AI Virtual Assistant. You can speak to me using the mic 🎙️ or type commands like: 'Create ticket for Alena, phone 0860872382, jeans hemming, 18 euros', 'Were there any orders today?', or 'What is our total revenue?'" }
-  ]);
-  const [aiChatInput, setAiChatInput] = useState('');
-  const [pendingOrderCreation, setPendingOrderCreation] = useState(null);
-
+  // Custom Modal Confirmation State
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
@@ -107,17 +102,23 @@ export default function App() {
     onConfirm: null
   });
 
+  // Customer Detail History Modal State
   const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState(null);
+
+  // Inactivity Timer Ref (10 Minutes = 600,000 ms)
   const inactivityTimerRef = useRef(null);
 
+  // Custom Date Range Filters for Bookkeeping
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
 
+  // Hidden Display Scaling & Metrics Calibration Mode (Admin Only, PIN: 3256)
   const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); 
   const [optimizationPin, setOptimizationPin] = useState('');
   const [isOptimizationUnlocked, setIsOptimizationUnlocked] = useState(false);
   const [optimizationPinError, setOptimizationPinError] = useState(false);
 
+  // Bookkeeping / Expenses State
   const [expenses, setExpenses] = useState([]);
   const [expenseDescription, setExpenseDescription] = useState('');
   const [expenseCategory, setExpenseCategory] = useState('Supplies & Materials');
@@ -125,6 +126,7 @@ export default function App() {
   const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [isRecurringMonthly, setIsRecurringMonthly] = useState(false);
 
+  // Inventory / Supplies State
   const [inventoryItems, setInventoryItems] = useState([]);
   const [newItemName, setNewItemName] = useState('');
   const [newItemSku, setNewItemSku] = useState('');
@@ -132,12 +134,14 @@ export default function App() {
   const [newItemMinQty, setNewItemMinQty] = useState('5');
   const [newItemUnit, setNewItemUnit] = useState('pcs');
 
+  // Custom Price Book State (Synced with Firestore)
   const [priceBook, setPriceBook] = useState([]);
   const [newGarmentCategory, setNewGarmentCategory] = useState('Trousers / Jeans');
   const [newTaskName, setNewTaskName] = useState('');
   const [newTaskPrice, setNewTaskPrice] = useState('');
   const [priceBookSearchTerm, setPriceBookSearchTerm] = useState('');
 
+  // Editing Price Book Item State
   const [editingPriceId, setEditingPriceId] = useState(null);
   const [editValues, setEditValues] = useState({ name: '', price: '' });
 
@@ -152,6 +156,7 @@ export default function App() {
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Credit / Debit Card');
 
+  // Multi-Garment Cart State for Alterations
   const [garmentType, setGarmentType] = useState('Trousers / Jeans');
   const [selectedAlterations, setSelectedAlterations] = useState([]);
   const [customAlteration, setCustomAlteration] = useState('');
@@ -162,10 +167,12 @@ export default function App() {
   const [weightKg, setWeightKg] = useState('');
   const [laundryPrice, setLaundryPrice] = useState('');
 
+  // Discount percentage state
   const [selectedDiscountPercent, setSelectedDiscountPercent] = useState(0);
 
+  // Express / Rush Fee State
   const [isRushOrder, setIsRushOrder] = useState(false);
-  const [rushFeeType, setRushFeeType] = useState('fixed'); 
+  const [rushFeeType, setRushFeeType] = useState('fixed'); // 'fixed' (€5) or 'percent' (20%)
 
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -204,6 +211,7 @@ export default function App() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // 10-Minute Inactivity Auto-Lock Logic
   useEffect(() => {
     if (!user) return;
 
@@ -212,7 +220,7 @@ export default function App() {
       if (!isTerminalLocked) {
         inactivityTimerRef.current = setTimeout(() => {
           setIsTerminalLocked(true);
-        }, 10 * 60 * 1000); 
+        }, 10 * 60 * 1000); // 10 minutes
       }
     };
 
@@ -289,79 +297,7 @@ export default function App() {
       noDiscount: 'No Disc',
       optionalDiscount: 'Discount %',
       rushAddedLabel: 'RUSH ADDED',
-      discountLabel: 'Discount',
-      priceBookTitle: 'Price Book & Alterations Customizer',
-      priceBookDesc: 'Add, edit, rename, or remove garment categories and repair options instantly.',
-      resetDuplicatesBtn: '🔄 Reset & Clean Duplicates',
-      addNewTaskTitle: 'Add New Repair Task or Garment',
-      garmentCategoryLabel: 'Garment Category',
-      taskNameLabel: 'Task / Fix Name',
-      priceLabel: 'Price (€)',
-      saveToPriceBookBtn: 'Save to Price Book',
-      currentPriceItems: 'Current Price Book Items',
-      searchPriceBookPlaceholder: 'Search price book...',
-      editBtn: 'Edit',
-      saveBtn: 'Save',
-      cancelBtn: 'Cancel',
-      inventoryTitle: 'Low Stock Alert & Tailoring Supplies Inventory',
-      inventoryDesc: 'Track essential threads, zippers, hangers, and cleaning bags.',
-      addNewSupplyTitle: 'Add New Supply Item',
-      itemNameLabel: 'Item Name',
-      initialQtyLabel: 'Initial Quantity',
-      lowStockMinLabel: 'Low Stock Alert Min',
-      addToInventoryBtn: 'Add to Inventory',
-      currentStockTitle: 'Current Supplies Stock',
-      skuCodeLabel: 'SKU / Code',
-      currentQtyLabel: 'Current Qty',
-      stockStatusLabel: 'Status',
-      quickAdjustLabel: 'Quick Adjust',
-      lowStockBadge: 'LOW STOCK ALERT',
-      inStockBadge: 'In Stock',
-      customersTitle: 'Customer Visit & Order History Tracker',
-      customersDesc: 'Track repeat customers, total visit counts, and lifetime spending automatically.',
-      totalUniqueCustomers: 'Total Unique Customers',
-      repeatVisitors: 'Repeat Visitors (2+ Orders)',
-      customerDirectoryTitle: 'Customer Directory & Lifetime Spend',
-      viewHistoryBtn: 'History',
-      reportsTitle: 'Smart Business Analytics & Reports',
-      reportsDesc: 'Performance metrics, financial summaries, and comparative period trackers.',
-      todayBtn: 'Today',
-      thisWeekBtn: 'This Week',
-      thisMonthBtn: 'This Month',
-      thisYearBtn: 'This Year',
-      exportExcelBtn: 'Export Excel (CSV)',
-      exportPdfBtn: 'Export PDF Report',
-      grossRevenue: 'Gross Revenue',
-      totalExpenses: 'Total Expenses',
-      netOperatingProfit: 'Net Operating Profit',
-      totalOrders: 'Total Orders',
-      serviceRevenueSplit: 'Service Revenue Split',
-      paymentBreakdown: 'Payment Breakdown',
-      cardPayments: 'Card Payments',
-      cashPayments: 'Cash Payments',
-      bookkeepingTitle: 'Business Expense Bookkeeping',
-      bookkeepingDesc: 'Record expenses below.',
-      exportExpensesBtn: 'Export Expenses (CSV)',
-      customDateRange: 'Custom Date Range:',
-      clearCustomRange: 'Clear Custom Range',
-      profitMargin: 'Profit Margin',
-      recordNewExpense: 'Record New Business Spend',
-      recurringMonthlyBill: 'Recurring Monthly Bill',
-      vendorLabel: 'Description / Vendor',
-      categoryLabel: 'Category',
-      amountLabel: 'Amount (€)',
-      recordExpenseBtn: 'Record Expense',
-      recordedExpensesLog: 'Recorded Expenses Log',
-      spendingBreakdownTitle: 'Spending Breakdown by Category (%)',
-      appearanceTitle: 'Appearance & Theme Settings',
-      tealDark: 'Teal Dark',
-      tealLight: 'Teal Light (Default)',
-      displayScalingTitle: 'Display Scaling & Metrics Calibration',
-      enterPinCalibration: 'Enter PIN to Access Calibration',
-      incorrectPin: 'Incorrect PIN. Try again.',
-      unlockBtn: 'Unlock',
-      calibrationUnlocked: 'Calibration Mode Unlocked',
-      displayScaleMultiplier: 'Display Scale Multiplier'
+      discountLabel: 'Discount'
     },
     ru: {
       subtitle: 'POS для Ателье и Прачечной (Облачная синхронизация)',
@@ -420,92 +356,20 @@ export default function App() {
       noDiscount: 'Без скидки',
       optionalDiscount: 'Скидка %',
       rushAddedLabel: 'СРОЧНО',
-      discountLabel: 'Скидка',
-      priceBookTitle: 'Прейскурант и Услуги ателье',
-      priceBookDesc: 'Добавляйте, изменяйте или удаляйте категории одежды и услуги ремонта.',
-      resetDuplicatesBtn: '🔄 Сбросить и очистить дубликаты',
-      addNewTaskTitle: 'Добавить новую услугу или вещь',
-      garmentCategoryLabel: 'Категория одежды',
-      taskNameLabel: 'Название услуги / ремонта',
-      priceLabel: 'Цена (€)',
-      saveToPriceBookBtn: 'Сохранить в прейскурант',
-      currentPriceItems: 'Текущие услуги в прейскуранте',
-      searchPriceBookPlaceholder: 'Поиск по прейскуранту...',
-      editBtn: 'Изменить',
-      saveBtn: 'Сохранить',
-      cancelBtn: 'Отмена',
-      inventoryTitle: 'Учет материалов и остатков на складе',
-      inventoryDesc: 'Отслеживайте нитки, молнии, вешалки и упаковочные пакеты.',
-      addNewSupplyTitle: 'Добавить новый материал',
-      itemNameLabel: 'Название материала',
-      initialQtyLabel: 'Начальное количество',
-      lowStockMinLabel: 'Мин. остаток для предупреждения',
-      addToInventoryBtn: 'Добавить на склад',
-      currentStockTitle: 'Текущие запасы на складе',
-      skuCodeLabel: 'Артикул / SKU',
-      currentQtyLabel: 'Текущее кол-во',
-      stockStatusLabel: 'Статус',
-      quickAdjustLabel: 'Быстрая правка',
-      lowStockBadge: 'МАЛО НА СКЛАДЕ',
-      inStockBadge: 'В наличии',
-      customersTitle: 'История визитов и база клиентов',
-      customersDesc: 'Отслеживайте постоянных клиентов и суммы трат по номеру телефона.',
-      totalUniqueCustomers: 'Всего уникальных клиентов',
-      repeatVisitors: 'Постоянные клиенты (2+ заказа)',
-      customerDirectoryTitle: 'Список клиентов и сумма трат',
-      viewHistoryBtn: 'История',
-      reportsTitle: 'Аналитика и финансовые отчеты',
-      reportsDesc: 'Метрики эффективности и финансовые итоги.',
-      todayBtn: 'Сегодня',
-      thisWeekBtn: 'Эта неделя',
-      thisMonthBtn: 'Этот месяц',
-      thisYearBtn: 'Этот год',
-      exportExcelBtn: 'Экспорт в Excel (CSV)',
-      exportPdfBtn: 'Печать PDF отчета',
-      grossRevenue: 'Валовая выручка',
-      totalExpenses: 'Всего расходов',
-      netOperatingProfit: 'Чистая прибыль',
-      totalOrders: 'Всего заказов',
-      serviceRevenueSplit: 'Выручка по типам услуг',
-      paymentBreakdown: 'Способы оплаты',
-      cardPayments: 'Оплата картой',
-      cashPayments: 'Наличные',
-      bookkeepingTitle: 'Бухгалтерия и учет расходов',
-      bookkeepingDesc: 'Вносите расходы ниже.',
-      exportExpensesBtn: 'Экспорт расходов (CSV)',
-      customDateRange: 'Произвольный диапазон дат:',
-      clearCustomRange: 'Сбросить даты',
-      profitMargin: 'Маржа прибыли',
-      recordNewExpense: 'Записать новый расход',
-      recurringMonthlyBill: 'Ежемесячный платеж',
-      vendorLabel: 'Описание / Поставщик',
-      categoryLabel: 'Категория',
-      amountLabel: 'Сумма (€)',
-      recordExpenseBtn: 'Сохранить расход',
-      recordedExpensesLog: 'Журнал записанных расходов',
-      spendingBreakdownTitle: 'Структура расходов по категориям (%)',
-      appearanceTitle: 'Внешний вид и темы',
-      tealDark: 'Темная (Teal Dark)',
-      tealLight: 'Светлая (Teal Light)',
-      displayScalingTitle: 'Калибровка масштаба дисплея и метрик',
-      enterPinCalibration: 'Введите PIN для доступа к калибровке',
-      incorrectPin: 'Неверный PIN. Попробуйте снова.',
-      unlockBtn: 'Разблокировать',
-      calibrationUnlocked: 'Режим калибровки разблокирован',
-      displayScaleMultiplier: 'Множитель масштаба дисплея'
+      discountLabel: 'Скидка'
     }
   };
 
   const text = translations[lang] || translations.en;
 
   const EXPENSE_CATEGORIES = [
-    { key: 'Supplies & Materials', label: lang === 'ru' ? 'Расходные материалы и сырье' : 'Supplies & Materials' },
-    { key: 'Software, Apps & Domains', label: lang === 'ru' ? 'ПО, приложения и домены' : 'Software, Apps & Domains' },
-    { key: 'Rent', label: lang === 'ru' ? 'Аренда помещения' : 'Rent' },
-    { key: 'Utilities & Internet', label: lang === 'ru' ? 'Коммунальные услуги и интернет' : 'Utilities & Internet' },
-    { key: 'Equipment & Maintenance', label: lang === 'ru' ? 'Оборудование и обслуживание' : 'Equipment & Maintenance' },
-    { key: 'Payroll & Subcontractors', label: lang === 'ru' ? 'Зарплата и подрядчики' : 'Payroll & Subcontractors' },
-    { key: 'Miscellaneous', label: lang === 'ru' ? 'Прочие расходы' : 'Miscellaneous' },
+    { key: 'Supplies & Materials', label: 'Supplies & Materials' },
+    { key: 'Software, Apps & Domains', label: 'Software, Apps & Domains' },
+    { key: 'Rent', label: 'Rent' },
+    { key: 'Utilities & Internet', label: 'Utilities & Internet' },
+    { key: 'Equipment & Maintenance', label: 'Equipment & Maintenance' },
+    { key: 'Payroll & Subcontractors', label: 'Payroll & Subcontractors' },
+    { key: 'Miscellaneous', label: 'Miscellaneous' },
   ];
 
   const DEFAULT_PRICE_BOOK = [
@@ -591,7 +455,7 @@ export default function App() {
   const handleAddGarmentToCart = () => {
     const priceNum = Number(itemPrice);
     if (!priceNum || priceNum <= 0) {
-      showToast(lang === 'ru' ? 'Пожалуйста, укажите цену для этой вещи.' : 'Please specify a price for this garment item.');
+      showToast('Please specify a price for this garment item.');
       return;
     }
 
@@ -607,7 +471,7 @@ export default function App() {
     setSelectedAlterations([]);
     setCustomAlteration('');
     setItemPrice('');
-    showToast(lang === 'ru' ? 'Вещь добавлена в заказ!' : 'Garment added to ticket cart!');
+    showToast('Garment added to ticket cart!');
   };
 
   const removeGarmentFromCart = (index) => {
@@ -708,8 +572,8 @@ export default function App() {
   const handleResetPriceBookDefaults = async () => {
     setConfirmModal({
       isOpen: true,
-      title: lang === 'ru' ? 'Сброс и очистка прейскуранта' : 'Reset & Clean Price Book',
-      message: lang === 'ru' ? 'Это удалит все текущие записи прейскуранта и восстановит стандартный список без дубликатов. Продолжить?' : 'This will clear all current price book entries in Firestore and re-seed clean default items without duplicates. Proceed?',
+      title: 'Reset & Clean Price Book',
+      message: 'This will clear all current price book entries in Firestore and re-seed clean default items without duplicates. Proceed?',
       onConfirm: async () => {
         try {
           const snapshot = await getDocs(collection(db, 'priceBook'));
@@ -722,10 +586,10 @@ export default function App() {
             batch.set(newDocRef, defItem);
           });
           await batch.commit();
-          showToast(lang === 'ru' ? 'Прейскурант успешно сброшен и очищен!' : 'Price book successfully reset and cleaned!');
+          showToast('Price book successfully reset and cleaned!');
         } catch (err) {
           console.error('Error resetting price book:', err);
-          showToast(lang === 'ru' ? 'Не удалось сбросить прейскурант.' : 'Failed to reset price book.');
+          showToast('Failed to reset price book.');
         }
         setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
       }
@@ -739,7 +603,7 @@ export default function App() {
     const priceNum = Number(newTaskPrice);
 
     if (!name || isNaN(priceNum) || priceNum <= 0) {
-      showToast(lang === 'ru' ? 'Введите корректное название услуги и цену.' : 'Please enter a valid task name and price.');
+      showToast('Please enter a valid task name and price.');
       return;
     }
 
@@ -751,17 +615,17 @@ export default function App() {
       });
       setNewTaskName('');
       setNewTaskPrice('');
-      showToast(lang === 'ru' ? 'Новая услуга успешно добавлена!' : 'New price item added successfully!');
+      showToast('New price item added successfully!');
     } catch (err) {
       console.error('Error adding price item:', err);
-      showToast(lang === 'ru' ? 'Не удалось добавить услугу.' : 'Failed to add price item.');
+      showToast('Failed to add price item.');
     }
   };
 
   const handleUpdatePriceItem = async (docId) => {
     const priceNum = Number(editValues.price);
     if (!editValues.name.trim() || isNaN(priceNum) || priceNum <= 0) {
-      showToast(lang === 'ru' ? 'Введите корректное имя и цену.' : 'Please enter a valid name and price.');
+      showToast('Please enter a valid name and price.');
       return;
     }
 
@@ -771,22 +635,22 @@ export default function App() {
         price: priceNum
       });
       setEditingPriceId(null);
-      showToast(lang === 'ru' ? 'Услуга успешно обновлена!' : 'Price item updated successfully!');
+      showToast('Price item updated successfully!');
     } catch (err) {
       console.error('Error updating price item:', err);
-      showToast(lang === 'ru' ? 'Не удалось обновить услугу.' : 'Failed to update price item.');
+      showToast('Failed to update price item. Check Firestore rules.');
     }
   };
 
   const deletePriceItem = (docId) => {
     setConfirmModal({
       isOpen: true,
-      title: lang === 'ru' ? 'Удалить услугу' : 'Delete Price Item',
-      message: lang === 'ru' ? 'Вы уверены, что хотите удалить эту услугу из прейскуранта?' : 'Are you sure you want to remove this repair/alteration service from your price book?',
+      title: 'Delete Price Item',
+      message: 'Are you sure you want to remove this repair/alteration service from your price book?',
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, 'priceBook', docId));
-          showToast(lang === 'ru' ? 'Услуга удалена.' : 'Price item deleted.');
+          showToast('Price item deleted.');
         } catch (err) {
           console.error('Error deleting price item:', err);
         }
@@ -802,7 +666,7 @@ export default function App() {
     if (!loyaltyCustomersMap[p]) {
       loyaltyCustomersMap[p] = {
         phone: p,
-        name: o.customerName || (lang === 'ru' ? 'Обычный клиент' : 'Valued Customer'),
+        name: o.customerName || 'Valued Customer',
         email: o.customerEmail || '',
         totalVisits: 0,
         totalSpent: 0,
@@ -838,7 +702,7 @@ export default function App() {
     try {
       await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
     } catch (error) {
-      setLoginError(lang === 'ru' ? 'Неверный email или пароль. Попробуйте снова.' : 'Invalid email or password. Please try again.');
+      setLoginError('Invalid email or password. Please try again.');
     }
   };
 
@@ -854,23 +718,23 @@ export default function App() {
   const handleCreateOrder = async (e) => {
     e.preventDefault();
     if (!phone) {
-      showToast(lang === 'ru' ? 'Пожалуйста, введите номер телефона клиента.' : 'Please enter a customer phone number.');
+      showToast('Please enter a customer phone number.');
       return;
     }
 
     if (serviceType === 'alteration' && garmentCart.length === 0) {
-      showToast(lang === 'ru' ? 'Добавьте хотя бы одну вещь в заказ.' : 'Please add at least one garment item to the ticket.');
+      showToast('Please add at least one garment item to the ticket.');
       return;
     }
 
     const total = calculatedTotal;
     if (!total || total <= 0) {
-      showToast(lang === 'ru' ? 'Укажите корректную общую стоимость.' : 'Please specify a valid total price.');
+      showToast('Please specify a valid total price.');
       return;
     }
 
     const cleanPhone = phone.trim();
-    const cleanName = customerName.trim() || (lang === 'ru' ? 'Обычный клиент' : 'Valued Customer');
+    const cleanName = customerName.trim() || 'Valued Customer';
     const cleanEmail = customerEmail.trim() || '';
 
     const newOrder = {
@@ -938,12 +802,12 @@ export default function App() {
       setRushFeeType('fixed');
       
       const successMsg = newOrder.customerEmail 
-        ? (lang === 'ru' ? 'Заказ создан и цифровая квитанция отправлена на email!' : 'Ticket created & digital receipt emailed successfully!') 
-        : (lang === 'ru' ? 'Заказ создан и синхронизирован с облаком!' : 'Ticket created and synced to cloud database!');
+        ? 'Ticket created & digital receipt emailed successfully!' 
+        : 'Ticket created and synced to cloud database!';
       showToast(successMsg);
     } catch (error) {
       console.error('Error adding order: ', error);
-      showToast(lang === 'ru' ? 'Не удалось сохранить заказ в облаке.' : 'Failed to save order to cloud.');
+      showToast('Failed to save order to cloud.');
     }
   };
 
@@ -951,13 +815,13 @@ export default function App() {
     e.preventDefault();
     const amountNum = Number(expenseAmount);
     if (!amountNum || amountNum <= 0) {
-      showToast(lang === 'ru' ? 'Введите корректную сумму расхода.' : 'Please enter a valid expense amount.');
+      showToast('Please enter a valid expense amount.');
       return;
     }
 
-    const descText = expenseDescription.trim() || (lang === 'ru' ? 'Общий бизнес-расход' : 'General Business Expense');
+    const descText = expenseDescription.trim() || 'General Business Expense';
     const finalDescription = isRecurringMonthly 
-      ? `${descText} (${lang === 'ru' ? 'Ежемесячно' : 'Monthly Recurring'})` 
+      ? `${descText} (Monthly Recurring)` 
       : descText;
 
     const newExpense = {
@@ -974,10 +838,10 @@ export default function App() {
       setExpenseDescription('');
       setExpenseAmount('');
       setIsRecurringMonthly(false);
-      showToast(lang === 'ru' ? 'Расход успешно записан!' : 'Expense recorded successfully!');
+      showToast('Expense recorded successfully!');
     } catch (error) {
       console.error('Error adding expense: ', error);
-      showToast(lang === 'ru' ? 'Не удалось сохранить расход.' : 'Failed to save expense to cloud.');
+      showToast('Failed to save expense to cloud.');
     }
   };
 
@@ -985,15 +849,15 @@ export default function App() {
     if (!isAdmin) return;
     setConfirmModal({
       isOpen: true,
-      title: lang === 'ru' ? 'Удалить расход' : 'Delete Expense Record',
-      message: lang === 'ru' ? 'Вы уверены, что хотите удалить эту запись расхода?' : 'Are you sure you want to delete this expense record? This action cannot be undone.',
+      title: 'Delete Expense Record',
+      message: 'Are you sure you want to delete this expense record? This action cannot be undone.',
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, 'expenses', docId));
-          showToast(lang === 'ru' ? 'Расход успешно удален.' : 'Expense successfully deleted.');
+          showToast('Expense successfully deleted.');
         } catch (error) {
           console.error('Error deleting expense:', error);
-          showToast(lang === 'ru' ? 'Не удалось удалить расход.' : 'Failed to delete expense.');
+          showToast('Failed to delete expense.');
         }
         setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
       }
@@ -1004,7 +868,7 @@ export default function App() {
     e.preventDefault();
     const qty = Number(newItemQty);
     if (!newItemName.trim() || isNaN(qty)) {
-      showToast(lang === 'ru' ? 'Введите название и количество материала.' : 'Please enter a valid item name and quantity.');
+      showToast('Please enter a valid item name and quantity.');
       return;
     }
 
@@ -1019,10 +883,10 @@ export default function App() {
       setNewItemName('');
       setNewItemSku('');
       setNewItemQty('');
-      showToast(lang === 'ru' ? 'Материал успешно добавлен на склад!' : 'Inventory item added successfully!');
+      showToast('Inventory item added successfully!');
     } catch (err) {
       console.error('Error adding inventory:', err);
-      showToast(lang === 'ru' ? 'Не удалось добавить материал.' : 'Failed to add inventory item.');
+      showToast('Failed to add inventory item.');
     }
   };
 
@@ -1038,12 +902,12 @@ export default function App() {
   const deleteInventoryItem = (docId) => {
     setConfirmModal({
       isOpen: true,
-      title: lang === 'ru' ? 'Удалить материал' : 'Delete Supply Item',
-      message: lang === 'ru' ? 'Вы уверены, что хотите удалить этот материал со склада?' : 'Are you sure you want to remove this item from your supply inventory?',
+      title: 'Delete Supply Item',
+      message: 'Are you sure you want to remove this item from your supply inventory?',
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, 'inventory', docId));
-          showToast(lang === 'ru' ? 'Материал удален.' : 'Supply item deleted.');
+          showToast('Supply item deleted.');
         } catch (err) {
           console.error('Error deleting inventory:', err);
         }
@@ -1074,7 +938,7 @@ export default function App() {
             templateParams,
             '50tnv-rcE0P4zclZ9'
           );
-          showToast(lang === 'ru' ? `Уведомление о готовности отправлено на ${targetOrder.customerEmail}!` : `Ready-for-collection notification emailed to ${targetOrder.customerEmail}!`);
+          showToast(`Ready-for-collection notification emailed to ${targetOrder.customerEmail}!`);
         } catch (emailErr) {
           console.error('Failed to send completion email via EmailJS:', emailErr);
         }
@@ -1086,160 +950,24 @@ export default function App() {
 
   const deleteOrder = (docId) => {
     if (!isAdmin) {
-      showToast(lang === 'ru' ? 'Доступ запрещен. Только администратор может удалять заказы.' : 'Permission denied. Only Admin can delete orders.');
+      showToast('Permission denied. Only Admin can delete orders.');
       return;
     }
     setConfirmModal({
       isOpen: true,
-      title: lang === 'ru' ? 'Удалить заказ' : 'Delete Order Ticket',
-      message: lang === 'ru' ? 'Вы уверены, что хотите удалить этот заказ? Это действие необратимо.' : 'Are you sure you want to delete this order ticket? This action cannot be undone.',
+      title: 'Delete Order Ticket',
+      message: 'Are you sure you want to delete this order ticket? This action cannot be undone.',
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, 'orders', docId));
-          showToast(lang === 'ru' ? 'Заказ успешно удален.' : 'Order successfully deleted.');
+          showToast('Order successfully deleted.');
         } catch (error) {
           console.error('Error deleting order: ', error);
-          showToast(lang === 'ru' ? 'Не удалось удалить заказ.' : 'Failed to delete order.');
+          showToast('Failed to delete order.');
         }
         setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
       }
     });
-  };
-
-  // Real-Time Voice Speech Recognition Handler
-  const startVoiceListening = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      showToast(lang === 'ru' ? 'Ваш браузер не поддерживает голосовой ввод.' : 'Speech recognition is not supported in this browser. Try Google Chrome.');
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = lang === 'ru' ? 'ru-RU' : 'en-IE';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
-
-    recognition.onresult = (event) => {
-      const speechText = event.results[0][0].transcript;
-      setAiChatInput(speechText);
-      handleAiQuery(speechText);
-    };
-
-    recognition.start();
-  };
-
-  // Smart Human-Like AI Assistant Intent Parser & Action Engine
-  const handleAiQuery = async (queryText) => {
-    const q = queryText.toLowerCase();
-    let reply = "";
-
-    const todayStr = new Date().toISOString().split('T')[0];
-    const todayOrders = orders.filter(o => o.createdAt?.startsWith(todayStr));
-    const totalRev = orders.reduce((sum, o) => sum + (o.total || 0), 0) * revenueMultiplier;
-    const pendingOrders = orders.filter(o => o.status === 'Pending' || o.status === 'In Progress');
-
-    // 1. Handle confirmation flow when an order preview is pending approval
-    if (pendingOrderCreation) {
-      if (q.includes('yes') || q.includes('sure') || q.includes('do it') || q.includes('ok') || q.includes('save') || q.includes('да') || q.includes('сохрани')) {
-        try {
-          await addDoc(collection(db, 'orders'), pendingOrderCreation);
-          reply = `✅ Success! Created ticket #${pendingOrderCreation.id} for ${pendingOrderCreation.customerName} (€${pendingOrderCreation.total.toFixed(2)}) and saved it directly to your live database!`;
-          setPendingOrderCreation(null);
-        } catch (err) {
-          reply = `❌ Failed to save order to database: ${err.message}`;
-          setPendingOrderCreation(null);
-        }
-        setAiChatHistory(prev => [...prev, { sender: 'user', text: queryText }, { sender: 'ai', text: reply }]);
-        return;
-      } else if (q.includes('no') || q.includes('cancel') || q.includes('stop') || q.includes('нет')) {
-        reply = `Order creation cancelled. What else can I help you with?`;
-        setPendingOrderCreation(null);
-        setAiChatHistory(prev => [...prev, { sender: 'user', text: queryText }, { sender: 'ai', text: reply }]);
-        return;
-      } else {
-        // If user gave a brand new command instead of yes/no, clear pending order and process as new intent
-        setPendingOrderCreation(null);
-      }
-    }
-
-    // 2. Intelligent Natural Language Processing for Orders & Database Queries
-    if (q.includes('create') || q.includes('new ticket') || q.includes('add order') || q.includes('ticket for') || q.includes('name') || q.includes('создай') || q.includes('заказ')) {
-      
-      // Extract phone number using regex
-      const phoneMatch = queryText.match(/(\+?\d[\d\s-]{7,}\d)/);
-      const extractedPhone = phoneMatch ? phoneMatch[0].replace(/\s+/g, '') : '0879998888';
-      
-      // Extract price
-      const priceMatch = queryText.match(/€?(\d+(\.\d{1,2})?)/);
-      const extractedPrice = priceMatch && Number(priceMatch[1]) > 0 ? Number(priceMatch[1]) : 18.00;
-
-      // Extract Name intelligently
-      let extractedName = 'Walk-in Customer';
-      if (q.includes('name ')) {
-        const parts = queryText.split('name ');
-        if (parts[1]) extractedName = parts[1].split('phone')[0].split('€')[0].trim();
-      } else if (q.includes('for ')) {
-        const parts = queryText.split('for ');
-        if (parts[1]) extractedName = parts[1].split('phone')[0].split('€')[0].trim();
-      }
-
-      const newTag = Math.floor(7000 + Math.random() * 900).toString();
-      const newOrderPayload = {
-        id: newTag,
-        createdAt: new Date().toISOString(),
-        serviceType: 'alteration',
-        customerName: extractedName,
-        phone: extractedPhone,
-        customerEmail: '',
-        dueDate: new Date(Date.now() + 3*24*60*60*1000).toISOString().split('T')[0],
-        notes: queryText,
-        paymentMethod: 'Credit / Debit Card',
-        total: extractedPrice,
-        status: 'Pending',
-        isRush: q.includes('rush') || q.includes('urgent') || q.includes('срочно'),
-        details: {
-          items: [{
-            garmentType: q.includes('curtain') ? 'Curtains / Home Textiles' : (q.includes('dress') ? 'Dress / Formal Wear' : 'Trousers / Jeans'),
-            alterations: [queryText],
-            customNote: queryText,
-            price: extractedPrice
-          }]
-        }
-      };
-
-      setPendingOrderCreation(newOrderPayload);
-      reply = `I have parsed your request:\n• Tag: #${newTag}\n• Customer: ${extractedName} (${extractedPhone})\n• Details: "${queryText}"\n• Total: €${extractedPrice.toFixed(2)}\n\nShall I save this to your live database now? (Say **Yes** or **No**, or click the mic 🎙️ to reply)`;
-    } 
-    else if (q.includes('today') || q.includes('сегодня')) {
-      reply = `You have ${todayOrders.length} order(s) placed today. Total value: €${todayOrders.reduce((s, o) => s + (o.total || 0), 0).toFixed(2)}.`;
-    } 
-    else if (q.includes('revenue') || q.includes('sales') || q.includes('money') || q.includes('выручка') || q.includes('доход')) {
-      reply = `Total accumulated revenue across all ${orders.length} recorded orders is €${totalRev.toFixed(2)}.`;
-    } 
-    else if (q.includes('pending') || q.includes('progress') || q.includes('active') || q.includes('в работе')) {
-      reply = `There are currently ${pendingOrders.length} active/pending orders in your workshop queue.`;
-    } 
-    else if (q.includes('customer') || q.includes('search') || q.includes('клиент')) {
-      const match = orders.find(o => (o.customerName && q.includes(o.customerName.toLowerCase())) || q.includes(o.phone));
-      if (match) {
-        reply = `Found order #${match.id} for ${match.customerName} (${match.phone}) - Status: ${match.status}, Total: €${match.total.toFixed(2)}.`;
-      } else {
-        reply = `I searched your live database of ${orders.length} orders but couldn't find a matching customer name or phone number.`;
-      }
-    } 
-    else {
-      reply = `I am your virtual assistant connected to your live database. You can talk to me using the microphone or type commands like:\n• "Create ticket for Alena, phone 0860872382, jeans hemming, 18 euros"\n• "Were there any orders today?"\n• "What is our total revenue?"`;
-    }
-
-    setAiChatHistory(prev => [
-      ...prev,
-      { sender: 'user', text: queryText },
-      { sender: 'ai', text: reply }
-    ]);
   };
 
   const now = new Date();
@@ -1352,7 +1080,7 @@ export default function App() {
   };
 
   const filteredOrders = orders.filter(o => {
-    const matchesSearch = (o.phone && o.phone.includes(searchTerm)) || (o.customerEmail && o.customerEmail.toLowerCase().includes(searchTerm.toLowerCase())) || (o.id && o.id.toLowerCase().includes(searchTerm.toLowerCase())) || (o.customerName && o.customerName.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = o.phone.includes(searchTerm) || (o.customerEmail && o.customerEmail.toLowerCase().includes(searchTerm.toLowerCase())) || o.id.toLowerCase().includes(searchTerm.toLowerCase()) || o.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' || o.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -1518,96 +1246,6 @@ export default function App() {
         }
       `}</style>
 
-      {/* Floating AI Virtual Assistant Widget with Voice Support */}
-      <div className="fixed bottom-6 right-6 z-50">
-        {!isAiChatOpen ? (
-          <button
-            onClick={() => setIsAiChatOpen(true)}
-            className="bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-2xl flex items-center justify-center transition-all transform hover:scale-105"
-            title="Open AI Virtual Assistant"
-          >
-            <Bot className="w-6 h-6 animate-pulse" />
-          </button>
-        ) : (
-          <div className="w-80 sm:w-96 bg-slate-900 border border-teal-500/40 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-white animate-in slide-in-from-bottom-5 duration-200">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-teal-900 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-teal-500/20 text-teal-400">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold">{lang === 'ru' ? 'Виртуальный ассистент' : 'AI Virtual Assistant'}</h3>
-                  <p className="text-[9px] text-teal-400 font-medium">Voice & Live Firestore Connected</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsAiChatOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Messages Area */}
-            <div className="p-3.5 space-y-3 h-64 overflow-y-auto text-xs bg-slate-950/50">
-              {aiChatHistory.map((msg, index) => (
-                <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-2.5 rounded-2xl whitespace-pre-wrap ${msg.sender === 'user' ? 'bg-teal-500 text-slate-950 font-medium rounded-br-none' : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'}`}>
-                    <p>{msg.text}</p>
-                  </div>
-                </div>
-              ))}
-              {isListening && (
-                <div className="flex justify-start">
-                  <div className="bg-teal-500/20 border border-teal-500/40 text-teal-300 p-2.5 rounded-2xl text-[11px] animate-pulse flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
-                    {lang === 'ru' ? 'Слушаю ваш голос...' : 'Listening to your voice... Speak now.'}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Input Controls & Voice Mic Button */}
-            <div className="p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={startVoiceListening}
-                className={`p-2.5 rounded-xl transition-all ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-slate-800 hover:bg-slate-700 text-teal-400 border border-slate-700'}`}
-                title="Click to speak voice command"
-              >
-                🎙️
-              </button>
-              <input 
-                type="text"
-                value={aiChatInput}
-                onChange={(e) => setAiChatInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && aiChatInput.trim()) {
-                    handleAiQuery(aiChatInput);
-                    setAiChatInput('');
-                  }
-                }}
-                placeholder={lang === 'ru' ? 'Скажите или напишите заказ...' : 'Speak or type e.g. Create ticket for...'}
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  if (aiChatInput.trim()) {
-                    handleAiQuery(aiChatInput);
-                    setAiChatInput('');
-                  }
-                }}
-                className="p-2.5 rounded-xl bg-teal-500 text-slate-950 hover:bg-teal-400 font-bold transition-all"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Customer Order History Detail Modal */}
       {selectedCustomerForHistory && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -1629,17 +1267,17 @@ export default function App() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-slate-800/60 border border-slate-700 p-4 rounded-2xl">
-                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">{lang === 'ru' ? 'Всего заказов' : 'Total Orders'}</p>
-                <p className="text-xl font-black text-teal-400 mt-1">{selectedCustomerForHistory.totalVisits} {lang === 'ru' ? 'визитов' : 'visits'}</p>
+                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Total Orders</p>
+                <p className="text-xl font-black text-teal-400 mt-1">{selectedCustomerForHistory.totalVisits} visits</p>
               </div>
               <div className="bg-slate-800/60 border border-slate-700 p-4 rounded-2xl">
-                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">{lang === 'ru' ? 'Сумма трат' : 'Lifetime Spend'}</p>
+                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Lifetime Spend</p>
                 <p className="text-xl font-black text-emerald-400 mt-1">€{selectedCustomerForHistory.totalSpent.toFixed(2)}</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">{lang === 'ru' ? 'Полная история заказов' : 'Complete Order History'} ({selectedCustomerForHistory.customerOrders.length})</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">Complete Order History ({selectedCustomerForHistory.customerOrders.length})</h4>
               <div className="space-y-3">
                 {selectedCustomerForHistory.customerOrders.map((ord, idx) => (
                   <div key={idx} className="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-2">
@@ -1649,32 +1287,32 @@ export default function App() {
                     </div>
 
                     <div className="text-xs space-y-1 text-slate-300">
-                      <p><strong>{lang === 'ru' ? 'Дата:' : 'Date:'}</strong> {ord.dueDate || ord.createdAt?.split('T')[0]}</p>
-                      <p><strong>{lang === 'ru' ? 'Услуга:' : 'Service:'}</strong> <span className="uppercase font-semibold">{ord.serviceType}</span></p>
+                      <p><strong>Date:</strong> {ord.dueDate || ord.createdAt?.split('T')[0]}</p>
+                      <p><strong>Service:</strong> <span className="uppercase font-semibold">{ord.serviceType}</span></p>
                       {ord.isRush && (
-                        <p className="text-amber-400 font-bold">⚡ {lang === 'ru' ? 'СРОЧНО' : 'RUSH ORDER'} ({ord.rushType === 'fixed' ? '+€5.00' : '+20%'})</p>
+                        <p className="text-amber-400 font-bold">⚡ RUSH ORDER ({ord.rushType === 'fixed' ? '+€5.00' : '+20%'})</p>
                       )}
                       {ord.serviceType === 'alteration' ? (
                         <div className="pt-1 space-y-1">
-                          <p className="text-[11px] font-bold text-slate-400">{lang === 'ru' ? 'Вещи:' : 'Garment Items:'}</p>
+                          <p className="text-[11px] font-bold text-slate-400">Garment Items:</p>
                           {ord.details?.items?.map((item, i) => (
                             <div key={i} className="pl-3 border-l border-teal-500/40 text-[11px]">
                               <p className="font-semibold text-white">• {item.garmentType} (€{item.price.toFixed(2)})</p>
-                              {item.alterations?.length > 0 && <p className="text-slate-400">{lang === 'ru' ? 'Услуги:' : 'Tasks:'} {item.alterations.join(', ')}</p>}
+                              {item.alterations?.length > 0 && <p className="text-slate-400">Tasks: {item.alterations.join(', ')}</p>}
                               {item.customNote && <p className="text-slate-400 italic">Note: {item.customNote}</p>}
                             </div>
                           ))}
                         </div>
                       ) : (
                         <div className="text-[11px]">
-                          <p><strong>{lang === 'ru' ? 'Услуга прачечной:' : 'Laundry Service:'}</strong> {ord.details?.laundryService}</p>
-                          {ord.details?.weightKg && <p><strong>{lang === 'ru' ? 'Вес/Кол-во:' : 'Weight/Qty:'}</strong> {ord.details?.weightKg}</p>}
+                          <p><strong>Laundry Service:</strong> {ord.details?.laundryService}</p>
+                          {ord.details?.weightKg && <p><strong>Weight/Qty:</strong> {ord.details?.weightKg}</p>}
                         </div>
                       )}
                     </div>
 
                     <div className="flex justify-between items-center pt-2 border-t border-slate-800 text-xs">
-                      <span className="text-slate-400">{lang === 'ru' ? 'Оплата:' : 'Paid via'} {ord.paymentMethod}</span>
+                      <span className="text-slate-400">Paid via {ord.paymentMethod}</span>
                       <span className="font-bold text-emerald-400 text-sm">€{ord.total.toFixed(2)}</span>
                     </div>
                   </div>
@@ -1686,14 +1324,14 @@ export default function App() {
               onClick={() => setSelectedCustomerForHistory(null)}
               className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg"
             >
-              {lang === 'ru' ? 'Закрыть историю' : 'Close History'}
+              Close History
             </button>
           </div>
         </div>
       )}
 
       {toastMessage && (
-        <div className="fixed bottom-24 right-6 z-50 bg-slate-900 border border-teal-500/40 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 border border-teal-500/40 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
           <CheckCircle2 className="w-6 h-6 text-teal-400 flex-shrink-0" />
           <p className="text-xs font-semibold">{toastMessage}</p>
           <button 
@@ -1720,13 +1358,13 @@ export default function App() {
                 onClick={() => setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null })}
                 className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-all border border-slate-700"
               >
-                {lang === 'ru' ? 'Отмена' : 'Cancel'}
+                Cancel
               </button>
               <button
                 onClick={confirmModal.onConfirm}
                 className="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-lg shadow-rose-600/25"
               >
-                {lang === 'ru' ? 'Удалить' : 'Confirm Delete'}
+                Confirm Delete
               </button>
             </div>
           </div>
@@ -1740,13 +1378,13 @@ export default function App() {
               <Lock className="w-8 h-8 animate-pulse" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">{lang === 'ru' ? 'Терминал заблокирован' : 'Terminal Locked'}</h2>
-              <p className="text-xs text-slate-400 mt-1">{lang === 'ru' ? 'Введите PIN (1234) для продолжения.' : 'Enter PIN (1234) to resume operation.'}</p>
+              <h2 className="text-xl font-bold text-white">Terminal Locked</h2>
+              <p className="text-xs text-slate-400 mt-1">Enter PIN (1234) to resume operation.</p>
             </div>
 
             {unlockPinError && (
               <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 p-3 rounded-xl text-xs font-medium">
-                {lang === 'ru' ? 'Неверный PIN. Попробуйте снова.' : 'Incorrect PIN. Please try again.'}
+                Incorrect PIN. Please try again.
               </div>
             )}
 
@@ -1783,7 +1421,7 @@ export default function App() {
                 }}
                 className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-sm transition-all shadow-lg shadow-teal-500/20"
               >
-                {lang === 'ru' ? 'Разблокировать' : 'Unlock Terminal'}
+                Unlock Terminal
               </button>
             </div>
           </div>
@@ -1842,7 +1480,7 @@ export default function App() {
             title="Lock Terminal"
           >
             <Lock className="w-3.5 h-3.5" />
-            <span className="hidden xl:inline">{lang === 'ru' ? 'Блок' : 'Lock'}</span>
+            <span className="hidden xl:inline">Lock</span>
           </button>
 
           <button
@@ -1977,6 +1615,7 @@ export default function App() {
                 </div>
 
                 <form onSubmit={handleCreateOrder} className="space-y-3.5">
+                  {/* Row 1: Customer Name & Phone */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.customerName}</label>
@@ -2013,14 +1652,15 @@ export default function App() {
                         <div>
                           <p className="font-bold text-[11px]">
                             {activeLoyaltyCustomer 
-                              ? (lang === 'ru' ? `Постоянный клиент: ${activeLoyaltyCustomer.totalVisits} визитов.` : `Returning Customer: ${activeLoyaltyCustomer.totalVisits} previous visits.`) 
-                              : (lang === 'ru' ? 'Новый клиент: первый визит.' : 'New Customer: First visit tracked.')}
+                              ? `Returning Customer: ${activeLoyaltyCustomer.totalVisits} previous visits.` 
+                              : 'New Customer: First visit tracked.'}
                           </p>
                         </div>
                       </div>
                     </div>
                   )}
 
+                  {/* Row 2: Target Date, Payment Method & Email (3 Columns) */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.targetDate}</label>
@@ -2039,13 +1679,13 @@ export default function App() {
                         onChange={(e) => setPaymentMethod(e.target.value)}
                         className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                       >
-                        <option>{lang === 'ru' ? 'Банковская карта' : 'Credit / Debit Card'}</option>
-                        <option>{lang === 'ru' ? 'Наличные' : 'Cash'}</option>
+                        <option>Credit / Debit Card</option>
+                        <option>Cash</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1 flex items-center gap-1">
-                        <Mail className="w-3 h-3 text-teal-400" /> {lang === 'ru' ? 'Email клиента' : 'Customer Email'}
+                        <Mail className="w-3 h-3 text-teal-400" /> Customer Email
                       </label>
                       <input 
                         type="email" 
@@ -2109,7 +1749,7 @@ export default function App() {
                             </select>
                           </div>
                           <div>
-                            <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{lang === 'ru' ? 'Цена вещи (€) *' : 'Item Price (€) *'}</label>
+                            <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">Item Price (€) *</label>
                             <div className="flex gap-2">
                               <input 
                                 type="number" 
@@ -2136,7 +1776,7 @@ export default function App() {
                           </label>
                           <div className="flex flex-wrap gap-1.5">
                             {currentGarmentOptions.length === 0 ? (
-                              <p className="text-[11px] opacity-60">{lang === 'ru' ? 'Для этой категории пока нет услуг.' : 'No custom repair tasks added for this category yet.'}</p>
+                              <p className="text-[11px] opacity-60">No custom repair tasks added for this category yet.</p>
                             ) : (
                               currentGarmentOptions.map((alt) => {
                                 const altName = alt.nameEn;
@@ -2162,7 +1802,7 @@ export default function App() {
                             type="text"
                             value={customAlteration}
                             onChange={(e) => setCustomAlteration(e.target.value)}
-                            placeholder={lang === 'ru' ? 'Примечания (напр. Укоротить на 5 см)' : 'Custom Notes (e.g. Take up by 2 inches)'}
+                            placeholder="Custom Notes (e.g. Take up by 2 inches)"
                             className={`w-full border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                           />
                         </div>
@@ -2181,10 +1821,10 @@ export default function App() {
                             onChange={(e) => setLaundryService(e.target.value)}
                             className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                           >
-                            <option>{lang === 'ru' ? 'Стирка, сушка и складывание (за кг)' : 'Wash, Dry & Fold (Per Kg)'}</option>
-                            <option>{lang === 'ru' ? 'Химчистка' : 'Dry Cleaning'}</option>
-                            <option>{lang === 'ru' ? 'Пледы / Тяжелое белье' : 'Duvet / Heavy Bedding'}</option>
-                            <option>{lang === 'ru' ? 'Только глажка' : 'Ironing Only'}</option>
+                            <option>Wash, Dry & Fold (Per Kg)</option>
+                            <option>Dry Cleaning</option>
+                            <option>Duvet / Heavy Bedding</option>
+                            <option>Ironing Only</option>
                           </select>
                         </div>
                         <div>
@@ -2193,7 +1833,7 @@ export default function App() {
                             type="text"
                             value={weightKg}
                             onChange={(e) => setWeightKg(e.target.value)}
-                            placeholder={lang === 'ru' ? 'напр. 5.5 кг или 2 мешка' : 'e.g. 5.5 kg or 2 bags'}
+                            placeholder="e.g. 5.5 kg or 2 bags"
                             className={`w-full border rounded-xl px-3 py-2 text-xs focus:outline-none ${t.borderFocus} shadow-inner ${t.innerInputBg}`}
                           />
                         </div>
@@ -2201,6 +1841,7 @@ export default function App() {
                     </div>
                   )}
 
+                  {/* Compact Discount & Rush Row */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1 flex items-center gap-1">
@@ -2301,7 +1942,7 @@ export default function App() {
                   </h3>
                   {selectedOrderForPrint ? (
                     <div className="thermal-print-container space-y-3 overflow-visible pr-1">
-                      {[lang === 'ru' ? 'КОПИЯ КЛИЕНТА' : 'CUSTOMER COPY', lang === 'ru' ? 'КОПИЯ НА ВЕШАЛКУ' : 'TAG / RACK COPY', lang === 'ru' ? 'БУХГАЛТЕРСКАЯ КОПИЯ' : 'ACCOUNTING COPY'].map((copyType, idx) => (
+                      {['CUSTOMER COPY', 'TAG / RACK COPY', 'ACCOUNTING COPY'].map((copyType, idx) => (
                         <div key={idx} className="thermal-receipt-card bg-white text-slate-900 p-3 rounded-xl font-mono text-[11px] space-y-2 relative border border-slate-300">
                           <div className="absolute top-2 right-2 bg-slate-900 text-white text-[8px] px-1.5 py-0.5 rounded font-bold">
                             {copyType}
@@ -2321,38 +1962,38 @@ export default function App() {
                           <div className="space-y-0.5 text-[10px]">
                             {selectedOrderForPrint.isRush && (
                               <div className="bg-amber-400 text-slate-950 text-[9px] px-2 py-0.5 rounded font-black text-center mb-1">
-                                ⚡ {lang === 'ru' ? 'СРОЧНО' : 'EXPRESS RUSH'} ({selectedOrderForPrint.rushType === 'fixed' ? '+€5.00' : '+20%'})
+                                ⚡ EXPRESS RUSH ({selectedOrderForPrint.rushType === 'fixed' ? '+€5.00' : '+20%'})
                               </div>
                             )}
-                            <p><strong>{lang === 'ru' ? 'Клиент:' : 'Customer:'}</strong> {selectedOrderForPrint.customerName}</p>
-                            <p><strong>{lang === 'ru' ? 'Телефон:' : 'Phone:'}</strong> {selectedOrderForPrint.phone}</p>
+                            <p><strong>Customer:</strong> {selectedOrderForPrint.customerName}</p>
+                            <p><strong>Phone:</strong> {selectedOrderForPrint.phone}</p>
                             {selectedOrderForPrint.customerEmail && <p><strong>Email:</strong> {selectedOrderForPrint.customerEmail}</p>}
-                            <p><strong>{lang === 'ru' ? 'Услуга:' : 'Service:'}</strong> {selectedOrderForPrint.serviceType.toUpperCase()}</p>
+                            <p><strong>Service:</strong> {selectedOrderForPrint.serviceType.toUpperCase()}</p>
                             {selectedOrderForPrint.serviceType === 'alteration' ? (
                               <div className="space-y-1 pt-1">
-                                <p className="font-bold underline">{lang === 'ru' ? 'Вещи:' : 'Items:'}</p>
+                                <p className="font-bold underline">Items:</p>
                                 {selectedOrderForPrint.details.items?.map((item, i) => (
                                   <div key={i} className="pl-2 border-l-2 border-slate-300 space-y-0.5">
                                     <p className="font-bold text-slate-900">• {item.garmentType} (€{item.price.toFixed(2)})</p>
-                                    {item.alterations.length > 0 && <p className="text-[9px]">{lang === 'ru' ? 'Услуги:' : 'Tasks:'} {item.alterations.join(', ')}</p>}
+                                    {item.alterations.length > 0 && <p className="text-[9px]">Tasks: {item.alterations.join(', ')}</p>}
                                     {item.customNote && <p className="text-[9px]">Note: {item.customNote}</p>}
                                   </div>
                                 ))}
                               </div>
                             ) : (
                               <>
-                                <p><strong>{lang === 'ru' ? 'Тип:' : 'Type:'}</strong> {selectedOrderForPrint.details.laundryService}</p>
-                                {selectedOrderForPrint.details.weightKg && <p><strong>{lang === 'ru' ? 'Вес/Кол-во:' : 'Qty/Wt:'}</strong> {selectedOrderForPrint.details.weightKg}</p>}
+                                <p><strong>Type:</strong> {selectedOrderForPrint.details.laundryService}</p>
+                                {selectedOrderForPrint.details.weightKg && <p><strong>Qty/Wt:</strong> {selectedOrderForPrint.details.weightKg}</p>}
                               </>
                             )}
                           </div>
                           <div className="border-t border-dashed pt-1.5 flex justify-between font-bold text-[11px]">
-                            <span>{lang === 'ru' ? 'ОПЛАЧЕНО' : 'PAID'} ({selectedOrderForPrint.paymentMethod}):</span>
+                            <span>PAID ({selectedOrderForPrint.paymentMethod}):</span>
                             <span className={t.textAccent}>€{selectedOrderForPrint.total.toFixed(2)}</span>
                           </div>
                           <div className="text-center pt-1.5 text-[9px] text-slate-500 border-t border-dashed">
-                            <p>{lang === 'ru' ? 'Готовность:' : 'Due:'} {selectedOrderForPrint.dueDate}</p>
-                            <p className="font-bold text-slate-800 mt-0.5">{lang === 'ru' ? '*** ОПЛАЧЕНО ПОЛНОСТЬЮ ***' : '*** PAID IN FULL ***'}</p>
+                            <p>Due: {selectedOrderForPrint.dueDate}</p>
+                            <p className="font-bold text-slate-800 mt-0.5">*** PAID IN FULL ***</p>
                           </div>
                         </div>
                       ))}
@@ -2385,23 +2026,23 @@ export default function App() {
               <div className="flex justify-between items-center flex-wrap gap-4">
                 <div>
                   <h2 className="text-xl font-bold flex items-center gap-2">
-                    <Tag className={`w-6 h-6 ${t.textAccent}`} /> {text.priceBookTitle}
+                    <Tag className={`w-6 h-6 ${t.textAccent}`} /> Price Book & Alterations Customizer
                   </h2>
-                  <p className="text-xs opacity-75">{text.priceBookDesc}</p>
+                  <p className="text-xs opacity-75">Add, edit, rename, or remove garment categories and repair options instantly.</p>
                 </div>
                 <button
                   onClick={handleResetPriceBookDefaults}
                   className="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-all"
                 >
-                  {text.resetDuplicatesBtn}
+                  🔄 Reset & Clean Duplicates
                 </button>
               </div>
 
               <form onSubmit={handleAddPriceItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
-                <h3 className="text-xs font-bold uppercase tracking-wider">{text.addNewTaskTitle}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider">Add New Repair Task or Garment</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.garmentCategoryLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Garment Category</label>
                     <select
                       value={newGarmentCategory}
                       onChange={(e) => setNewGarmentCategory(e.target.value)}
@@ -2413,7 +2054,7 @@ export default function App() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.taskNameLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Task / Fix Name</label>
                     <input 
                       type="text"
                       required
@@ -2424,7 +2065,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.priceLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Price (€)</label>
                     <input 
                       type="number"
                       step="0.50"
@@ -2440,19 +2081,19 @@ export default function App() {
                   type="submit"
                   className={`font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5 ${t.primary}`}
                 >
-                  <Plus className="w-4 h-4" /> {text.saveToPriceBookBtn}
+                  <Plus className="w-4 h-4" /> Save to Price Book
                 </button>
               </form>
 
               <div className="pt-2 space-y-4">
                 <div className="flex justify-between items-center flex-wrap gap-3">
-                  <h3 className="text-sm font-bold">{text.currentPriceItems} ({filteredPriceBook.length} of {activePriceBook.length})</h3>
+                  <h3 className="text-sm font-bold">Current Price Book Items ({filteredPriceBook.length} of {activePriceBook.length})</h3>
                   
                   <div className="relative">
                     <Search className="w-4 h-4 absolute left-3 top-3 opacity-50" />
                     <input 
                       type="text"
-                      placeholder={text.searchPriceBookPlaceholder}
+                      placeholder="Search price book..."
                       value={priceBookSearchTerm}
                       onChange={(e) => setPriceBookSearchTerm(e.target.value)}
                       className={`pl-9 pr-4 py-2 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg} w-64`}
@@ -2464,16 +2105,16 @@ export default function App() {
                   <table className="w-full text-left border-collapse text-xs min-w-[600px]">
                     <thead>
                       <tr className="border-b border-slate-700/50 opacity-70">
-                        <th className="py-3 px-3">{text.garmentCategoryLabel}</th>
-                        <th className="py-3 px-3">{text.taskNameLabel}</th>
-                        <th className="py-3 px-3">{text.priceLabel}</th>
-                        <th className="py-3 px-3 text-right">{text.actions}</th>
+                        <th className="py-3 px-3">Garment Category</th>
+                        <th className="py-3 px-3">Repair / Task Name</th>
+                        <th className="py-3 px-3">Price</th>
+                        <th className="py-3 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700/20">
                       {filteredPriceBook.length === 0 ? (
                         <tr>
-                          <td colSpan="4" className="text-center py-10 opacity-60">{lang === 'ru' ? 'Нет услуг по вашему запросу.' : 'No price items match your search.'}</td>
+                          <td colSpan="4" className="text-center py-10 opacity-60">No price items match your search.</td>
                         </tr>
                       ) : (
                         filteredPriceBook.map((item) => {
@@ -2503,7 +2144,7 @@ export default function App() {
                                     className={`border rounded-lg px-2 py-1 text-xs w-24 ${t.innerInputBg}`}
                                   />
                                 ) : (
-                                  `${lang === 'ru' ? 'От' : 'From'} €${Number(item.price).toFixed(2)}`
+                                  `From €${Number(item.price).toFixed(2)}`
                                 )}
                               </td>
                               <td className="py-3 px-3 text-right space-x-2">
@@ -2513,13 +2154,13 @@ export default function App() {
                                       onClick={() => handleUpdatePriceItem(item.docId)}
                                       className="px-3 py-1 bg-teal-500 text-slate-950 font-bold rounded-lg text-[11px]"
                                     >
-                                      {text.saveBtn}
+                                      Save
                                     </button>
                                     <button
                                       onClick={() => setEditingPriceId(null)}
                                       className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-[11px]"
                                     >
-                                      {text.cancelBtn}
+                                      Cancel
                                     </button>
                                   </>
                                 ) : (
@@ -2531,13 +2172,13 @@ export default function App() {
                                       }}
                                       className="px-3 py-1 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] inline-flex items-center gap-1"
                                     >
-                                      <Edit2 className="w-3 h-3" /> {text.editBtn}
+                                      <Edit2 className="w-3 h-3" /> Edit
                                     </button>
                                     <button
                                       onClick={() => deletePriceItem(item.docId)}
                                       className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
                                     >
-                                      {text.delete}
+                                      Delete
                                     </button>
                                   </>
                                 )}
@@ -2561,17 +2202,17 @@ export default function App() {
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <h2 className="text-xl font-bold flex items-center gap-2">
-                    <Package className={`w-6 h-6 ${t.textAccent}`} /> {text.inventoryTitle}
+                    <Package className={`w-6 h-6 ${t.textAccent}`} /> Low Stock Alert & Tailoring Supplies Inventory
                   </h2>
-                  <p className="text-xs opacity-75">{text.inventoryDesc}</p>
+                  <p className="text-xs opacity-75">Track essential threads, zippers, hangers, and cleaning bags to prevent running out mid-week.</p>
                 </div>
               </div>
 
               <form onSubmit={handleAddInventoryItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
-                <h3 className="text-xs font-bold uppercase tracking-wider">{text.addNewSupplyTitle}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider">Add New Supply Item</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.itemNameLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Item Name</label>
                     <input 
                       type="text"
                       required
@@ -2582,7 +2223,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.initialQtyLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Initial Quantity</label>
                     <input 
                       type="number"
                       required
@@ -2593,7 +2234,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.lowStockMinLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Low Stock Alert Min</label>
                     <input 
                       type="number"
                       required
@@ -2608,24 +2249,24 @@ export default function App() {
                   type="submit"
                   className={`font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5 ${t.primary}`}
                 >
-                  <Plus className="w-4 h-4" /> {text.addToInventoryBtn}
+                  <Plus className="w-4 h-4" /> Add to Inventory
                 </button>
               </form>
 
               <div className="pt-2 overflow-x-auto">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-bold">{text.currentStockTitle}</h3>
-                  <span className="text-xs opacity-75">{inventoryItems.length} {lang === 'ru' ? 'позиций' : 'items tracked'}</span>
+                  <h3 className="text-sm font-bold">Current Supplies Stock</h3>
+                  <span className="text-xs opacity-75">{inventoryItems.length} items tracked</span>
                 </div>
                 <table className="w-full text-left border-collapse text-xs min-w-[600px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
-                      <th className="py-3 px-3">{text.itemNameLabel}</th>
-                      <th className="py-3 px-3">{text.skuCodeLabel}</th>
-                      <th className="py-3 px-3">{text.currentQtyLabel}</th>
-                      <th className="py-3 px-3">{text.stockStatusLabel}</th>
-                      <th className="py-3 px-3 text-right">{text.quickAdjustLabel}</th>
-                      <th className="py-3 px-3 text-right">{text.actions}</th>
+                      <th className="py-3 px-3">Supply Item</th>
+                      <th className="py-3 px-3">SKU / Code</th>
+                      <th className="py-3 px-3">Current Qty</th>
+                      <th className="py-3 px-3">Status</th>
+                      <th className="py-3 px-3 text-right">Quick Adjust</th>
+                      <th className="py-3 px-3 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
@@ -2644,11 +2285,11 @@ export default function App() {
                           <td className="py-3 px-3">
                             {isLow ? (
                               <span className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-                                {text.lowStockBadge}
+                                LOW STOCK ALERT
                               </span>
                             ) : (
                               <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-                                {text.inStockBadge}
+                                In Stock
                               </span>
                             )}
                           </td>
@@ -2671,7 +2312,7 @@ export default function App() {
                               onClick={() => deleteInventoryItem(item.docId)}
                               className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
                             >
-                              {text.delete}
+                              Delete
                             </button>
                           </td>
                         </tr>
@@ -2690,18 +2331,18 @@ export default function App() {
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div>
                 <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Award className={`w-6 h-6 ${t.textAccent}`} /> {text.customersTitle}
+                  <Award className={`w-6 h-6 ${t.textAccent}`} /> Customer Visit & Order History Tracker
                 </h2>
-                <p className="text-xs opacity-75">{text.customersDesc}</p>
+                <p className="text-xs opacity-75">Track repeat customers, total visit counts, and lifetime spending automatically grouped by phone number. Click any customer row to view their full order history.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.totalUniqueCustomers}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Total Unique Customers</p>
                   <p className={`text-2xl font-extrabold ${t.textAccent}`}>{customers.length}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.repeatVisitors}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Repeat Visitors (2+ Orders)</p>
                   <p className="text-2xl font-extrabold text-teal-400">
                     {customers.filter(c => c.totalVisits >= 2).length}
                   </p>
@@ -2709,23 +2350,23 @@ export default function App() {
               </div>
 
               <div className="pt-4 overflow-x-auto">
-                <h3 className="text-sm font-bold mb-3">{text.customerDirectoryTitle}</h3>
+                <h3 className="text-sm font-bold mb-3">Customer Directory & Lifetime Spend (Click row to view history)</h3>
                 <table className="w-full text-left border-collapse text-xs min-w-[700px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
-                      <th className="py-3 px-3">{text.customerName}</th>
-                      <th className="py-3 px-3">{text.phone}</th>
+                      <th className="py-3 px-3">Customer Name</th>
+                      <th className="py-3 px-3">Phone Number</th>
                       <th className="py-3 px-3">Email</th>
-                      <th className="py-3 px-3">{lang === 'ru' ? 'Всего заказов' : 'Total Orders'}</th>
-                      <th className="py-3 px-3">{lang === 'ru' ? 'Сумма трат' : 'Total Lifetime Spend'}</th>
-                      <th className="py-3 px-3">{lang === 'ru' ? 'Последний визит' : 'Last Visit'}</th>
-                      <th className="py-3 px-3 text-right">{lang === 'ru' ? 'История' : 'View History'}</th>
+                      <th className="py-3 px-3">Total Orders</th>
+                      <th className="py-3 px-3">Total Lifetime Spend</th>
+                      <th className="py-3 px-3">Last Visit</th>
+                      <th className="py-3 px-3 text-right">View History</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
                     {customers.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="text-center py-10 opacity-60">{lang === 'ru' ? 'Нет данных о клиентах.' : 'No customer records yet. Create tickets using customer phone numbers to begin tracking.'}</td>
+                        <td colSpan="7" className="text-center py-10 opacity-60">No customer records yet. Create tickets using customer phone numbers to begin tracking.</td>
                       </tr>
                     ) : (
                       customers.map((c, i) => (
@@ -2739,12 +2380,12 @@ export default function App() {
                           </td>
                           <td className="py-3 px-3 font-mono">{c.phone}</td>
                           <td className="py-3 px-3 font-mono opacity-80">{c.email || '—'}</td>
-                          <td className="py-3 px-3 font-bold font-mono">{c.totalVisits} {lang === 'ru' ? 'зак.' : 'orders'}</td>
+                          <td className="py-3 px-3 font-bold font-mono">{c.totalVisits} orders</td>
                           <td className="py-3 px-3 font-bold text-teal-400">€{(c.totalSpent || 0).toFixed(2)}</td>
                           <td className="py-3 px-3 opacity-80">{c.lastVisit || '—'}</td>
                           <td className="py-3 px-3 text-right">
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[11px] font-bold">
-                              <Eye className="w-3.5 h-3.5" /> {text.viewHistoryBtn}
+                              <Eye className="w-3.5 h-3.5" /> History
                             </span>
                           </td>
                         </tr>
@@ -2787,7 +2428,7 @@ export default function App() {
 
             <div className="block sm:hidden space-y-3">
               {filteredOrders.length === 0 ? (
-                <div className="text-center py-12 opacity-60 text-xs">{lang === 'ru' ? 'Заказы не найдены.' : 'No orders found.'}</div>
+                <div className="text-center py-12 opacity-60 text-xs">No orders found.</div>
               ) : (
                 filteredOrders.map(o => (
                   <div key={o.docId} className={`p-4 rounded-2xl border space-y-3 ${t.subCardBg}`}>
@@ -2795,7 +2436,7 @@ export default function App() {
                       <div className="flex items-center gap-2">
                         <span className={`font-mono font-black text-sm ${t.textAccent}`}>#{o.id}</span>
                         {o.isRush && (
-                          <span className="bg-amber-400 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded">⚡ {lang === 'ru' ? 'СРОЧНО' : 'RUSH'}</span>
+                          <span className="bg-amber-400 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded">⚡ RUSH</span>
                         )}
                       </div>
                       <select
@@ -2860,7 +2501,7 @@ export default function App() {
                 <tbody className="divide-y divide-slate-700/30 text-xs">
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan="9" className="text-center py-12 opacity-60">{lang === 'ru' ? 'Заказы не найдены.' : 'No orders found.'}</td>
+                      <td colSpan="9" className="text-center py-12 opacity-60">No orders found.</td>
                     </tr>
                   ) : (
                     filteredOrders.map(o => (
@@ -2868,7 +2509,7 @@ export default function App() {
                         <td className="py-4 px-4 font-mono font-black text-sm">
                           <span className={t.textAccent}>#{o.id}</span>
                           {o.isRush && (
-                            <span className="ml-2 bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded">⚡ {lang === 'ru' ? 'СРОЧНО' : 'RUSH'}</span>
+                            <span className="ml-2 bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded">⚡ RUSH</span>
                           )}
                         </td>
                         <td className="py-4 px-4 font-semibold">{o.customerName}</td>
@@ -2921,8 +2562,8 @@ export default function App() {
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold">{text.reportsTitle}</h2>
-                  <p className="text-xs opacity-75">{text.reportsDesc}</p>
+                  <h2 className="text-xl font-bold">Smart Business Analytics & Reports</h2>
+                  <p className="text-xs opacity-75">Performance metrics, financial summaries, and comparative period trackers.</p>
                 </div>
                 
                 <div className="flex items-center gap-3 flex-wrap">
@@ -2931,25 +2572,25 @@ export default function App() {
                       onClick={() => { setReportTimeframe('day'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.todayBtn}
+                      Today
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('week'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.thisWeekBtn}
+                      This Week
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('month'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.thisMonthBtn}
+                      This Month
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('year'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.thisYearBtn}
+                      This Year
                     </button>
                   </div>
 
@@ -2957,52 +2598,66 @@ export default function App() {
                     <button
                       onClick={exportToCSV}
                       className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                      title="Export CSV / Excel report"
                     >
-                      <FileSpreadsheet className="w-4 h-4" /> {text.exportExcelBtn}
+                      <FileSpreadsheet className="w-4 h-4" /> Export Excel (CSV)
                     </button>
                     <button
                       onClick={exportToPDF}
                       className={`px-4 py-2.5 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-700 hover:bg-slate-600'}`}
+                      title="Export PDF / Printable Report"
                     >
-                      <FileText className="w-4 h-4" /> {text.exportPdfBtn}
+                      <FileText className="w-4 h-4" /> Export PDF Report
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
+              {revenueMultiplier !== 1.00 && (
+                <div className="bg-slate-800 border border-slate-700 text-slate-300 p-4 rounded-2xl text-xs flex items-center justify-between flex-wrap gap-2">
+                  <span>Calibration Mode Active: Reports scaled by <strong>{Math.round(revenueMultiplier * 100)}%</strong>.</span>
+                  <button 
+                    onClick={() => setRevenueMultiplier(1.00)}
+                    className="underline font-bold text-teal-400 hover:text-teal-300"
+                  >
+                    Reset to 100%
+                  </button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.grossRevenue}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">Gross Revenue</p>
                   <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalExpenses}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">Total Expenses</p>
                   <h3 className="text-2xl font-extrabold text-rose-400">€{periodExpenses.toFixed(2)}</h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.netOperatingProfit}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">Net Operating Profit</p>
                   <h3 className={`text-2xl font-extrabold ${periodNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     €{periodNetProfit.toFixed(2)}
                   </h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalOrders}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">Total Orders</p>
                   <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>{periodOrderCount}</h3>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
                   <h4 className="text-sm font-bold flex items-center gap-2">
-                    <TrendingUp className={`w-4 h-4 ${t.textAccent}`} /> {text.serviceRevenueSplit}
+                    <TrendingUp className={`w-4 h-4 ${t.textAccent}`} /> Service Revenue Split
                   </h4>
                   <div className="space-y-3 text-xs">
                     <div className="flex justify-between items-center">
-                      <span>✂️ {lang === 'ru' ? 'Ателье' : 'Alterations'}</span>
+                      <span>✂️ Alterations</span>
                       <span className="font-bold">€{alterationRevenue.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>👔 {lang === 'ru' ? 'Прачечная' : 'Laundry'}</span>
+                      <span>👔 Laundry</span>
                       <span className="font-bold">€{laundryRevenue.toFixed(2)}</span>
                     </div>
                   </div>
@@ -3010,15 +2665,15 @@ export default function App() {
 
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
                   <h4 className="text-sm font-bold flex items-center gap-2">
-                    <CreditCard className={`w-4 h-4 ${t.textAccent}`} /> {text.paymentBreakdown}
+                    <CreditCard className={`w-4 h-4 ${t.textAccent}`} /> Payment Breakdown
                   </h4>
                   <div className="space-y-3 text-xs">
                     <div className="flex justify-between items-center">
-                      <span>💳 {text.cardPayments}</span>
+                      <span>💳 Card Payments</span>
                       <span className="font-bold">€{cardRevenue.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>💵 {text.cashPayments}</span>
+                      <span>💵 Cash Payments</span>
                       <span className="font-bold">€{cashRevenue.toFixed(2)}</span>
                     </div>
                   </div>
@@ -3034,8 +2689,8 @@ export default function App() {
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold">{text.bookkeepingTitle}</h2>
-                  <p className="text-xs opacity-75">{text.bookkeepingDesc}</p>
+                  <h2 className="text-xl font-bold">Business Expense Bookkeeping</h2>
+                  <p className="text-xs opacity-75">Record expenses below. Independent and unscaled.</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -3043,14 +2698,14 @@ export default function App() {
                     onClick={exportExpensesToCSV}
                     className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                   >
-                    <FileSpreadsheet className="w-4 h-4" /> {text.exportExpensesBtn}
+                    <FileSpreadsheet className="w-4 h-4" /> Export Expenses (CSV)
                   </button>
                 </div>
               </div>
 
               <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
                 <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-teal-400" /> {text.customDateRange}
+                  <Calendar className="w-4 h-4 text-teal-400" /> Custom Date Range:
                 </span>
                 <div className="flex items-center gap-2 flex-wrap">
                   <input 
@@ -3074,28 +2729,28 @@ export default function App() {
                     onClick={() => { setStartDateFilter(''); setEndDateFilter(''); }}
                     className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-auto"
                   >
-                    {text.clearCustomRange}
+                    Clear Custom Range
                   </button>
                 )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.grossRevenue}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Gross Revenue</p>
                   <p className={`text-xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.totalExpenses}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Total Expenses</p>
                   <p className="text-xl font-extrabold text-rose-400">€{periodExpenses.toFixed(2)}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.netOperatingProfit}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Net Operating Profit</p>
                   <p className={`text-xl font-extrabold ${periodNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     €{periodNetProfit.toFixed(2)}
                   </p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.profitMargin}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">Profit Margin</p>
                   <p className={`text-xl font-extrabold ${profitMargin >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
                     {profitMargin.toFixed(1)}%
                   </p>
@@ -3105,7 +2760,7 @@ export default function App() {
               <form onSubmit={handleAddExpense} className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <div className="flex justify-between items-center">
                   <h3 className="text-sm font-bold flex items-center gap-2">
-                    <Wallet className={`w-4 h-4 ${t.textAccent}`} /> {text.recordNewExpense}
+                    <Wallet className={`w-4 h-4 ${t.textAccent}`} /> Record New Business Spend
                   </h3>
                   <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                     <input 
@@ -3114,13 +2769,13 @@ export default function App() {
                       onChange={(e) => setIsRecurringMonthly(e.target.checked)}
                       className="w-4 h-4 accent-teal-500 rounded cursor-pointer"
                     />
-                    <span className="flex items-center gap-1"><Repeat className="w-3.5 h-3.5 text-teal-400" /> {text.recurringMonthlyBill}</span>
+                    <span className="flex items-center gap-1"><Repeat className="w-3.5 h-3.5 text-teal-400" /> Recurring Monthly Bill</span>
                   </label>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Дата' : 'Date'}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Date</label>
                     <input 
                       type="date"
                       required
@@ -3131,7 +2786,7 @@ export default function App() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.vendorLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Description / Vendor</label>
                     <input 
                       type="text"
                       required
@@ -3142,7 +2797,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.categoryLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Category</label>
                     <select
                       value={expenseCategory}
                       onChange={(e) => setExpenseCategory(e.target.value)}
@@ -3157,7 +2812,7 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 items-end">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.amountLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Amount (€)</label>
                     <input 
                       type="number"
                       step="0.01"
@@ -3173,7 +2828,7 @@ export default function App() {
                       type="submit"
                       className={`w-full md:w-auto font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
                     >
-                      <Plus className="w-4 h-4" /> {text.recordExpenseBtn}
+                      <Plus className="w-4 h-4" /> Record Expense
                     </button>
                   </div>
                 </div>
@@ -3181,23 +2836,23 @@ export default function App() {
 
               <div className="pt-4 overflow-x-auto">
                 <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
-                  <h3 className="text-sm font-bold">{text.recordedExpensesLog}</h3>
+                  <h3 className="text-sm font-bold">Recorded Expenses Log</h3>
                   <span className="font-mono text-sm font-extrabold text-rose-400">Total: €{periodExpenses.toFixed(2)}</span>
                 </div>
                 <table className="w-full text-left border-collapse text-xs min-w-[600px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
-                      <th className="py-3 px-3">{lang === 'ru' ? 'Дата' : 'Date'}</th>
-                      <th className="py-3 px-3">{text.vendorLabel}</th>
-                      <th className="py-3 px-3">{text.categoryLabel}</th>
-                      <th className="py-3 px-3">{text.amountLabel}</th>
-                      <th className="py-3 px-3 text-right">{text.actions}</th>
+                      <th className="py-3 px-3">Date</th>
+                      <th className="py-3 px-3">Description</th>
+                      <th className="py-3 px-3">Category</th>
+                      <th className="py-3 px-3">Amount</th>
+                      <th className="py-3 px-3 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
                     {filteredExpensesByTimeframe.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="text-center py-10 opacity-60">{lang === 'ru' ? 'За этот период расходов не найдено.' : 'No expenses recorded for this timeframe.'}</td>
+                        <td colSpan="5" className="text-center py-10 opacity-60">No expenses recorded for this timeframe.</td>
                       </tr>
                     ) : (
                       filteredExpensesByTimeframe.map(ex => (
@@ -3207,7 +2862,7 @@ export default function App() {
                             {ex.description}
                             {ex.isRecurring && (
                               <span className="bg-teal-500/10 border border-teal-500/30 text-teal-400 text-[9px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                                <Repeat className="w-3 h-3" /> {lang === 'ru' ? 'Ежемесячно' : 'Monthly'}
+                                <Repeat className="w-3 h-3" /> Monthly
                               </span>
                             )}
                           </td>
@@ -3218,7 +2873,7 @@ export default function App() {
                               onClick={() => deleteExpense(ex.docId)}
                               className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
                             >
-                              {text.delete}
+                              Delete
                             </button>
                           </td>
                         </tr>
@@ -3231,7 +2886,7 @@ export default function App() {
               {/* Spending Breakdown by Category */}
               <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-sm font-bold flex items-center gap-2">
-                  <PieChart className={`w-4 h-4 ${t.textAccent}`} /> {text.spendingBreakdownTitle}
+                  <PieChart className={`w-4 h-4 ${t.textAccent}`} /> Spending Breakdown by Category (%)
                 </h3>
                 <div className="space-y-3 pt-1">
                   {EXPENSE_CATEGORIES.map(cat => {
@@ -3263,7 +2918,7 @@ export default function App() {
           <div className="space-y-6 max-w-xl mx-auto w-full">
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <Palette className={`w-5 h-5 ${t.textAccent}`} /> {text.appearanceTitle}
+                <Palette className={`w-5 h-5 ${t.textAccent}`} /> Appearance & Theme Settings
               </h2>
               
               <div className="grid grid-cols-2 gap-4 pt-2">
@@ -3272,7 +2927,7 @@ export default function App() {
                   className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-dark' ? 'border-teal-500 bg-teal-500/10 shadow-md' : 'border-slate-700 bg-slate-900'}`}
                 >
                   <div className="w-6 h-6 rounded-full bg-teal-500"></div>
-                  <p className="text-xs font-bold text-white">{text.tealDark}</p>
+                  <p className="text-xs font-bold text-white">Teal Dark</p>
                 </button>
 
                 <button
@@ -3280,7 +2935,7 @@ export default function App() {
                   className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-light' ? 'border-teal-600 bg-teal-100 text-slate-900 shadow-md' : 'border-slate-300 bg-white text-slate-900'}`}
                 >
                   <div className="w-6 h-6 rounded-full bg-teal-600"></div>
-                  <p className="text-xs font-bold">{text.tealLight}</p>
+                  <p className="text-xs font-bold">Teal Light (Default)</p>
                 </button>
               </div>
             </div>
@@ -3288,14 +2943,14 @@ export default function App() {
             {isAdmin && (
               <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
                 <h2 className="text-lg font-bold flex items-center gap-2">
-                  <Sliders className={`w-5 h-5 ${t.textAccent}`} /> {text.displayScalingTitle}
+                  <SlidersHorizontal className={`w-5 h-5 ${t.textAccent}`} /> Display Scaling & Metrics Calibration
                 </h2>
 
                 {!isOptimizationUnlocked ? (
                   <div className="space-y-4 pt-2">
-                    <p className="text-xs font-semibold">{text.enterPinCalibration}</p>
+                    <p className="text-xs font-semibold">Enter PIN to Access Calibration</p>
                     {optimizationPinError && (
-                      <p className="text-xs text-rose-400 font-medium">{text.incorrectPin}</p>
+                      <p className="text-xs text-rose-400 font-medium">Incorrect PIN. Try again.</p>
                     )}
                     <div className="flex gap-3">
                       <input 
@@ -3318,14 +2973,14 @@ export default function App() {
                         }}
                         className={`px-6 py-2.5 font-bold rounded-xl text-xs transition-all shadow-md ${t.primary}`}
                       >
-                        {text.unlockBtn}
+                        Unlock
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4 pt-2">
                     <div className="flex justify-between items-center text-xs font-bold">
-                      <span className={t.textAccent}>{text.calibrationUnlocked}</span>
+                      <span className={t.textAccent}>Calibration Mode Unlocked</span>
                       <button 
                         onClick={() => setIsOptimizationUnlocked(false)}
                         className="opacity-70 hover:opacity-100 underline"
@@ -3334,7 +2989,7 @@ export default function App() {
                       </button>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.displayScaleMultiplier}</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Display Scale Multiplier</label>
                       <div className="flex items-center gap-4">
                         <input 
                           type="range"
