@@ -74,7 +74,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('intake');
   const [serviceType, setServiceType] = useState('alteration');
   
-  // Initialize theme from localStorage or default to 'teal-light'
   const [themeMode, setThemeMode] = useState(() => {
     return localStorage.getItem('alico_theme_mode') || 'teal-light';
   });
@@ -92,15 +91,15 @@ export default function App() {
   // In-App Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
 
-  // AI Assistant Chat Widget State
+  // AI Virtual Assistant State & Voice Recognition
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [aiChatHistory, setAiChatHistory] = useState([
-    { sender: 'ai', text: "Hello! I am your AI shop assistant connected to your live database. Ask me anything like 'Were there any orders today?', 'What is our revenue?', or 'Create a ticket for John, phone 0871234567 for 15 euros'." }
+    { sender: 'ai', text: "Hello! I am your AI Virtual Assistant. You can speak to me using the mic 🎙️ or type commands like: 'Create ticket for Alena, phone 0860872382, jeans hemming, 18 euros', 'Were there any orders today?', or 'What is our total revenue?'" }
   ]);
   const [aiChatInput, setAiChatInput] = useState('');
   const [pendingOrderCreation, setPendingOrderCreation] = useState(null);
 
-  // Custom Modal Confirmation State
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
@@ -108,23 +107,17 @@ export default function App() {
     onConfirm: null
   });
 
-  // Customer Detail History Modal State
   const [selectedCustomerForHistory, setSelectedCustomerForHistory] = useState(null);
-
-  // Inactivity Timer Ref
   const inactivityTimerRef = useRef(null);
 
-  // Custom Date Range Filters for Bookkeeping
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
 
-  // Hidden Display Scaling
   const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); 
   const [optimizationPin, setOptimizationPin] = useState('');
   const [isOptimizationUnlocked, setIsOptimizationUnlocked] = useState(false);
   const [optimizationPinError, setOptimizationPinError] = useState(false);
 
-  // Bookkeeping / Expenses State
   const [expenses, setExpenses] = useState([]);
   const [expenseDescription, setExpenseDescription] = useState('');
   const [expenseCategory, setExpenseCategory] = useState('Supplies & Materials');
@@ -132,7 +125,6 @@ export default function App() {
   const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [isRecurringMonthly, setIsRecurringMonthly] = useState(false);
 
-  // Inventory / Supplies State
   const [inventoryItems, setInventoryItems] = useState([]);
   const [newItemName, setNewItemName] = useState('');
   const [newItemSku, setNewItemSku] = useState('');
@@ -140,14 +132,12 @@ export default function App() {
   const [newItemMinQty, setNewItemMinQty] = useState('5');
   const [newItemUnit, setNewItemUnit] = useState('pcs');
 
-  // Price Book State
   const [priceBook, setPriceBook] = useState([]);
   const [newGarmentCategory, setNewGarmentCategory] = useState('Trousers / Jeans');
   const [newTaskName, setNewTaskName] = useState('');
   const [newTaskPrice, setNewTaskPrice] = useState('');
   const [priceBookSearchTerm, setPriceBookSearchTerm] = useState('');
 
-  // Editing Price Book Item State
   const [editingPriceId, setEditingPriceId] = useState(null);
   const [editValues, setEditValues] = useState({ name: '', price: '' });
 
@@ -162,7 +152,6 @@ export default function App() {
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Credit / Debit Card');
 
-  // Multi-Garment Cart State for Alterations
   const [garmentType, setGarmentType] = useState('Trousers / Jeans');
   const [selectedAlterations, setSelectedAlterations] = useState([]);
   const [customAlteration, setCustomAlteration] = useState('');
@@ -1117,7 +1106,33 @@ export default function App() {
     });
   };
 
-  // Smart AI Assistant Live Database Query & Action Engine
+  // Real-Time Voice Speech Recognition Handler
+  const startVoiceListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast(lang === 'ru' ? 'Ваш браузер не поддерживает голосовой ввод.' : 'Speech recognition is not supported in this browser. Try Google Chrome.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = lang === 'ru' ? 'ru-RU' : 'en-IE';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognition.onresult = (event) => {
+      const speechText = event.results[0][0].transcript;
+      setAiChatInput(speechText);
+      handleAiQuery(speechText);
+    };
+
+    recognition.start();
+  };
+
+  // Smart Human-Like AI Assistant Intent Parser & Action Engine
   const handleAiQuery = async (queryText) => {
     const q = queryText.toLowerCase();
     let reply = "";
@@ -1127,34 +1142,49 @@ export default function App() {
     const totalRev = orders.reduce((sum, o) => sum + (o.total || 0), 0) * revenueMultiplier;
     const pendingOrders = orders.filter(o => o.status === 'Pending' || o.status === 'In Progress');
 
+    // 1. Handle confirmation flow when an order preview is pending approval
     if (pendingOrderCreation) {
-      if (q.includes('yes') || q.includes('sure') || q.includes('do it') || q.includes('ok')) {
+      if (q.includes('yes') || q.includes('sure') || q.includes('do it') || q.includes('ok') || q.includes('save') || q.includes('да') || q.includes('сохрани')) {
         try {
           await addDoc(collection(db, 'orders'), pendingOrderCreation);
-          reply = `✅ Success! Created ticket #${pendingOrderCreation.id} for ${pendingOrderCreation.customerName} (€${pendingOrderCreation.total.toFixed(2)}) and saved it to Firestore!`;
+          reply = `✅ Success! Created ticket #${pendingOrderCreation.id} for ${pendingOrderCreation.customerName} (€${pendingOrderCreation.total.toFixed(2)}) and saved it directly to your live database!`;
           setPendingOrderCreation(null);
         } catch (err) {
           reply = `❌ Failed to save order to database: ${err.message}`;
           setPendingOrderCreation(null);
         }
-      } else {
+        setAiChatHistory(prev => [...prev, { sender: 'user', text: queryText }, { sender: 'ai', text: reply }]);
+        return;
+      } else if (q.includes('no') || q.includes('cancel') || q.includes('stop') || q.includes('нет')) {
         reply = `Order creation cancelled. What else can I help you with?`;
         setPendingOrderCreation(null);
+        setAiChatHistory(prev => [...prev, { sender: 'user', text: queryText }, { sender: 'ai', text: reply }]);
+        return;
+      } else {
+        // If user gave a brand new command instead of yes/no, clear pending order and process as new intent
+        setPendingOrderCreation(null);
       }
-    } 
-    else if (q.includes('create') || q.includes('new ticket') || q.includes('add order') || q.includes('create order')) {
+    }
+
+    // 2. Intelligent Natural Language Processing for Orders & Database Queries
+    if (q.includes('create') || q.includes('new ticket') || q.includes('add order') || q.includes('ticket for') || q.includes('name') || q.includes('создай') || q.includes('заказ')) {
+      
+      // Extract phone number using regex
       const phoneMatch = queryText.match(/(\+?\d[\d\s-]{7,}\d)/);
+      const extractedPhone = phoneMatch ? phoneMatch[0].replace(/\s+/g, '') : '0879998888';
+      
+      // Extract price
       const priceMatch = queryText.match(/€?(\d+(\.\d{1,2})?)/);
-      
-      const extractedPhone = phoneMatch ? phoneMatch[0].trim() : '0879998888';
-      const extractedPrice = priceMatch ? Number(priceMatch[1]) : 15.00;
-      
+      const extractedPrice = priceMatch && Number(priceMatch[1]) > 0 ? Number(priceMatch[1]) : 18.00;
+
+      // Extract Name intelligently
       let extractedName = 'Walk-in Customer';
-      if (q.includes('for ')) {
+      if (q.includes('name ')) {
+        const parts = queryText.split('name ');
+        if (parts[1]) extractedName = parts[1].split('phone')[0].split('€')[0].trim();
+      } else if (q.includes('for ')) {
         const parts = queryText.split('for ');
-        if (parts[1]) {
-          extractedName = parts[1].split('phone')[0].split('€')[0].trim();
-        }
+        if (parts[1]) extractedName = parts[1].split('phone')[0].split('€')[0].trim();
       }
 
       const newTag = Math.floor(7000 + Math.random() * 900).toString();
@@ -1166,15 +1196,15 @@ export default function App() {
         phone: extractedPhone,
         customerEmail: '',
         dueDate: new Date(Date.now() + 3*24*60*60*1000).toISOString().split('T')[0],
-        notes: 'Created via AI Assistant Chat',
+        notes: queryText,
         paymentMethod: 'Credit / Debit Card',
         total: extractedPrice,
         status: 'Pending',
-        isRush: false,
+        isRush: q.includes('rush') || q.includes('urgent') || q.includes('срочно'),
         details: {
           items: [{
-            garmentType: 'Trousers / Jeans',
-            alterations: ['Custom Repair'],
+            garmentType: q.includes('curtain') ? 'Curtains / Home Textiles' : (q.includes('dress') ? 'Dress / Formal Wear' : 'Trousers / Jeans'),
+            alterations: [queryText],
             customNote: queryText,
             price: extractedPrice
           }]
@@ -1182,23 +1212,27 @@ export default function App() {
       };
 
       setPendingOrderCreation(newOrderPayload);
-      reply = `I can create this ticket for you:\n• Tag: #${newTag}\n• Customer: ${extractedName} (${extractedPhone})\n• Total: €${extractedPrice.toFixed(2)}\n\nWould you like me to save this to your live database now? (Reply Yes or No)`;
+      reply = `I have parsed your request:\n• Tag: #${newTag}\n• Customer: ${extractedName} (${extractedPhone})\n• Details: "${queryText}"\n• Total: €${extractedPrice.toFixed(2)}\n\nShall I save this to your live database now? (Say **Yes** or **No**, or click the mic 🎙️ to reply)`;
     } 
-    else if (q.includes('today') || q.includes('order today') || q.includes('orders today')) {
+    else if (q.includes('today') || q.includes('сегодня')) {
       reply = `You have ${todayOrders.length} order(s) placed today. Total value: €${todayOrders.reduce((s, o) => s + (o.total || 0), 0).toFixed(2)}.`;
-    } else if (q.includes('revenue') || q.includes('sales') || q.includes('money') || q.includes('total')) {
+    } 
+    else if (q.includes('revenue') || q.includes('sales') || q.includes('money') || q.includes('выручка') || q.includes('доход')) {
       reply = `Total accumulated revenue across all ${orders.length} recorded orders is €${totalRev.toFixed(2)}.`;
-    } else if (q.includes('pending') || q.includes('progress') || q.includes('active')) {
-      reply = `There are currently ${pendingOrders.length} active/pending orders in the workshop queue.`;
-    } else if (q.includes('customer') || q.includes('search')) {
+    } 
+    else if (q.includes('pending') || q.includes('progress') || q.includes('active') || q.includes('в работе')) {
+      reply = `There are currently ${pendingOrders.length} active/pending orders in your workshop queue.`;
+    } 
+    else if (q.includes('customer') || q.includes('search') || q.includes('клиент')) {
       const match = orders.find(o => (o.customerName && q.includes(o.customerName.toLowerCase())) || q.includes(o.phone));
       if (match) {
         reply = `Found order #${match.id} for ${match.customerName} (${match.phone}) - Status: ${match.status}, Total: €${match.total.toFixed(2)}.`;
       } else {
-        reply = `I searched your live Firestore records of ${orders.length} orders but couldn't find a matching customer name or phone number.`;
+        reply = `I searched your live database of ${orders.length} orders but couldn't find a matching customer name or phone number.`;
       }
-    } else {
-      reply = `I am connected to your live database of ${orders.length} orders. You can ask me:\n• "Were there any orders today?"\n• "What is our total revenue?"\n• "Show pending tickets"\n• "Create a ticket for Anna, phone 0871112222 for 20 euros"`;
+    } 
+    else {
+      reply = `I am your virtual assistant connected to your live database. You can talk to me using the microphone or type commands like:\n• "Create ticket for Alena, phone 0860872382, jeans hemming, 18 euros"\n• "Were there any orders today?"\n• "What is our total revenue?"`;
     }
 
     setAiChatHistory(prev => [
@@ -1484,13 +1518,13 @@ export default function App() {
         }
       `}</style>
 
-      {/* Floating AI Assistant Chat Widget */}
+      {/* Floating AI Virtual Assistant Widget with Voice Support */}
       <div className="fixed bottom-6 right-6 z-50">
         {!isAiChatOpen ? (
           <button
             onClick={() => setIsAiChatOpen(true)}
             className="bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-2xl flex items-center justify-center transition-all transform hover:scale-105"
-            title="Open AI Shop Assistant"
+            title="Open AI Virtual Assistant"
           >
             <Bot className="w-6 h-6 animate-pulse" />
           </button>
@@ -1503,8 +1537,8 @@ export default function App() {
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold">{lang === 'ru' ? 'AI Помощник' : 'AI Assistant Chat'}</h3>
-                  <p className="text-[9px] text-teal-400 font-medium">Live Firestore Connected & Action Enabled</p>
+                  <h3 className="text-xs font-bold">{lang === 'ru' ? 'Виртуальный ассистент' : 'AI Virtual Assistant'}</h3>
+                  <p className="text-[9px] text-teal-400 font-medium">Voice & Live Firestore Connected</p>
                 </div>
               </div>
               <button
@@ -1524,10 +1558,26 @@ export default function App() {
                   </div>
                 </div>
               ))}
+              {isListening && (
+                <div className="flex justify-start">
+                  <div className="bg-teal-500/20 border border-teal-500/40 text-teal-300 p-2.5 rounded-2xl text-[11px] animate-pulse flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
+                    {lang === 'ru' ? 'Слушаю ваш голос...' : 'Listening to your voice... Speak now.'}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Input Controls */}
+            {/* Input Controls & Voice Mic Button */}
             <div className="p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={startVoiceListening}
+                className={`p-2.5 rounded-xl transition-all ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-slate-800 hover:bg-slate-700 text-teal-400 border border-slate-700'}`}
+                title="Click to speak voice command"
+              >
+                🎙️
+              </button>
               <input 
                 type="text"
                 value={aiChatInput}
@@ -1538,7 +1588,7 @@ export default function App() {
                     setAiChatInput('');
                   }
                 }}
-                placeholder={lang === 'ru' ? 'Спросите или создайте заказ...' : 'Ask or create order e.g. Create ticket...'}
+                placeholder={lang === 'ru' ? 'Скажите или напишите заказ...' : 'Speak or type e.g. Create ticket for...'}
                 className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
               />
               <button
