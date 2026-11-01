@@ -95,9 +95,10 @@ export default function App() {
   // AI Assistant Chat Widget State
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [aiChatHistory, setAiChatHistory] = useState([
-    { sender: 'ai', text: "Hello! I am your AI shop assistant connected to your live database. Ask me anything like 'Were there any orders today?', 'What is our revenue?', or 'Show pending tickets'." }
+    { sender: 'ai', text: "Hello! I am your AI shop assistant connected to your live database. Ask me anything like 'Were there any orders today?', 'What is our revenue?', or 'Create a ticket for John, phone 0871234567 for 15 euros'." }
   ]);
   const [aiChatInput, setAiChatInput] = useState('');
+  const [pendingOrderCreation, setPendingOrderCreation] = useState(null);
 
   // Custom Modal Confirmation State
   const [confirmModal, setConfirmModal] = useState({
@@ -1116,8 +1117,8 @@ export default function App() {
     });
   };
 
-  // AI Assistant Live Database Query Engine
-  const handleAiQuery = (queryText) => {
+  // Smart AI Assistant Live Database Query & Action Engine
+  const handleAiQuery = async (queryText) => {
     const q = queryText.toLowerCase();
     let reply = "";
 
@@ -1126,7 +1127,64 @@ export default function App() {
     const totalRev = orders.reduce((sum, o) => sum + (o.total || 0), 0) * revenueMultiplier;
     const pendingOrders = orders.filter(o => o.status === 'Pending' || o.status === 'In Progress');
 
-    if (q.includes('today') || q.includes('order today') || q.includes('orders today')) {
+    if (pendingOrderCreation) {
+      if (q.includes('yes') || q.includes('sure') || q.includes('do it') || q.includes('ok')) {
+        try {
+          await addDoc(collection(db, 'orders'), pendingOrderCreation);
+          reply = `✅ Success! Created ticket #${pendingOrderCreation.id} for ${pendingOrderCreation.customerName} (€${pendingOrderCreation.total.toFixed(2)}) and saved it to Firestore!`;
+          setPendingOrderCreation(null);
+        } catch (err) {
+          reply = `❌ Failed to save order to database: ${err.message}`;
+          setPendingOrderCreation(null);
+        }
+      } else {
+        reply = `Order creation cancelled. What else can I help you with?`;
+        setPendingOrderCreation(null);
+      }
+    } 
+    else if (q.includes('create') || q.includes('new ticket') || q.includes('add order') || q.includes('create order')) {
+      const phoneMatch = queryText.match(/(\+?\d[\d\s-]{7,}\d)/);
+      const priceMatch = queryText.match(/€?(\d+(\.\d{1,2})?)/);
+      
+      const extractedPhone = phoneMatch ? phoneMatch[0].trim() : '0879998888';
+      const extractedPrice = priceMatch ? Number(priceMatch[1]) : 15.00;
+      
+      let extractedName = 'Walk-in Customer';
+      if (q.includes('for ')) {
+        const parts = queryText.split('for ');
+        if (parts[1]) {
+          extractedName = parts[1].split('phone')[0].split('€')[0].trim();
+        }
+      }
+
+      const newTag = Math.floor(7000 + Math.random() * 900).toString();
+      const newOrderPayload = {
+        id: newTag,
+        createdAt: new Date().toISOString(),
+        serviceType: 'alteration',
+        customerName: extractedName,
+        phone: extractedPhone,
+        customerEmail: '',
+        dueDate: new Date(Date.now() + 3*24*60*60*1000).toISOString().split('T')[0],
+        notes: 'Created via AI Assistant Chat',
+        paymentMethod: 'Credit / Debit Card',
+        total: extractedPrice,
+        status: 'Pending',
+        isRush: false,
+        details: {
+          items: [{
+            garmentType: 'Trousers / Jeans',
+            alterations: ['Custom Repair'],
+            customNote: queryText,
+            price: extractedPrice
+          }]
+        }
+      };
+
+      setPendingOrderCreation(newOrderPayload);
+      reply = `I can create this ticket for you:\n• Tag: #${newTag}\n• Customer: ${extractedName} (${extractedPhone})\n• Total: €${extractedPrice.toFixed(2)}\n\nWould you like me to save this to your live database now? (Reply Yes or No)`;
+    } 
+    else if (q.includes('today') || q.includes('order today') || q.includes('orders today')) {
       reply = `You have ${todayOrders.length} order(s) placed today. Total value: €${todayOrders.reduce((s, o) => s + (o.total || 0), 0).toFixed(2)}.`;
     } else if (q.includes('revenue') || q.includes('sales') || q.includes('money') || q.includes('total')) {
       reply = `Total accumulated revenue across all ${orders.length} recorded orders is €${totalRev.toFixed(2)}.`;
@@ -1137,10 +1195,10 @@ export default function App() {
       if (match) {
         reply = `Found order #${match.id} for ${match.customerName} (${match.phone}) - Status: ${match.status}, Total: €${match.total.toFixed(2)}.`;
       } else {
-        reply = `I searched your live Firestore records but couldn't find a matching customer name or phone number.`;
+        reply = `I searched your live Firestore records of ${orders.length} orders but couldn't find a matching customer name or phone number.`;
       }
     } else {
-      reply = `I inspected your live database of ${orders.length} orders. You can ask me about today's orders, revenue totals, pending tickets, or specific customer names!`;
+      reply = `I am connected to your live database of ${orders.length} orders. You can ask me:\n• "Were there any orders today?"\n• "What is our total revenue?"\n• "Show pending tickets"\n• "Create a ticket for Anna, phone 0871112222 for 20 euros"`;
     }
 
     setAiChatHistory(prev => [
@@ -1446,7 +1504,7 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-xs font-bold">{lang === 'ru' ? 'AI Помощник' : 'AI Assistant Chat'}</h3>
-                  <p className="text-[9px] text-teal-400 font-medium">Live Firestore Connected</p>
+                  <p className="text-[9px] text-teal-400 font-medium">Live Firestore Connected & Action Enabled</p>
                 </div>
               </div>
               <button
@@ -1461,7 +1519,7 @@ export default function App() {
             <div className="p-3.5 space-y-3 h-64 overflow-y-auto text-xs bg-slate-950/50">
               {aiChatHistory.map((msg, index) => (
                 <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-2.5 rounded-2xl ${msg.sender === 'user' ? 'bg-teal-500 text-slate-950 font-medium rounded-br-none' : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'}`}>
+                  <div className={`max-w-[85%] p-2.5 rounded-2xl whitespace-pre-wrap ${msg.sender === 'user' ? 'bg-teal-500 text-slate-950 font-medium rounded-br-none' : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'}`}>
                     <p>{msg.text}</p>
                   </div>
                 </div>
@@ -1480,7 +1538,7 @@ export default function App() {
                     setAiChatInput('');
                   }
                 }}
-                placeholder={lang === 'ru' ? 'Спросите о заказах, выручке...' : 'Ask about orders, revenue...'}
+                placeholder={lang === 'ru' ? 'Спросите или создайте заказ...' : 'Ask or create order e.g. Create ticket...'}
                 className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
               />
               <button
