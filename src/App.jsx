@@ -64,7 +64,8 @@ import {
   Zap,
   Mic,
   Bot,
-  Sparkles
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -97,10 +98,13 @@ export default function App() {
   // In-App Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
 
-  // AI Assistant State
+  // AI Assistant State (Floating Chat)
+  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [aiPromptText, setAiPromptText] = useState('');
-  const [aiBudgetSummaryText, setAiBudgetSummaryText] = useState('');
+  const [aiChatHistory, setAiChatHistory] = useState([
+    { sender: 'ai', text: lang === 'ru' ? 'Привет! Я ваш голосовой и финансовый помощник по заказам.' : 'Hello! I am your AI voice assistant. How can I help with your tickets or budget today?' }
+  ]);
 
   // Custom Modal Confirmation State
   const [confirmModal, setConfirmModal] = useState({
@@ -642,58 +646,81 @@ export default function App() {
     : discountedSubtotal;
 
   // --- Voice / Speech & Smart Assistant Logic (Zero-Cost, In-Browser) ---
-  const parseVoiceCommandToTicket = (text) => {
-    if (!text) return;
+  const parseVoiceCommandToTicket = (textInput) => {
+    if (!textInput) return;
 
-    // 1. Phone extraction (digits 7-12 numbers)
-    const phoneMatch = text.match(/\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b/);
+    // Add user message to chat history
+    setAiChatHistory(prev => [...prev, { sender: 'user', text: textInput }]);
+
+    // 1. Phone extraction
+    const phoneMatch = textInput.match(/\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b/);
     if (phoneMatch) {
       setPhone(phoneMatch[0].replace(/\s+/g, ''));
     }
 
-    // 2. Price extraction (e.g. "15 euro", "€12", "for 20")
-    const priceMatch = text.match(/(?:€|euro|euros|\$)?\s*(\d+(?:\.\d{1,2})?)\s*(?:euro|euros|€)?/i);
+    // 2. Price extraction
+    const priceMatch = textInput.match(/(?:€|euro|euros|\$)?\s*(\d+(?:\.\d{1,2})?)\s*(?:euro|euros|€)?/i);
     let extractedPrice = null;
     if (priceMatch && priceMatch[1]) {
       extractedPrice = parseFloat(priceMatch[1]);
     }
 
-    // 3. Name extraction heuristic (e.g. "for Sarah", "for John")
-    const nameMatch = text.match(/(?:for|customer|name is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
+    // 3. Name extraction
+    const nameMatch = textInput.match(/(?:for|customer|name is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
     if (nameMatch && nameMatch[1]) {
       setCustomerName(nameMatch[1]);
     }
 
     // 4. Garment Type heuristic
-    if (text.toLowerCase().includes('trouser') || text.toLowerCase().includes('jean')) setGarmentType('Trousers / Jeans');
-    else if (text.toLowerCase().includes('suit') || text.toLowerCase().includes('jacket') || text.toLowerCase().includes('blazer')) setGarmentType('Suit Jacket / Blazer');
-    else if (text.toLowerCase().includes('dress')) setGarmentType('Dress / Formal Wear');
-    else if (text.toLowerCase().includes('skirt')) setGarmentType('Skirt');
-    else if (text.toLowerCase().includes('shirt') || text.toLowerCase().includes('blouse')) setGarmentType('Shirt / Blouse');
-    else if (text.toLowerCase().includes('coat')) setGarmentType('Coat / Jacket');
-    else if (text.toLowerCase().includes('curtain')) setGarmentType('Curtains / Home Textiles');
+    let matchedGarment = garmentType;
+    if (textInput.toLowerCase().includes('trouser') || textInput.toLowerCase().includes('jean')) matchedGarment = 'Trousers / Jeans';
+    else if (textInput.toLowerCase().includes('suit') || textInput.toLowerCase().includes('jacket') || textInput.toLowerCase().includes('blazer')) matchedGarment = 'Suit Jacket / Blazer';
+    else if (textInput.toLowerCase().includes('dress')) matchedGarment = 'Dress / Formal Wear';
+    else if (textInput.toLowerCase().includes('skirt')) matchedGarment = 'Skirt';
+    else if (textInput.toLowerCase().includes('shirt') || textInput.toLowerCase().includes('blazer')) matchedGarment = 'Shirt / Blouse';
+    else if (textInput.toLowerCase().includes('coat')) matchedGarment = 'Coat / Jacket';
+    
+    setGarmentType(matchedGarment);
+
+    // Check if user is asking for a summary
+    if (textInput.toLowerCase().includes('summary') || textInput.toLowerCase().includes('budget') || textInput.toLowerCase().includes('revenue')) {
+      const totalRev = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+      const totalExp = filteredExpensesByTimeframe.reduce((acc, ex) => acc + ex.amount, 0);
+      const profit = totalRev - totalExp;
+      const summaryReply = lang === 'ru' 
+        ? `📊 Выручка: €${totalRev.toFixed(2)} | Расходы: €${totalExp.toFixed(2)} | Прибыль: €${profit.toFixed(2)}`
+        : `📊 Revenue: €${totalRev.toFixed(2)} | Expenses: €${totalExp.toFixed(2)} | Net Profit: €${profit.toFixed(2)}`;
+      
+      setAiChatHistory(prev => [...prev, { sender: 'ai', text: summaryReply }]);
+      setAiPromptText('');
+      return;
+    }
 
     // 5. Build Cart Item
     const p = extractedPrice || 12.00;
-    const noteText = text;
-    
     setGarmentCart(prev => [
       ...prev,
       {
-        garmentType: garmentType || 'Trousers / Jeans',
+        garmentType: matchedGarment,
         alterations: ['Voice Command Intake'],
-        customNote: noteText,
+        customNote: textInput,
         price: p
       }
     ]);
 
-    showToast(lang === 'ru' ? 'Голосовая команда распознана и добавлена!' : 'Voice command parsed & added to ticket!');
+    const replyMsg = lang === 'ru' 
+      ? `✅ Заказ успешно распознан и добавлен в форму!` 
+      : `✅ Ticket parsed successfully and added to your intake form!`;
+    
+    setAiChatHistory(prev => [...prev, { sender: 'ai', text: replyMsg }]);
+    setAiPromptText('');
+    showToast(replyMsg);
   };
 
   const handleStartVoiceRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      showToast(lang === 'ru' ? 'Голосовой ввод не поддерживается в этом браузере.' : 'Speech Recognition is not supported in this browser.');
+      showToast(lang === 'ru' ? 'Голосовой ввод не поддерживается.' : 'Speech Recognition is not supported in this browser.');
       return;
     }
 
@@ -703,7 +730,7 @@ export default function App() {
 
     recognition.onstart = () => {
       setIsListening(true);
-      showToast(lang === 'ru' ? 'Слушаю... Говорите детали заказа' : 'Listening... Speak ticket details now');
+      showToast(lang === 'ru' ? 'Слушаю... Говорите' : 'Listening... Speak now');
     };
 
     recognition.onresult = (event) => {
@@ -715,7 +742,6 @@ export default function App() {
 
     recognition.onerror = () => {
       setIsListening(false);
-      showToast(lang === 'ru' ? 'Ошибка распознавания речи.' : 'Voice recognition error or cancelled.');
     };
 
     recognition.onend = () => {
@@ -723,23 +749,6 @@ export default function App() {
     };
 
     recognition.start();
-  };
-
-  const generateBudgetSummary = () => {
-    const totalRev = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
-    const totalExp = filteredExpensesByTimeframe.reduce((acc, ex) => acc + ex.amount, 0);
-    const profit = totalRev - totalExp;
-    const count = filteredOrdersByTimeframe.length;
-    const margin = totalRev > 0 ? ((profit / totalRev) * 100).toFixed(1) : '0';
-
-    const cardSum = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Card')).reduce((acc, o) => acc + o.total, 0);
-    const cashSum = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Cash')).reduce((acc, o) => acc + o.total, 0);
-
-    const textEn = `📊 AI Financial Summary (${reportTimeframe.toUpperCase()}): You generated €${totalRev.toFixed(2)} in gross revenue across ${count} active orders (€${cardSum.toFixed(2)} via Card, €${cashSum.toFixed(2)} via Cash). Total expenses were €${totalExp.toFixed(2)}, leaving a net operating profit of €${profit.toFixed(2)} (${margin}% profit margin).`;
-    
-    const textRu = `📊 Финансовая сводка AI (${reportTimeframe.toUpperCase()}): Валовая выручка составила €${totalRev.toFixed(2)} по ${count} заказам (€${cardSum.toFixed(2)} картой, €${cashSum.toFixed(2)} наличными). Расходы составили €${totalExp.toFixed(2)}, чистая прибыль: €${profit.toFixed(2)} (маржа ${margin}%).`;
-
-    setAiBudgetSummaryText(lang === 'ru' ? textRu : textEn);
   };
 
   useEffect(() => {
@@ -1496,6 +1505,97 @@ export default function App() {
         }
       `}</style>
 
+      {/* Floating AI Assistant Chat Pop-Up Widget */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {!isAiChatOpen ? (
+          <button
+            onClick={() => setIsAiChatOpen(true)}
+            className="bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-2xl flex items-center justify-center transition-all transform hover:scale-105"
+            title="Open AI Voice & Budget Assistant"
+          >
+            <Bot className="w-6 h-6 animate-pulse" />
+          </button>
+        ) : (
+          <div className="w-80 sm:w-96 bg-slate-900 border border-teal-500/40 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-white animate-in slide-in-from-bottom-5 duration-200">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-teal-900 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-teal-500/20 text-teal-400">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold">{lang === 'ru' ? 'AI Помощник' : 'AI Assistant Chat'}</h3>
+                  <p className="text-[9px] text-slate-400">{lang === 'ru' ? 'Голосовой ввод и бюджет' : 'Voice tickets & budget summary'}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAiChatOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Messages Area */}
+            <div className="p-3.5 space-y-3 h-64 overflow-y-auto text-xs bg-slate-950/50">
+              {aiChatHistory.map((msg, index) => (
+                <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] p-2.5 rounded-2xl ${msg.sender === 'user' ? 'bg-teal-500 text-slate-950 font-medium rounded-br-none' : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'}`}>
+                    <p>{msg.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Input & Voice Controls */}
+            <div className="p-3 bg-slate-900 border-t border-slate-800 space-y-2">
+              <div className="flex items-center gap-2">
+                <input 
+                  type="text"
+                  value={aiPromptText}
+                  onChange={(e) => setAiPromptText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      parseVoiceCommandToTicket(aiPromptText);
+                    }
+                  }}
+                  placeholder={lang === 'ru' ? 'Напр: Заказ для Джона 15€...' : 'Type ticket or budget query...'}
+                  className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleStartVoiceRecognition}
+                  className={`p-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-teal-500 text-slate-950 hover:bg-teal-400'}`}
+                  title="Voice command"
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex justify-between items-center pt-1 text-[10px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const totalRev = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+                    const totalExp = filteredExpensesByTimeframe.reduce((acc, ex) => acc + ex.amount, 0);
+                    const profit = totalRev - totalExp;
+                    setAiChatHistory(prev => [
+                      ...prev, 
+                      { sender: 'user', text: lang === 'ru' ? 'Сводка бюджета' : 'Budget summary' },
+                      { sender: 'ai', text: lang === 'ru' ? `📊 Выручка: €${totalRev.toFixed(2)} | Расходы: €${totalExp.toFixed(2)} | Прибыль: €${profit.toFixed(2)}` : `📊 Revenue: €${totalRev.toFixed(2)} | Expenses: €${totalExp.toFixed(2)} | Net Profit: €${profit.toFixed(2)}` }
+                    ]);
+                  }}
+                  className="text-teal-400 hover:underline font-semibold"
+                >
+                  📊 {lang === 'ru' ? 'Быстрый бюджет' : 'Quick Budget Summary'}
+                </button>
+                <span className="text-slate-500">Free Tier AI</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Customer Order History Detail Modal */}
       {selectedCustomerForHistory && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -1581,7 +1681,7 @@ export default function App() {
       )}
 
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 border border-teal-500/40 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
+        <div className="fixed bottom-24 right-6 z-50 bg-slate-900 border border-teal-500/40 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
           <CheckCircle2 className="w-6 h-6 text-teal-400 flex-shrink-0" />
           <p className="text-xs font-semibold">{toastMessage}</p>
           <button 
@@ -1832,44 +1932,6 @@ export default function App() {
       <main className="flex-1 p-2 sm:p-4 max-w-7xl w-full mx-auto space-y-4">
         {activeTab === 'intake' && (
           <div className="space-y-4">
-            {/* AI Voice Assistant Input Banner */}
-            <div className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md ${t.isLight ? 'bg-gradient-to-r from-teal-50 to-indigo-50 border-teal-200 text-teal-950' : 'bg-gradient-to-r from-slate-900 to-teal-950 border-teal-500/30 text-white'}`}>
-              <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                <div className="p-2 rounded-xl bg-teal-500/20 text-teal-400">
-                  <Sparkles className="w-5 h-5 animate-pulse" />
-                </div>
-                <div>
-                  <p className="text-xs font-extrabold flex items-center gap-1.5">
-                    <span>{lang === 'ru' ? 'AI Голосовой ассистент' : 'Free AI Voice Ticket Helper'}</span>
-                  </p>
-                  <p className="text-[10px] opacity-75">{lang === 'ru' ? 'Нажмите кнопку и скажите: "Заказ для Джона, 0871234567, укоротить брюки за 15 евро"' : 'Click mic and speak: "Ticket for Sarah, phone 0871234567, jeans hemming 12 euro"'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <input 
-                  type="text" 
-                  value={aiPromptText} 
-                  onChange={(e) => setAiPromptText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      parseVoiceCommandToTicket(aiPromptText);
-                    }
-                  }}
-                  placeholder={lang === 'ru' ? 'Или введите текст с деталями...' : 'Or type ticket command...'} 
-                  className={`w-full sm:w-64 border rounded-xl px-3 py-1.5 text-xs ${t.innerInputBg}`}
-                />
-                <button
-                  type="button"
-                  onClick={handleStartVoiceRecognition}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md flex-shrink-0 ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-teal-500 text-slate-950 hover:bg-teal-400'}`}
-                >
-                  <Mic className="w-3.5 h-3.5" />
-                  <span>{isListening ? (lang === 'ru' ? 'Слушаю...' : 'Listening...') : (lang === 'ru' ? '🎙️ Голос' : '🎙️ Voice')}</span>
-                </button>
-              </div>
-            </div>
-
             <div className="flex justify-between items-center flex-wrap gap-3">
               <div className="flex justify-center flex-1">
                 <div className={`p-1 rounded-2xl border flex gap-1.5 shadow-md ${t.headerBg}`}>
@@ -2879,13 +2941,6 @@ export default function App() {
                     </button>
                   </div>
 
-                  <button
-                    onClick={generateBudgetSummary}
-                    className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
-                  >
-                    <Bot className="w-4 h-4" /> {lang === 'ru' ? '🤖 Сводка AI' : '🤖 AI Summary'}
-                  </button>
-
                   <div className="flex gap-2">
                     <button
                       onClick={exportToCSV}
@@ -2902,15 +2957,6 @@ export default function App() {
                   </div>
                 </div>
               </div>
-
-              {aiBudgetSummaryText && (
-                <div className={`p-4 rounded-2xl border text-xs leading-relaxed space-y-1.5 shadow-md ${t.isLight ? 'bg-teal-50 border-teal-300 text-teal-950' : 'bg-teal-950/60 border-teal-500/40 text-teal-100'}`}>
-                  <p className="font-extrabold flex items-center gap-1.5 text-teal-400">
-                    <Sparkles className="w-4 h-4" /> {lang === 'ru' ? 'Финансовая сводка AI' : 'AI Financial Narrative'}
-                  </p>
-                  <p>{aiBudgetSummaryText}</p>
-                </div>
-              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
@@ -2982,13 +3028,6 @@ export default function App() {
 
                 <div className="flex flex-wrap items-center gap-3">
                   <button
-                    onClick={generateBudgetSummary}
-                    className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
-                  >
-                    <Bot className="w-4 h-4" /> {lang === 'ru' ? '🤖 Сводка AI' : '🤖 AI Summary'}
-                  </button>
-
-                  <button
                     onClick={exportExpensesToCSV}
                     className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                   >
@@ -2996,15 +3035,6 @@ export default function App() {
                   </button>
                 </div>
               </div>
-
-              {aiBudgetSummaryText && (
-                <div className={`p-4 rounded-2xl border text-xs leading-relaxed space-y-1.5 shadow-md ${t.isLight ? 'bg-teal-50 border-teal-300 text-teal-950' : 'bg-teal-950/60 border-teal-500/40 text-teal-100'}`}>
-                  <p className="font-extrabold flex items-center gap-1.5 text-teal-400">
-                    <Sparkles className="w-4 h-4" /> {lang === 'ru' ? 'Финансовая сводка AI' : 'AI Financial Narrative'}
-                  </p>
-                  <p>{aiBudgetSummaryText}</p>
-                </div>
-              )}
 
               <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
                 <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
