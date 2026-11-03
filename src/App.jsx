@@ -731,16 +731,7 @@ export default function App() {
     });
   };
 
-  const handleAddCategory = async (e) => {
-    e.preventDefault();
-    const cat = newCategoryName.trim();
-    if (!cat) return;
-    
-    if (combinedCategories.includes(cat)) {
-      showToast(lang === 'ru' ? 'Такая категория уже существует!' : 'Category already exists!');
-      return;
-    }
-
+  const executeAddCategory = async (cat) => {
     try {
       await addDoc(collection(db, 'priceBook'), {
         category: cat,
@@ -757,17 +748,32 @@ export default function App() {
     }
   };
 
-  const handleAddPriceItem = async (e) => {
+  const handleAddCategory = (e) => {
     e.preventDefault();
-    const cat = newGarmentCategory.trim();
-    const name = newTaskName.trim();
-    const priceNum = Number(newTaskPrice);
+    const cat = newCategoryName.trim();
+    if (!cat) return;
+    
+    const categoryExists = combinedCategories.some(c => c.toLowerCase() === cat.toLowerCase());
 
-    if (!name || isNaN(priceNum) || priceNum <= 0) {
-      showToast(lang === 'ru' ? 'Введите корректное название услуги и цену.' : 'Please enter a valid task name and price.');
+    if (categoryExists) {
+      setConfirmModal({
+        isOpen: true,
+        title: lang === 'ru' ? 'Дубликат категории' : 'Duplicate Category Warning',
+        message: lang === 'ru' 
+          ? `Категория "${cat}" уже существует. Вы уверены, что хотите продолжить и создать дубликат?` 
+          : `You already have the category "${cat}". Are you sure you want to proceed and make a duplicate?`,
+        onConfirm: async () => {
+          setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+          await executeAddCategory(cat);
+        }
+      });
       return;
     }
 
+    executeAddCategory(cat);
+  };
+
+  const executeAddPriceItem = async (cat, name, priceNum) => {
     try {
       await addDoc(collection(db, 'priceBook'), {
         category: cat,
@@ -781,6 +787,40 @@ export default function App() {
       console.error('Error adding price item:', err);
       showToast(lang === 'ru' ? 'Не удалось добавить услугу.' : 'Failed to add price item.');
     }
+  };
+
+  const handleAddPriceItem = (e) => {
+    e.preventDefault();
+    const cat = newGarmentCategory.trim();
+    const name = newTaskName.trim();
+    const priceNum = Number(newTaskPrice);
+
+    if (!name || isNaN(priceNum) || priceNum <= 0) {
+      showToast(lang === 'ru' ? 'Введите корректное название услуги и цену.' : 'Please enter a valid task name and price.');
+      return;
+    }
+
+    const itemExists = activePriceBook.some(item => 
+      item.category.toLowerCase() === cat.toLowerCase() && 
+      item.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (itemExists) {
+      setConfirmModal({
+        isOpen: true,
+        title: lang === 'ru' ? 'Дубликат услуги' : 'Duplicate Price Item Warning',
+        message: lang === 'ru'
+          ? `Услуга "${name}" уже существует в категории "${cat}". Вы уверены, что хотите создать дубликат?`
+          : `You already have "${name}" in the "${cat}" category. Are you sure you want to proceed and make a duplicate?`,
+        onConfirm: async () => {
+          setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+          await executeAddPriceItem(cat, name, priceNum);
+        }
+      });
+      return;
+    }
+
+    executeAddPriceItem(cat, name, priceNum);
   };
 
   const handleUpdatePriceItem = async (docId) => {
@@ -1525,7 +1565,7 @@ export default function App() {
                 onClick={confirmModal.onConfirm}
                 className="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-lg shadow-rose-600/25"
               >
-                {lang === 'ru' ? 'Удалить' : 'Confirm Delete'}
+                {lang === 'ru' ? 'Продолжить' : 'Proceed'}
               </button>
             </div>
           </div>
