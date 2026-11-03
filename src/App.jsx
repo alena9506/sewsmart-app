@@ -57,9 +57,6 @@ import {
   Percent,
   Tag,
   Edit2,
-  Bot,
-  Sparkles,
-  Send,
   FolderPlus
 } from 'lucide-react';
 import logoImg from './logo.png';
@@ -91,14 +88,6 @@ export default function App() {
 
   // In-App Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
-
-  // AI Virtual Assistant State & Voice Recognition
-  const [isAiChatOpen, setIsAiChatOpen] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [aiChatHistory, setAiChatHistory] = useState([
-    { sender: 'ai', text: "Hello Alena! I am your AI Virtual Assistant. Speak to me using the mic 🎙️ or type commands like: 'Create ticket for Anna, phone 0871112222, jeans hemming, 18 euros', 'Were there any orders today?', or 'What is our total revenue?'" }
-  ]);
-  const [aiChatInput, setAiChatInput] = useState('');
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -1130,73 +1119,6 @@ export default function App() {
     });
   };
 
-  const startVoiceListening = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      showToast(lang === 'ru' ? 'Ваш браузер не поддерживает голосовой ввод.' : 'Speech recognition is not supported in this browser. Try Google Chrome.');
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = lang === 'ru' ? 'ru-RU' : 'en-IE';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
-
-    recognition.onresult = (event) => {
-      const speechText = event.results[0][0].transcript;
-      setAiChatInput(speechText);
-      handleAiQuery(speechText);
-    };
-
-    recognition.start();
-  };
-
-  const handleAiQuery = async (queryText) => {
-    const updatedHistory = [...aiChatHistory, { sender: 'user', text: queryText }];
-    setAiChatHistory(updatedHistory);
-
-    try {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const todayOrders = orders.filter(o => o.createdAt?.startsWith(todayStr));
-      const totalRev = orders.reduce((sum, o) => sum + (o.total || 0), 0) * revenueMultiplier;
-      const pendingOrders = orders.filter(o => o.status === 'Pending' || o.status === 'In Progress');
-
-      const systemPrompt = `You are ALiCo AI, an expert, hyper-intelligent virtual assistant for an alteration and laundry POS workshop in Dublin. 
-      You are talking directly to the shop owner (Alena). 
-      Current live database context:
-      - Total orders in system: ${orders.length}
-      - Orders placed today: ${todayOrders.length}
-      - Total revenue: €${totalRev.toFixed(2)}
-      - Pending/Active orders in queue: ${pendingOrders.length}
-      - Price book categories available: ${combinedCategories.join(', ')}
-
-      Your job is to converse naturally like a human assistant. If the user wants to create an order or check stats, answer directly with intelligence, context awareness, and charm.`;
-
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY || 'AQ.Ab8RN6IuuQpMBGpIZqGXuzyqYEst3PlkzV4s6xzBFut8ex2BNw'}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            { role: 'user', parts: [{ text: systemPrompt + "\n\nUser message: " + queryText }] }
-          ]
-        })
-      });
-
-      const data = await response.json();
-      const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm here! How can I help you manage your workshop?";
-
-      setAiChatHistory(prev => [...prev, { sender: 'ai', text: aiReply }]);
-
-    } catch (err) {
-      console.error('AI API Error:', err);
-      setAiChatHistory(prev => [...prev, { sender: 'ai', text: "I'm having trouble connecting to the neural backend right now. Let me know what order details you'd like me to record!" }]);
-    }
-  };
-
   const now = new Date();
 
   const matchesTimeframe = (dateString) => {
@@ -1472,93 +1394,6 @@ export default function App() {
           }
         }
       `}</style>
-
-      {/* Floating AI Virtual Assistant Widget */}
-      <div className="fixed bottom-6 right-6 z-50">
-        {!isAiChatOpen ? (
-          <button
-            onClick={() => setIsAiChatOpen(true)}
-            className="bg-teal-500 hover:bg-teal-400 text-slate-950 p-4 rounded-full shadow-2xl flex items-center justify-center transition-all transform hover:scale-105"
-            title="Open AI Virtual Assistant"
-          >
-            <Bot className="w-6 h-6 animate-pulse" />
-          </button>
-        ) : (
-          <div className="w-80 sm:w-96 bg-slate-900 border border-teal-500/40 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-white animate-in slide-in-from-bottom-5 duration-200">
-            <div className="bg-gradient-to-r from-teal-900 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-teal-500/20 text-teal-400">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold">{lang === 'ru' ? 'Виртуальный ассистент' : 'AI Virtual Assistant'}</h3>
-                  <p className="text-[9px] text-teal-400 font-medium">Gemini Intelligence & Voice Connected</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsAiChatOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-3.5 space-y-3 h-64 overflow-y-auto text-xs bg-slate-950/50">
-              {aiChatHistory.map((msg, index) => (
-                <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-2.5 rounded-2xl whitespace-pre-wrap ${msg.sender === 'user' ? 'bg-teal-500 text-slate-950 font-medium rounded-br-none' : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'}`}>
-                    <p>{msg.text}</p>
-                  </div>
-                </div>
-              ))}
-              {isListening && (
-                <div className="flex justify-start">
-                  <div className="bg-teal-500/20 border border-teal-500/40 text-teal-300 p-2.5 rounded-2xl text-[11px] animate-pulse flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
-                    {lang === 'ru' ? 'Слушаю ваш голос...' : 'Listening to your voice... Speak now.'}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={startVoiceListening}
-                className={`p-2.5 rounded-xl transition-all ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-slate-800 hover:bg-slate-700 text-teal-400 border border-slate-700'}`}
-                title="Click to speak voice command"
-              >
-                🎙️
-              </button>
-              <input 
-                type="text"
-                value={aiChatInput}
-                onChange={(e) => setAiChatInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && aiChatInput.trim()) {
-                    handleAiQuery(aiChatInput);
-                    setAiChatInput('');
-                  }
-                }}
-                placeholder={lang === 'ru' ? 'Спросите ассистента...' : 'Ask your AI assistant...'}
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  if (aiChatInput.trim()) {
-                    handleAiQuery(aiChatInput);
-                    setAiChatInput('');
-                  }
-                }}
-                className="p-2.5 rounded-xl bg-teal-500 text-slate-950 hover:bg-teal-400 font-bold transition-all"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Customer Order History Detail Modal */}
       {selectedCustomerForHistory && (
