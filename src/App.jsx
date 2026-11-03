@@ -731,18 +731,30 @@ export default function App() {
     });
   };
 
-  const handleAddCategory = (e) => {
+  const handleAddCategory = async (e) => {
     e.preventDefault();
     const cat = newCategoryName.trim();
     if (!cat) return;
+    
     if (combinedCategories.includes(cat)) {
       showToast(lang === 'ru' ? 'Такая категория уже существует!' : 'Category already exists!');
       return;
     }
-    setCustomCategories([...customCategories, cat]);
-    setNewGarmentCategory(cat);
-    setNewCategoryName('');
-    showToast(lang === 'ru' ? 'Новая категория успешно создана!' : 'New category created successfully!');
+
+    try {
+      await addDoc(collection(db, 'priceBook'), {
+        category: cat,
+        name: lang === 'ru' ? 'Стандартная услуга' : 'Standard Service',
+        price: 0.00
+      });
+
+      setNewGarmentCategory(cat);
+      setNewCategoryName('');
+      showToast(lang === 'ru' ? 'Новая категория успешно создана и сохранена!' : 'New category created and saved successfully!');
+    } catch (err) {
+      console.error('Error creating category in Firestore:', err);
+      showToast(lang === 'ru' ? 'Не удалось сохранить категорию.' : 'Failed to save category.');
+    }
   };
 
   const handleAddPriceItem = async (e) => {
