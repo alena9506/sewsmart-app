@@ -69,7 +69,16 @@ export default function App() {
   const [loginError, setLoginError] = useState('');
 
   const [lang, setLang] = useState('en'); // 'en' or 'ru'
-  const [activeTab, setActiveTab] = useState('intake');
+  
+  // Persist activeTab in localStorage so refreshing keeps you on the same page
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('alico_active_tab') || 'intake';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('alico_active_tab', activeTab);
+  }, [activeTab]);
+
   const [serviceType, setServiceType] = useState('alteration');
   
   const [themeMode, setThemeMode] = useState(() => {
