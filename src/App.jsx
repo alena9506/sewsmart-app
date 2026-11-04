@@ -886,10 +886,10 @@ export default function App() {
   }, [user]);
 
   // Employee Selection Handler
-  const handleSelectEmployee = (empId) => {
-    setSelectedEmployeeId(empId);
-    if (!empId) return;
-    const emp = employees.find(e => e.docId === empId);
+  const handleSelectEmployee = (empDocId) => {
+    setSelectedEmployeeId(empDocId);
+    if (!empDocId) return;
+    const emp = employees.find(e => e.docId === empDocId);
     if (emp) {
       setEmployeeName(emp.name || '');
       setEmployeePPSN(emp.ppsn || '');
