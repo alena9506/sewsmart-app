@@ -157,6 +157,7 @@ export default function App() {
   const [editingEmployeeId, setEditingEmployeeId] = useState(null);
   const [empForm, setEmpForm] = useState({
     name: '',
+    email: '',
     ppsn: '',
     hourlyRate: '13.50',
     weeklyTaxCredit: '71.50',
@@ -167,6 +168,7 @@ export default function App() {
   // Current Selected Employee for Payslip Calculator
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [employeeName, setEmployeeName] = useState('Maria Smith');
+  const [employeeEmail, setEmployeeEmail] = useState('');
   const [employeePPSN, setEmployeePPSN] = useState('1234567A');
   const [payPeriod, setPayPeriod] = useState('Weekly');
   const [payDate, setPayDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -892,6 +894,7 @@ export default function App() {
     const emp = employees.find(e => e.docId === empDocId);
     if (emp) {
       setEmployeeName(emp.name || '');
+      setEmployeeEmail(emp.email || '');
       setEmployeePPSN(emp.ppsn || '');
       setHourlyRate(emp.hourlyRate ? String(emp.hourlyRate) : '13.50');
       setWeeklyTaxCredit(emp.weeklyTaxCredit ? String(emp.weeklyTaxCredit) : '71.50');
@@ -908,6 +911,7 @@ export default function App() {
 
     const payload = {
       name: empForm.name.trim(),
+      email: empForm.email.trim(),
       ppsn: empForm.ppsn.trim(),
       hourlyRate: Number(empForm.hourlyRate) || 13.50,
       weeklyTaxCredit: Number(empForm.weeklyTaxCredit) || 71.50,
@@ -932,6 +936,7 @@ export default function App() {
       setEditingEmployeeId(null);
       setEmpForm({
         name: '',
+        email: '',
         ppsn: '',
         hourlyRate: '13.50',
         weeklyTaxCredit: '71.50',
@@ -971,6 +976,7 @@ export default function App() {
     const payslipRecord = {
       payDate,
       employeeName,
+      employeeEmail,
       ppsn: employeePPSN,
       hoursWorked: gpHours,
       hourlyRate: gpRate,
@@ -1002,6 +1008,41 @@ export default function App() {
     } catch (err) {
       console.error('Error recording payslip:', err);
       showToast(lang === 'ru' ? 'Ошибка сохранения расчетного листка.' : 'Failed to save payslip.');
+    }
+  };
+
+  // Automatically Email Payslip to Employee via EmailJS
+  const handleEmailPayslipToEmployee = async () => {
+    if (!employeeEmail.trim()) {
+      showToast(lang === 'ru' ? 'У сотрудника не указан email адрес!' : 'Employee email address is missing!');
+      return;
+    }
+
+    try {
+      const templateParams = {
+        to_email: employeeEmail.trim(),
+        employee_name: employeeName,
+        pay_date: payDate,
+        hours_worked: hoursWorked,
+        gross_pay: grossPay.toFixed(2),
+        paye: employeePaye.toFixed(2),
+        prsi: employeePrsi.toFixed(2),
+        usc: employeeUsc.toFixed(2),
+        total_deductions: totalDeductions.toFixed(2),
+        net_pay: netPay.toFixed(2)
+      };
+
+      await emailjs.send(
+        'service_u334299',
+        'template_2ka75ti', // Or your dedicated payslip email template ID
+        templateParams,
+        '50tnv-rcE0P4zclZ9'
+      );
+
+      showToast(lang === 'ru' ? `Расчетный листок успешно отправлен на ${employeeEmail}!` : `Payslip successfully emailed to ${employeeEmail}!`);
+    } catch (err) {
+      console.error('Error emailing payslip:', err);
+      showToast(lang === 'ru' ? 'Не удалось отправить email с листком.' : 'Failed to email payslip. Check EmailJS configuration.');
     }
   };
 
@@ -1925,6 +1966,18 @@ export default function App() {
                   value={empForm.name}
                   onChange={(e) => setEmpForm({ ...empForm, name: e.target.value })}
                   placeholder="e.g. Maria Smith"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">Email *</label>
+                <input 
+                  type="email"
+                  required
+                  value={empForm.email}
+                  onChange={(e) => setEmpForm({ ...empForm, email: e.target.value })}
+                  placeholder="e.g. maria@gmail.com"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-teal-500"
                 />
               </div>
@@ -3108,13 +3161,13 @@ export default function App() {
                   <h2 className="text-xl font-bold flex items-center gap-2">
                     <Users className={`w-6 h-6 ${t.textAccent}`} /> {lang === 'ru' ? 'Управление персоналом и зарплатами (Ирландия)' : 'Staff Directory & Payroll Management'}
                   </h2>
-                  <p className="text-xs opacity-75">{lang === 'ru' ? 'Управляйте сотрудниками, рассчитывайте налоги PAYE/PRSI/USC и сохраняйте ведомости.' : 'Manage full employee database, compute Irish PAYE/PRSI/USC, and save payroll logs.'}</p>
+                  <p className="text-xs opacity-75">{lang === 'ru' ? 'Управляйте сотрудниками, рассчитывайте налоги PAYE/PRSI/USC и отправляйте расчетные листки.' : 'Manage employee database, email payslips, and compute Irish PAYE/PRSI/USC.'}</p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
                       setEditingEmployeeId(null);
-                      setEmpForm({ name: '', ppsn: '', hourlyRate: '13.50', weeklyTaxCredit: '71.50', role: 'Seamstress', status: 'Active' });
+                      setEmpForm({ name: '', email: '', ppsn: '', hourlyRate: '13.50', weeklyTaxCredit: '71.50', role: 'Seamstress', status: 'Active' });
                       setIsEmployeeModalOpen(true);
                     }}
                     className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-lg"
@@ -3144,7 +3197,7 @@ export default function App() {
                     >
                       <option value="">{lang === 'ru' ? '-- Ручной ввод --' : '-- Custom Manual Entry --'}</option>
                       {employees.map(emp => (
-                        <option key={emp.docId} value={emp.docId}>{emp.name} ({emp.role || 'Staff'})</option>
+                        <option key={emp.docId} value={emp.docId}>{emp.name} ({emp.email || 'No Email'})</option>
                       ))}
                     </select>
                   </div>
@@ -3162,12 +3215,13 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'PPSN (ИНН Ирландии)' : 'Employee PPSN'}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Employee Email</label>
                     <input 
-                      type="text"
-                      value={employeePPSN}
-                      onChange={(e) => setEmployeePPSN(e.target.value)}
-                      className={`w-full border rounded-xl px-4 py-2.5 text-xs font-mono focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                      type="email"
+                      value={employeeEmail}
+                      onChange={(e) => setEmployeeEmail(e.target.value)}
+                      placeholder="employee@gmail.com"
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
                   <div>
@@ -3182,7 +3236,16 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'PPSN' : 'PPSN'}</label>
+                    <input 
+                      type="text"
+                      value={employeePPSN}
+                      onChange={(e) => setEmployeePPSN(e.target.value)}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs font-mono focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
                   <div>
                     <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Отработано часов' : 'Hours Worked'}</label>
                     <input 
@@ -3204,7 +3267,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Недельный налоговый кредит (€)' : 'Weekly Tax Credit (€)'}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Налог. кредит (€)' : 'Weekly Tax Credit (€)'}</label>
                     <input 
                       type="number"
                       step="0.50"
@@ -3232,6 +3295,7 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
                   <div>
                     <p><strong className="text-slate-500">{lang === 'ru' ? 'Сотрудник:' : 'Employee Name:'}</strong> {employeeName}</p>
+                    <p><strong className="text-slate-500">Email:</strong> {employeeEmail || 'No email specified'}</p>
                     <p><strong className="text-slate-500">PPSN:</strong> {employeePPSN}</p>
                   </div>
                   <div>
@@ -3284,16 +3348,24 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* ROS Copy-Paste Helper & Save Action */}
+                {/* ROS Copy-Paste Helper & Actions */}
                 <div className="bg-slate-900 text-slate-100 p-4 rounded-2xl space-y-3 text-xs font-mono">
-                  <div className="flex justify-between items-center">
-                    <p className="text-teal-400 font-bold font-sans">📋 {lang === 'ru' ? 'Данные для копирования в ROS (Real-Time PAYE):' : 'ROS Submission Quick-Copy Values:'}</p>
-                    <button
-                      onClick={handleSavePayslipToLedger}
-                      className="px-3 py-1.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-lg font-sans text-xs transition-all shadow-md"
-                    >
-                      💾 {lang === 'ru' ? 'Сохранить листок в архив' : 'Save Payslip to Ledger'}
-                    </button>
+                  <div className="flex justify-between items-center flex-wrap gap-2">
+                    <p className="text-teal-400 font-bold font-sans">📋 {lang === 'ru' ? 'Действия и отправка:' : 'Payslip Actions & ROS Quick-Copy:'}</p>
+                    <div className="flex gap-2 font-sans">
+                      <button
+                        onClick={handleEmailPayslipToEmployee}
+                        className="px-3.5 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md inline-flex items-center gap-1.5"
+                      >
+                        <Mail className="w-4 h-4" /> {lang === 'ru' ? '📧 Отправить по Email' : '📧 Email Payslip'}
+                      </button>
+                      <button
+                        onClick={handleSavePayslipToLedger}
+                        className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all border border-slate-700"
+                      >
+                        💾 {lang === 'ru' ? 'Сохранить в архив' : 'Save to Ledger'}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
@@ -3326,14 +3398,14 @@ export default function App() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs min-w-[650px]">
+                  <table className="w-full text-left border-collapse text-xs min-w-[700px]">
                     <thead>
                       <tr className="border-b border-slate-700/50 opacity-70">
                         <th className="py-2.5 px-3">{lang === 'ru' ? 'Имя' : 'Employee Name'}</th>
+                        <th className="py-2.5 px-3">Email</th>
                         <th className="py-2.5 px-3">PPSN</th>
                         <th className="py-2.5 px-3">{lang === 'ru' ? 'Должность' : 'Role'}</th>
                         <th className="py-2.5 px-3">{lang === 'ru' ? 'Ставка/час' : 'Hourly Rate'}</th>
-                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Налог. кредит' : 'Tax Credit/wk'}</th>
                         <th className="py-2.5 px-3">{lang === 'ru' ? 'Статус' : 'Status'}</th>
                         <th className="py-2.5 px-3 text-right">{translations.actions}</th>
                       </tr>
@@ -3347,10 +3419,10 @@ export default function App() {
                         employees.map(emp => (
                           <tr key={emp.docId} className="hover:bg-slate-500/5 transition-colors">
                             <td className="py-3 px-3 font-semibold">{emp.name}</td>
+                            <td className="py-3 px-3 font-mono text-teal-400">{emp.email || 'No Email'}</td>
                             <td className="py-3 px-3 font-mono opacity-80">{emp.ppsn || '—'}</td>
                             <td className="py-3 px-3">{emp.role}</td>
                             <td className="py-3 px-3 font-bold text-teal-400">€{Number(emp.hourlyRate).toFixed(2)}/hr</td>
-                            <td className="py-3 px-3">€{Number(emp.weeklyTaxCredit).toFixed(2)}</td>
                             <td className="py-3 px-3">
                               <span className="bg-teal-500/10 border border-teal-500/30 text-teal-400 px-2 py-0.5 rounded-full text-[10px] font-bold">
                                 {emp.status || 'Active'}
@@ -3362,6 +3434,7 @@ export default function App() {
                                   setEditingEmployeeId(emp.docId);
                                   setEmpForm({
                                     name: emp.name || '',
+                                    email: emp.email || '',
                                     ppsn: emp.ppsn || '',
                                     hourlyRate: emp.hourlyRate ? String(emp.hourlyRate) : '13.50',
                                     weeklyTaxCredit: emp.weeklyTaxCredit ? String(emp.weeklyTaxCredit) : '71.50',
@@ -3403,9 +3476,9 @@ export default function App() {
                       <tr className="border-b border-slate-700/50 opacity-70">
                         <th className="py-2.5 px-3">{lang === 'ru' ? 'Дата' : 'Pay Date'}</th>
                         <th className="py-2.5 px-3">{lang === 'ru' ? 'Сотрудник' : 'Employee'}</th>
+                        <th className="py-2.5 px-3">Email</th>
                         <th className="py-2.5 px-3">{lang === 'ru' ? 'Часы' : 'Hours'}</th>
                         <th className="py-2.5 px-3">Gross (€)</th>
-                        <th className="py-2.5 px-3">PAYE/PRSI/USC</th>
                         <th className="py-2.5 px-3">Net Pay (€)</th>
                         <th className="py-2.5 px-3 text-right">{translations.actions}</th>
                       </tr>
@@ -3420,20 +3493,21 @@ export default function App() {
                           <tr key={pr.docId} className="hover:bg-slate-500/5 transition-colors">
                             <td className="py-3 px-3 font-mono">{pr.payDate}</td>
                             <td className="py-3 px-3 font-semibold">{pr.employeeName}</td>
+                            <td className="py-3 px-3 font-mono text-teal-400">{pr.employeeEmail || '—'}</td>
                             <td className="py-3 px-3">{pr.hoursWorked} hrs</td>
                             <td className="py-3 px-3 font-bold text-white">€{Number(pr.grossPay).toFixed(2)}</td>
-                            <td className="py-3 px-3 font-mono text-rose-400">-€{Number(pr.totalDeductions).toFixed(2)}</td>
                             <td className="py-3 px-3 font-bold text-teal-400">€{Number(pr.netPay).toFixed(2)}</td>
                             <td className="py-3 px-3 text-right space-x-2">
                               <button
                                 onClick={() => {
                                   setEmployeeName(pr.employeeName || '');
+                                  setEmployeeEmail(pr.employeeEmail || '');
                                   setEmployeePPSN(pr.ppsn || '');
                                   setPayDate(pr.payDate || new Date().toISOString().split('T')[0]);
                                   setHoursWorked(String(pr.hoursWorked || '39'));
                                   setHourlyRate(String(pr.hourlyRate || '13.50'));
                                   window.scrollTo({ top: 0, behavior: 'smooth' });
-                                  showToast(lang === 'ru' ? 'Листок загружен в превью!' : 'Payslip loaded into preview. Click "Print Payslip" above!');
+                                  showToast(lang === 'ru' ? 'Листок загружен в превью!' : 'Payslip loaded into preview!');
                                 }}
                                 className="px-2.5 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
                               >
