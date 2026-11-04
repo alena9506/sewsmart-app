@@ -70,7 +70,6 @@ export default function App() {
 
   const [lang, setLang] = useState('en'); // 'en' or 'ru'
   
-  // Persist activeTab in localStorage so refreshing keeps you on the same page
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('alico_active_tab') || 'intake';
   });
@@ -95,7 +94,6 @@ export default function App() {
   const [unlockPinInput, setUnlockPinInput] = useState('');
   const [unlockPinError, setUnlockPinError] = useState(false);
 
-  // In-App Toast Notification State
   const [toastMessage, setToastMessage] = useState(null);
 
   const [confirmModal, setConfirmModal] = useState({
@@ -110,6 +108,19 @@ export default function App() {
 
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
+  
+  // Bookkeeping Specific Date Filter
+  const [bookkeepingDateFilter, setBookkeepingDateFilter] = useState('');
+
+  // Expense Editing State
+  const [editingExpenseId, setEditingExpenseId] = useState(null);
+  const [editExpenseValues, setEditExpenseValues] = useState({
+    description: '',
+    category: 'Supplies & Materials',
+    amount: '',
+    date: '',
+    isRecurring: false
+  });
 
   const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); 
   const [optimizationPin, setOptimizationPin] = useState('');
@@ -343,7 +354,7 @@ export default function App() {
       cardPayments: 'Card Payments',
       cashPayments: 'Cash Payments',
       bookkeepingTitle: 'Business Expense Bookkeeping',
-      bookkeepingDesc: 'Record expenses below.',
+      bookkeepingDesc: 'Record and edit business expenses below.',
       exportExpensesBtn: 'Export Expenses (CSV)',
       customDateRange: 'Custom Date Range:',
       clearCustomRange: 'Clear Custom Range',
@@ -477,7 +488,7 @@ export default function App() {
       cardPayments: 'Оплата картой',
       cashPayments: 'Наличные',
       bookkeepingTitle: 'Бухгалтерия и учет расходов',
-      bookkeepingDesc: 'Вносите расходы ниже.',
+      bookkeepingDesc: 'Вносите и редактируйте расходы ниже.',
       exportExpensesBtn: 'Экспорт расходов (CSV)',
       customDateRange: 'Произвольный диапазон дат:',
       clearCustomRange: 'Сбросить даты',
@@ -1055,6 +1066,30 @@ export default function App() {
     }
   };
 
+  const handleUpdateExpense = async (e) => {
+    e.preventDefault();
+    const amountNum = Number(editExpenseValues.amount);
+    if (!amountNum || amountNum <= 0 || !editExpenseValues.description.trim()) {
+      showToast(lang === 'ru' ? 'Введите корректное описание и сумму расхода.' : 'Please enter a valid description and amount.');
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, 'expenses', editingExpenseId), {
+        description: editExpenseValues.description.trim(),
+        category: editExpenseValues.category,
+        amount: amountNum,
+        date: editExpenseValues.date,
+        isRecurring: editExpenseValues.isRecurring
+      });
+      setEditingExpenseId(null);
+      showToast(lang === 'ru' ? 'Расход успешно обновлен!' : 'Expense successfully updated!');
+    } catch (error) {
+      console.error('Error updating expense:', error);
+      showToast(lang === 'ru' ? 'Не удалось обновить расход.' : 'Failed to update expense.');
+    }
+  };
+
   const deleteExpense = (docId) => {
     if (!isAdmin) return;
     setConfirmModal({
@@ -1219,6 +1254,10 @@ export default function App() {
 
   const filteredExpensesByTimeframe = expenses.filter(ex => {
     const dateStr = ex.date || ex.createdAt?.split('T')[0];
+    // If bookkeeping has a direct single-day/date filter applied, respect it directly here
+    if (bookkeepingDateFilter) {
+      return dateStr === bookkeepingDateFilter;
+    }
     return matchesTimeframe(dateStr);
   });
 
@@ -1455,6 +1494,103 @@ export default function App() {
           }
         }
       `}</style>
+
+      {/* Expense Edit Modal */}
+      {editingExpenseId && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 text-white animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-teal-400" /> {lang === 'ru' ? 'Редактировать расход' : 'Edit Expense Record'}
+              </h3>
+              <button 
+                onClick={() => setEditingExpenseId(null)}
+                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateExpense} className="space-y-4">
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Дата' : 'Date'}</label>
+                <input 
+                  type="date"
+                  required
+                  value={editExpenseValues.date}
+                  style={{ colorScheme: dateInputColorScheme }}
+                  onChange={(e) => setEditExpenseValues({ ...editExpenseValues, date: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{text.vendorLabel}</label>
+                <input 
+                  type="text"
+                  required
+                  value={editExpenseValues.description}
+                  onChange={(e) => setEditExpenseValues({ ...editExpenseValues, description: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{text.categoryLabel}</label>
+                <select
+                  value={editExpenseValues.category}
+                  onChange={(e) => setEditExpenseValues({ ...editExpenseValues, category: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                >
+                  {EXPENSE_CATEGORIES.map(cat => (
+                    <option key={cat.key} value={cat.key}>{cat.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{text.amountLabel}</label>
+                <input 
+                  type="number"
+                  step="0.01"
+                  required
+                  value={editExpenseValues.amount}
+                  onChange={(e) => setEditExpenseValues({ ...editExpenseValues, amount: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold text-teal-400 focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="pt-2">
+                <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    checked={editExpenseValues.isRecurring}
+                    onChange={(e) => setEditExpenseValues({ ...editExpenseValues, isRecurring: e.target.checked })}
+                    className="w-4 h-4 accent-teal-500 rounded cursor-pointer"
+                  />
+                  <span>{text.recurringMonthlyBill}</span>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingExpenseId(null)}
+                  className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl text-xs transition-all border border-slate-700"
+                >
+                  {text.cancelBtn}
+                </button>
+                <button
+                  type="submit"
+                  className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition-all shadow-lg"
+                >
+                  {text.saveBtn}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Customer Order History Detail Modal */}
       {selectedCustomerForHistory && (
@@ -2925,35 +3061,28 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Direct Day/Date Picker for Bookkeeping */}
               <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
                 <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-teal-400" /> {text.customDateRange}
+                  <Calendar className="w-4 h-4 text-teal-400" /> {lang === 'ru' ? 'Фильтр по конкретной дате:' : 'Filter Records by Specific Date:'}
                 </span>
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
                   <input 
                     type="date"
-                    value={startDateFilter}
+                    value={bookkeepingDateFilter}
                     style={{ colorScheme: dateInputColorScheme }}
-                    onChange={(e) => setStartDateFilter(e.target.value)}
+                    onChange={(e) => setBookkeepingDateFilter(e.target.value)}
                     className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
                   />
-                  <span className="text-xs opacity-60">to</span>
-                  <input 
-                    type="date"
-                    value={endDateFilter}
-                    style={{ colorScheme: dateInputColorScheme }}
-                    onChange={(e) => setEndDateFilter(e.target.value)}
-                    className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
-                  />
+                  {bookkeepingDateFilter && (
+                    <button
+                      onClick={() => setBookkeepingDateFilter('')}
+                      className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-2"
+                    >
+                      {text.clearCustomRange}
+                    </button>
+                  )}
                 </div>
-                {(startDateFilter || endDateFilter) && (
-                  <button
-                    onClick={() => { setStartDateFilter(''); setEndDateFilter(''); }}
-                    className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-auto"
-                  >
-                    {text.clearCustomRange}
-                  </button>
-                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
@@ -3090,7 +3219,22 @@ export default function App() {
                           </td>
                           <td className="py-3 px-3 opacity-80">{ex.category}</td>
                           <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
-                          <td className="py-3 px-3 text-right">
+                          <td className="py-3 px-3 text-right space-x-2">
+                            <button
+                              onClick={() => {
+                                setEditingExpenseId(ex.docId);
+                                setEditExpenseValues({
+                                  description: ex.description || '',
+                                  category: ex.category || 'Supplies & Materials',
+                                  amount: ex.amount || '',
+                                  date: ex.date || new Date().toISOString().split('T')[0],
+                                  isRecurring: !!ex.isRecurring
+                                });
+                              }}
+                              className="px-3 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1"
+                            >
+                              <Edit2 className="w-3 h-3" /> {text.editBtn}
+                            </button>
                             <button
                               onClick={() => deleteExpense(ex.docId)}
                               className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
