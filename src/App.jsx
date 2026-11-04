@@ -89,6 +89,8 @@ export default function App() {
   }, [themeMode]);
 
   const [reportTimeframe, setReportTimeframe] = useState('month');
+  const [bookkeepingTimeframe, setBookkeepingTimeframe] = useState('month');
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTerminalLocked, setIsTerminalLocked] = useState(false);
   const [unlockPinInput, setUnlockPinInput] = useState('');
@@ -109,8 +111,8 @@ export default function App() {
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
   
-  // Bookkeeping Specific Date Filter
-  const [bookkeepingDateFilter, setBookkeepingDateFilter] = useState('');
+  const [bookkeepingStartDate, setBookkeepingStartDate] = useState('');
+  const [bookkeepingEndDate, setBookkeepingEndDate] = useState('');
 
   // Expense Editing State
   const [editingExpenseId, setEditingExpenseId] = useState(null);
@@ -1217,21 +1219,21 @@ export default function App() {
 
   const now = new Date();
 
-  const matchesTimeframe = (dateString) => {
+  const matchesTimeframe = (dateString, timeframe, startF, endF) => {
     if (!dateString) return false;
     const itemDate = new Date(dateString);
     if (isNaN(itemDate.getTime())) return false;
 
-    if (startDateFilter && endDateFilter) {
-      const start = new Date(startDateFilter);
-      const end = new Date(endDateFilter);
+    if (startF && endF) {
+      const start = new Date(startF);
+      const end = new Date(endF);
       end.setHours(23, 59, 59, 999);
       return itemDate >= start && itemDate <= end;
     }
 
-    if (reportTimeframe === 'day') {
+    if (timeframe === 'day') {
       return itemDate.toDateString() === now.toDateString();
-    } else if (reportTimeframe === 'week') {
+    } else if (timeframe === 'week') {
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - now.getDay());
       startOfWeek.setHours(0, 0, 0, 0);
@@ -1239,9 +1241,9 @@ export default function App() {
       endOfWeek.setDate(startOfWeek.getDate() + 6);
       endOfWeek.setHours(23, 59, 59, 999);
       return itemDate >= startOfWeek && itemDate <= endOfWeek;
-    } else if (reportTimeframe === 'month') {
+    } else if (timeframe === 'month') {
       return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
-    } else if (reportTimeframe === 'year') {
+    } else if (timeframe === 'year') {
       return itemDate.getFullYear() === now.getFullYear();
     }
     return true;
@@ -1249,16 +1251,12 @@ export default function App() {
 
   const filteredOrdersByTimeframe = orders.filter(o => {
     const dateStr = o.dueDate || o.createdAt?.split('T')[0];
-    return matchesTimeframe(dateStr);
+    return matchesTimeframe(dateStr, reportTimeframe, startDateFilter, endDateFilter);
   });
 
   const filteredExpensesByTimeframe = expenses.filter(ex => {
     const dateStr = ex.date || ex.createdAt?.split('T')[0];
-    // If bookkeeping has a direct single-day/date filter applied, respect it directly here
-    if (bookkeepingDateFilter) {
-      return dateStr === bookkeepingDateFilter;
-    }
-    return matchesTimeframe(dateStr);
+    return matchesTimeframe(dateStr, bookkeepingTimeframe, bookkeepingStartDate, bookkeepingEndDate);
   });
 
   const periodRevenue = filteredOrdersByTimeframe.reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
@@ -1318,7 +1316,7 @@ export default function App() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `ALiCo_Expenses_${reportTimeframe}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `ALiCo_Expenses_${bookkeepingTimeframe}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -3061,23 +3059,56 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Direct Day/Date Picker for Bookkeeping */}
-              <div className={`p-4 rounded-2xl border flex flex-wrap items-center gap-4 ${t.subCardBg}`}>
-                <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-teal-400" /> {lang === 'ru' ? 'Фильтр по конкретной дате:' : 'Filter Records by Specific Date:'}
-                </span>
-                <div className="flex items-center gap-2">
+              {/* Full Timeframe & Custom Date Range Filter for Bookkeeping */}
+              <div className={`p-4 rounded-2xl border flex flex-wrap justify-between items-center gap-4 ${t.subCardBg}`}>
+                <div className={`flex p-1.5 rounded-2xl border ${t.navToggleBg}`}>
+                  <button
+                    onClick={() => { setBookkeepingTimeframe('day'); setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${bookkeepingTimeframe === 'day' && !bookkeepingStartDate ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.todayBtn}
+                  </button>
+                  <button
+                    onClick={() => { setBookkeepingTimeframe('week'); setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${bookkeepingTimeframe === 'week' && !bookkeepingStartDate ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.thisWeekBtn}
+                  </button>
+                  <button
+                    onClick={() => { setBookkeepingTimeframe('month'); setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${bookkeepingTimeframe === 'month' && !bookkeepingStartDate ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.thisMonthBtn}
+                  </button>
+                  <button
+                    onClick={() => { setBookkeepingTimeframe('year'); setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${bookkeepingTimeframe === 'year' && !bookkeepingStartDate ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
+                  >
+                    {text.thisYearBtn}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-semibold opacity-75">{text.customDateRange}</span>
                   <input 
                     type="date"
-                    value={bookkeepingDateFilter}
+                    value={bookkeepingStartDate}
                     style={{ colorScheme: dateInputColorScheme }}
-                    onChange={(e) => setBookkeepingDateFilter(e.target.value)}
+                    onChange={(e) => setBookkeepingStartDate(e.target.value)}
                     className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
                   />
-                  {bookkeepingDateFilter && (
+                  <span className="text-xs opacity-60">to</span>
+                  <input 
+                    type="date"
+                    value={bookkeepingEndDate}
+                    style={{ colorScheme: dateInputColorScheme }}
+                    onChange={(e) => setBookkeepingEndDate(e.target.value)}
+                    className={`border rounded-xl px-3 py-1.5 text-xs focus:outline-none ${t.innerInputBg}`}
+                  />
+                  {(bookkeepingStartDate || bookkeepingEndDate) && (
                     <button
-                      onClick={() => setBookkeepingDateFilter('')}
-                      className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-2"
+                      onClick={() => { setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
+                      className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-1"
                     >
                       {text.clearCustomRange}
                     </button>
