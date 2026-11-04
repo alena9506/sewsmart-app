@@ -1841,7 +1841,7 @@ export default function App() {
       <style>{`
         @media print {
           body, html {
-            width: 72mm !important;
+            width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
             background: white !important;
@@ -1873,9 +1873,25 @@ export default function App() {
             box-shadow: none !important;
             page-break-inside: avoid;
           }
+
+          /* Allows the Official Payslip Card to print cleanly on A4/Letter */
+          .payslip-print-card, .payslip-print-card * {
+            visibility: visible !important;
+          }
+          .payslip-print-card {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+
           @page {
-            size: 72mm auto;
-            margin: 0mm;
+            size: auto;
+            margin: 10mm;
           }
         }
       `}</style>
@@ -3201,7 +3217,7 @@ export default function App() {
               </div>
 
               {/* Official Payslip Card Preview */}
-              <div className="bg-white text-slate-900 border border-slate-300 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+              <div className="payslip-print-card bg-white text-slate-900 border border-slate-300 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
                 <div className="flex justify-between items-start border-b border-slate-200 pb-4">
                   <div>
                     <h3 className="text-base font-black tracking-tight">ALiCo DUBLIN</h3>
@@ -3408,7 +3424,21 @@ export default function App() {
                             <td className="py-3 px-3 font-bold text-white">€{Number(pr.grossPay).toFixed(2)}</td>
                             <td className="py-3 px-3 font-mono text-rose-400">-€{Number(pr.totalDeductions).toFixed(2)}</td>
                             <td className="py-3 px-3 font-bold text-teal-400">€{Number(pr.netPay).toFixed(2)}</td>
-                            <td className="py-3 px-3 text-right">
+                            <td className="py-3 px-3 text-right space-x-2">
+                              <button
+                                onClick={() => {
+                                  setEmployeeName(pr.employeeName || '');
+                                  setEmployeePPSN(pr.ppsn || '');
+                                  setPayDate(pr.payDate || new Date().toISOString().split('T')[0]);
+                                  setHoursWorked(String(pr.hoursWorked || '39'));
+                                  setHourlyRate(String(pr.hourlyRate || '13.50'));
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                  showToast(lang === 'ru' ? 'Листок загружен в превью!' : 'Payslip loaded into preview. Click "Print Payslip" above!');
+                                }}
+                                className="px-2.5 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-bold inline-flex items-center gap-1"
+                              >
+                                <Eye className="w-3 h-3" /> {lang === 'ru' ? 'Просмотр / Печать' : 'View & Print'}
+                              </button>
                               <button
                                 onClick={() => deletePayrollRecord(pr.docId)}
                                 className="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
