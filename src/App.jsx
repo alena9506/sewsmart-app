@@ -146,6 +146,15 @@ export default function App() {
   const [previewReceiptUrl, setPreviewReceiptUrl] = useState(null);
   const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
 
+  // Payroll / Payslip State
+  const [employeeName, setEmployeeName] = useState('Maria Smith');
+  const [employeePPSN, setEmployeePPSN] = useState('1234567A');
+  const [payPeriod, setPayPeriod] = useState('Weekly');
+  const [payDate, setPayDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [hoursWorked, setHoursWorked] = useState('39');
+  const [hourlyRate, setHourlyRate] = useState('13.50');
+  const [weeklyTaxCredit, setWeeklyTaxCredit] = useState('71.50'); // Standard single person weekly tax credit approx
+
   const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); 
   const [optimizationPin, setOptimizationPin] = useState('');
   const [isOptimizationUnlocked, setIsOptimizationUnlocked] = useState(false);
@@ -326,6 +335,7 @@ export default function App() {
       orders: 'Orders',
       reports: 'Reports',
       bookkeeping: 'Bookkeeping',
+      payroll: 'Payroll',
       inventory: 'Inventory',
       loyalty: 'Customer Visits',
       priceBookTab: 'Price Book',
@@ -461,6 +471,7 @@ export default function App() {
       orders: 'Заказы',
       reports: 'Отчеты',
       bookkeeping: 'Бухгалтерия',
+      payroll: 'Зарплата',
       inventory: 'Склад',
       loyalty: 'Клиенты',
       priceBookTab: 'Цены',
@@ -724,6 +735,35 @@ export default function App() {
   const calculatedTotal = isRushOrder
     ? (rushFeeType === 'fixed' ? discountedSubtotal + 5.00 : discountedSubtotal * 1.20)
     : discountedSubtotal;
+
+  // Payroll Calculations (Irish Tax Rules)
+  const gpHours = Number(hoursWorked) || 0;
+  const gpRate = Number(hourlyRate) || 0;
+  const grossPay = gpHours * gpRate;
+  
+  // Weekly PRSI (Class A employee: 4% if weekly earnings > €352, else 0%)
+  const employeePrsi = grossPay > 352 ? grossPay * 0.04 : 0;
+  
+  // Weekly USC (Standard Irish thresholds: 0.5% up to €257/wk, 2% up to €643/wk)
+  let employeeUsc = 0;
+  if (grossPay > 257) {
+    const firstTier = Math.min(grossPay, 643) - 257;
+    employeeUsc += firstTier * 0.02;
+    if (grossPay > 643) {
+      employeeUsc += (grossPay - 643) * 0.04;
+    }
+    employeeUsc += 257 * 0.005;
+  } else {
+    employeeUsc += grossPay * 0.005;
+  }
+
+  // Weekly PAYE (20% standard rate up to standard cutoff, minus tax credits)
+  const taxCreditNum = Number(weeklyTaxCredit) || 0;
+  const grossTaxBeforeCredit = grossPay * 0.20;
+  const employeePaye = Math.max(0, grossTaxBeforeCredit - taxCreditNum);
+
+  const totalDeductions = employeePrsi + employeeUsc + employeePaye;
+  const netPay = Math.max(0, grossPay - totalDeductions);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -2249,6 +2289,13 @@ export default function App() {
                   )}
                 </button>
                 <button 
+                  onClick={() => setActiveTab('payroll')}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'payroll' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+                  title={translations.payroll}
+                >
+                  <User className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.payroll}</span>
+                </button>
+                <button 
                   onClick={() => setActiveTab('loyalty')}
                   className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'loyalty' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={translations.loyalty}
@@ -2733,6 +2780,189 @@ export default function App() {
                     <Printer className="w-3.5 h-3.5" /> {translations.printReceiptsNow}
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PAYROLL & PAYSLIP GENERATOR TAB */}
+        {activeTab === 'payroll' && isAdmin && (
+          <div className="space-y-6 max-w-4xl mx-auto w-full">
+            <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
+              <div className="flex justify-between items-center flex-wrap gap-4">
+                <div>
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <User className={`w-6 h-6 ${t.textAccent}`} /> {lang === 'ru' ? 'Зарплата и генератор расчетных листков (Ирландия)' : 'Irish Payroll & Payslip Generator'}
+                  </h2>
+                  <p className="text-xs opacity-75">{lang === 'ru' ? 'Рассчитывайте часы, налоги PAYE/PRSI/USC и генерируйте платежные ведомости для ROS.' : 'Track hours, compute Irish statutory deductions (PAYE, PRSI, USC), and generate compliant payslips.'}</p>
+                </div>
+                <button
+                  onClick={() => window.print()}
+                  className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-lg"
+                >
+                  <Printer className="w-4 h-4" /> {lang === 'ru' ? 'Печать / Сохранить листок' : 'Print / Save Payslip'}
+                </button>
+              </div>
+
+              {/* Employee Input Form */}
+              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <h3 className="text-xs font-bold uppercase tracking-wider">{lang === 'ru' ? 'Данные сотрудника и расчет периода' : 'Employee Details & Period Calculation'}</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Имя сотрудника' : 'Employee Name'}</label>
+                    <input 
+                      type="text"
+                      value={employeeName}
+                      onChange={(e) => setEmployeeName(e.target.value)}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'PPSN (ИНН Ирландии)' : 'Employee PPSN'}</label>
+                    <input 
+                      type="text"
+                      value={employeePPSN}
+                      onChange={(e) => setEmployeePPSN(e.target.value)}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Дата выплаты' : 'Pay Date'}</label>
+                    <input 
+                      type="date"
+                      value={payDate}
+                      style={{ colorScheme: dateInputColorScheme }}
+                      onChange={(e) => setPayDate(e.target.value)}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Отработано часов' : 'Hours Worked'}</label>
+                    <input 
+                      type="number"
+                      step="0.5"
+                      value={hoursWorked}
+                      onChange={(e) => setHoursWorked(e.target.value)}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Ставка в час (€)' : 'Hourly Rate (€)'}</label>
+                    <input 
+                      type="number"
+                      step="0.25"
+                      value={hourlyRate}
+                      onChange={(e) => setHourlyRate(e.target.value)}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Недельный налоговый кредит (€)' : 'Weekly Tax Credit (€)'}</label>
+                    <input 
+                      type="number"
+                      step="0.50"
+                      value={weeklyTaxCredit}
+                      onChange={(e) => setWeeklyTaxCredit(e.target.value)}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Official Payslip Preview Card */}
+              <div className="bg-white text-slate-900 border border-slate-300 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+                <div className="flex justify-between items-start border-b border-slate-200 pb-4">
+                  <div>
+                    <h3 className="text-base font-black tracking-tight">ALiCo DUBLIN</h3>
+                    <p className="text-[11px] text-slate-500">{lang === 'ru' ? 'Официальный расчетный листок (Payslip)' : 'Official Statement of Earnings (Payslip)'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-teal-700">{lang === 'ru' ? 'Период: Еженедельно' : 'Pay Period: Weekly'}</p>
+                    <p className="text-[11px] text-slate-500 font-mono">Date: {payDate}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <div>
+                    <p><strong className="text-slate-500">{lang === 'ru' ? 'Сотрудник:' : 'Employee Name:'}</strong> {employeeName}</p>
+                    <p><strong className="text-slate-500">PPSN:</strong> {employeePPSN}</p>
+                  </div>
+                  <div>
+                    <p><strong className="text-slate-500">{lang === 'ru' ? 'Часов:' : 'Hours:'}</strong> {hoursWorked} hrs @ €{Number(hourlyRate).toFixed(2)}/hr</p>
+                    <p><strong className="text-slate-500">{lang === 'ru' ? 'Статус PRSI:' : 'PRSI Class:'}</strong> Class A1</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 border-b pb-1">{lang === 'ru' ? 'Начисления (Gross Pay)' : 'Payments (Earnings)'}</h4>
+                    <div className="flex justify-between text-xs">
+                      <span>{lang === 'ru' ? 'Основная зарплата' : 'Basic Pay'} ({hoursWorked} hrs)</span>
+                      <span className="font-bold font-mono">€{grossPay.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs font-black border-t pt-2 text-teal-800">
+                      <span>{lang === 'ru' ? 'Итого начислено (Gross):' : 'Total Gross Pay:'}</span>
+                      <span className="font-mono">€{grossPay.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 border-b pb-1">{lang === 'ru' ? 'Удержания (Deductions)' : 'Statutory Deductions'}</h4>
+                    <div className="flex justify-between text-xs">
+                      <span>PAYE (Income Tax)</span>
+                      <span className="font-mono text-rose-600">-€{employeePaye.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>PRSI (Employee 4%)</span>
+                      <span className="font-mono text-rose-600">-€{employeePrsi.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>USC (Universal Social Charge)</span>
+                      <span className="font-mono text-rose-600">-€{employeeUsc.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs font-black border-t pt-2 text-rose-700">
+                      <span>{lang === 'ru' ? 'Всего удержаний:' : 'Total Deductions:'}</span>
+                      <span className="font-mono">-€{totalDeductions.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-teal-900 text-white p-5 rounded-2xl flex justify-between items-center shadow-lg">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-teal-300 font-bold">{lang === 'ru' ? 'К выплате на руки (Net Pay)' : 'Net Take-Home Pay'}</p>
+                    <p className="text-xs text-slate-300 mt-0.5">{lang === 'ru' ? 'Перевод на банковский счет сотрудника' : 'Transferred to employee bank account'}</p>
+                  </div>
+                  <div className="text-2xl font-black font-mono text-teal-300">
+                    €{netPay.toFixed(2)}
+                  </div>
+                </div>
+
+                {/* ROS Copy-Paste Helper Box */}
+                <div className="bg-slate-900 text-slate-100 p-4 rounded-2xl space-y-2 text-xs font-mono">
+                  <p className="text-teal-400 font-bold font-sans">📋 {lang === 'ru' ? 'Данные для копирования в ROS (Real-Time PAYE):' : 'ROS Submission Quick-Copy Values:'}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] pt-1">
+                    <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 block text-[9px]">Gross Pay</span>
+                      <span className="font-bold text-white">€{grossPay.toFixed(2)}</span>
+                    </div>
+                    <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 block text-[9px]">PAYE</span>
+                      <span className="font-bold text-white">€{employeePaye.toFixed(2)}</span>
+                    </div>
+                    <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 block text-[9px]">PRSI</span>
+                      <span className="font-bold text-white">€{employeePrsi.toFixed(2)}</span>
+                    </div>
+                    <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                      <span className="text-slate-400 block text-[9px]">USC</span>
+                      <span className="font-bold text-white">€{employeeUsc.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
