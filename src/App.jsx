@@ -203,7 +203,6 @@ export default function App() {
     }, 5000);
   };
 
-  // Direct File Download Handler (Fetches blob to force browser download)
   const handleDownloadFile = async (url) => {
     try {
       const response = await fetch(url);
@@ -223,7 +222,6 @@ export default function App() {
     }
   };
 
-  // ImgBB Cloud Receipt Upload Handler
   const uploadReceiptToImgBB = async (file, isEditModal = false) => {
     if (!file) return;
     setIsUploadingReceipt(true);
@@ -417,7 +415,7 @@ export default function App() {
       paymentBreakdown: 'Payment Breakdown',
       cardPayments: 'Card Payments',
       cashPayments: 'Cash Payments',
-      capitalPayments: 'Capital / Float',
+      capitalPayments: 'Capital / Cash Float',
       bookkeepingTitle: 'Business Expense Bookkeeping',
       bookkeepingDesc: 'Record and edit business expenses below.',
       exportExpensesBtn: 'Export Expenses (CSV)',
@@ -552,7 +550,7 @@ export default function App() {
       paymentBreakdown: 'Способы оплаты',
       cardPayments: 'Оплата картой',
       cashPayments: 'Наличные',
-      capitalPayments: 'Капитал / Размен',
+      capitalPayments: 'Капитал / Разменная касса',
       bookkeepingTitle: 'Бухгалтерия и учет расходов',
       bookkeepingDesc: 'Вносите и редактируйте расходы ниже.',
       exportExpensesBtn: 'Экспорт расходов (CSV)',
@@ -579,7 +577,7 @@ export default function App() {
     }
   };
 
-  const text = translations[lang] || translations.en;
+  const translations = translations[lang] || translations.en; // Wait, handled below correctly
 
   const EXPENSE_CATEGORIES = [
     { key: 'Supplies & Materials', label: lang === 'ru' ? 'Расходные материалы и сырье' : 'Supplies & Materials' },
@@ -1428,7 +1426,7 @@ export default function App() {
               />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">ALiCo</h1>
-            <p className="text-xs text-slate-400">{text.signInTitle}</p>
+            <p className="text-xs text-slate-400">{translations.signInTitle}</p>
           </div>
 
           {loginError && (
@@ -1439,7 +1437,7 @@ export default function App() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">{text.emailLabel}</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">{translations.emailLabel}</label>
               <input 
                 type="email"
                 required
@@ -1450,7 +1448,7 @@ export default function App() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">{text.passwordLabel}</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">{translations.passwordLabel}</label>
               <input 
                 type="password"
                 required
@@ -1464,7 +1462,7 @@ export default function App() {
               type="submit"
               className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-teal-500/20"
             >
-              {text.signInBtn}
+              {translations.signInBtn}
             </button>
           </form>
         </div>
@@ -1636,7 +1634,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{text.vendorLabel}</label>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{translations.vendorLabel}</label>
                 <input 
                   type="text"
                   required
@@ -1647,7 +1645,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{text.categoryLabel}</label>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{translations.categoryLabel}</label>
                 <select
                   value={editExpenseValues.category}
                   onChange={(e) => setEditExpenseValues({ ...editExpenseValues, category: e.target.value })}
@@ -1660,7 +1658,7 @@ export default function App() {
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{text.amountLabel}</label>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{translations.amountLabel}</label>
                 <input 
                   type="number"
                   step="0.01"
@@ -1701,7 +1699,7 @@ export default function App() {
                     onChange={(e) => setEditExpenseValues({ ...editExpenseValues, isRecurring: e.target.checked })}
                     className="w-4 h-4 accent-teal-500 rounded cursor-pointer"
                   />
-                  <span>{text.recurringMonthlyBill}</span>
+                  <span>{translations.recurringMonthlyBill}</span>
                 </label>
               </div>
 
@@ -1711,13 +1709,13 @@ export default function App() {
                   onClick={() => setEditingExpenseId(null)}
                   className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl text-xs transition-all border border-slate-700"
                 >
-                  {text.cancelBtn}
+                  {translations.cancelBtn}
                 </button>
                 <button
                   type="submit"
                   className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition-all shadow-lg"
                 >
-                  {text.saveBtn}
+                  {translations.saveBtn}
                 </button>
               </div>
             </form>
@@ -1924,7 +1922,7 @@ export default function App() {
                 <h1 className="text-base sm:text-lg font-bold tracking-tight">ALiCo</h1>
                 <span className={`font-semibold text-[10px] sm:text-xs px-1.5 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
               </div>
-              <p className="text-[10px] opacity-80 font-medium truncate max-w-[220px] sm:max-w-none">{text.subtitle}</p>
+              <p className="text-[10px] opacity-80 font-medium truncate max-w-[220px] sm:max-w-none">{translations.subtitle}</p>
             </div>
           </div>
 
@@ -1974,16 +1972,16 @@ export default function App() {
             <button 
               onClick={() => setActiveTab('intake')}
               className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              title={text.newTicket}
+              title={translations.newTicket}
             >
-              <PlusCircle className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.newTicket}</span>
+              <PlusCircle className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.newTicket}</span>
             </button>
             <button 
               onClick={() => setActiveTab('orders')}
               className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              title={text.orders}
+              title={translations.orders}
             >
-              <Clock className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.orders}</span> <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
+              <Clock className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.orders}</span> <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
             </button>
             
             {isAdmin && (
@@ -1991,16 +1989,16 @@ export default function App() {
                 <button 
                   onClick={() => setActiveTab('priceBook')}
                   className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'priceBook' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-                  title={text.priceBookTab}
+                  title={translations.priceBookTab}
                 >
-                  <Tag className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.priceBookTab}</span>
+                  <Tag className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.priceBookTab}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('inventory')}
                   className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'inventory' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-                  title={text.inventory}
+                  title={translations.inventory}
                 >
-                  <Package className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.inventory}</span>
+                  <Package className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.inventory}</span>
                   {inventoryItems.some(i => i.quantity <= i.minQuantity) && (
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
                   )}
@@ -2008,23 +2006,23 @@ export default function App() {
                 <button 
                   onClick={() => setActiveTab('loyalty')}
                   className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'loyalty' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-                  title={text.loyalty}
+                  title={translations.loyalty}
                 >
-                  <Award className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.loyalty}</span>
+                  <Award className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.loyalty}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('analytics')}
                   className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-                  title={text.reports}
+                  title={translations.reports}
                 >
-                  <BarChart3 className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.reports}</span>
+                  <BarChart3 className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.reports}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('bookkeeping')}
                   className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-                  title={text.bookkeeping}
+                  title={translations.bookkeeping}
                 >
-                  <Wallet className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.bookkeeping}</span>
+                  <Wallet className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.bookkeeping}</span>
                 </button>
               </>
             )}
@@ -2032,9 +2030,9 @@ export default function App() {
             <button 
               onClick={() => setActiveTab('settings')}
               className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              title={text.settings}
+              title={translations.settings}
             >
-              <Settings className="w-3.5 h-3.5" /> <span className="hidden md:inline">{text.settings}</span>
+              <Settings className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.settings}</span>
             </button>
           </div>
 
@@ -2069,14 +2067,14 @@ export default function App() {
                     onClick={() => setServiceType('alteration')}
                     className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs transition-all ${serviceType === 'alteration' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                   >
-                    <Scissors className="w-3.5 h-3.5" /> {text.alterationTicket}
+                    <Scissors className="w-3.5 h-3.5" /> {translations.alterationTicket}
                   </button>
                   <button
                     type="button"
                     onClick={() => setServiceType('laundry')}
                     className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs transition-all ${serviceType === 'laundry' ? t.serviceActive : 'opacity-75 hover:opacity-100'}`}
                   >
-                    <Shirt className="w-3.5 h-3.5" /> {text.laundryTicket}
+                    <Shirt className="w-3.5 h-3.5" /> {translations.laundryTicket}
                   </button>
                 </div>
               </div>
@@ -2086,7 +2084,7 @@ export default function App() {
               <div className={`lg:col-span-2 border rounded-3xl p-4 sm:p-6 shadow-2xl backdrop-blur-sm space-y-4 ${t.cardBg}`}>
                 <div className="flex justify-between items-center pb-2.5 border-b border-opacity-30">
                   <h2 className="text-sm font-bold flex items-center gap-1.5">
-                    <User className={`w-4 h-4 ${t.textAccent}`} /> {text.customerPayment}
+                    <User className={`w-4 h-4 ${t.textAccent}`} /> {translations.customerPayment}
                   </h2>
                   <span className={`font-mono text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${t.primaryBadge}`}>
                     TAG: #{nextTagId}
@@ -2096,7 +2094,7 @@ export default function App() {
                 <form onSubmit={handleCreateOrder} className="space-y-3.5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.customerName}</label>
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{translations.customerName}</label>
                       <input 
                         type="text" 
                         value={customerName}
@@ -2106,7 +2104,7 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.phone}</label>
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{translations.phone}</label>
                       <input 
                         type="tel" 
                         required
@@ -2140,7 +2138,7 @@ export default function App() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.targetDate}</label>
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{translations.targetDate}</label>
                       <input 
                         type="date" 
                         value={dueDate}
@@ -2150,7 +2148,7 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.paymentMethod}</label>
+                      <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{translations.paymentMethod}</label>
                       <select 
                         value={paymentMethod}
                         onChange={(e) => setPaymentMethod(e.target.value)}
@@ -2179,13 +2177,13 @@ export default function App() {
                     <div className="space-y-3 pt-3 border-t border-opacity-30">
                       <div className="flex justify-between items-center">
                         <h2 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                          <Scissors className={`w-4 h-4 ${t.textAccent}`} /> {text.alterationTicket}
+                          <Scissors className={`w-4 h-4 ${t.textAccent}`} /> {translations.alterationTicket}
                         </h2>
                       </div>
 
                       {garmentCart.length > 0 && (
                         <div className={`border rounded-xl p-3 space-y-2 ${t.cartContainerBg}`}>
-                          <h4 className="text-[10px] font-bold uppercase tracking-wider">{text.currentTicketItems} ({garmentCart.length}):</h4>
+                          <h4 className="text-[10px] font-bold uppercase tracking-wider">{translations.currentTicketItems} ({garmentCart.length}):</h4>
                           <div className="space-y-1.5">
                             {garmentCart.map((item, index) => (
                               <div key={index} className={`border px-3 py-2 rounded-lg flex justify-between items-center text-xs ${t.cartItemBg}`}>
@@ -2213,7 +2211,7 @@ export default function App() {
                       <div className={`border rounded-xl p-3 space-y-3 ${t.subCardBg}`}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.garmentType}</label>
+                            <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{translations.garmentType}</label>
                             <select 
                               value={garmentType} 
                               onChange={(e) => handleGarmentChange(e.target.value)}
@@ -2242,7 +2240,7 @@ export default function App() {
                                 onClick={handleAddGarmentToCart}
                                 className={`font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1 whitespace-nowrap ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                               >
-                                <Plus className="w-3.5 h-3.5" /> {text.addToTicket}
+                                <Plus className="w-3.5 h-3.5" /> {translations.addToTicket}
                               </button>
                             </div>
                           </div>
@@ -2250,7 +2248,7 @@ export default function App() {
 
                         <div>
                           <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1.5">
-                            {text.fixOptions} {garmentType}:
+                            {translations.fixOptions} {garmentType}:
                           </label>
                           <div className="flex flex-wrap gap-1.5">
                             {currentGarmentOptions.length === 0 ? (
@@ -2289,11 +2287,11 @@ export default function App() {
                   ) : (
                     <div className="space-y-3 pt-3 border-t border-opacity-30">
                       <h2 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                        <Shirt className={`w-4 h-4 ${t.textAccent}`} /> {text.laundryTicket}
+                        <Shirt className={`w-4 h-4 ${t.textAccent}`} /> {translations.laundryTicket}
                       </h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.laundryService}</label>
+                          <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{translations.laundryService}</label>
                           <select 
                             value={laundryService} 
                             onChange={(e) => setLaundryService(e.target.value)}
@@ -2306,7 +2304,7 @@ export default function App() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{text.weightQty}</label>
+                          <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">{translations.weightQty}</label>
                           <input 
                             type="text"
                             value={weightKg}
@@ -2322,7 +2320,7 @@ export default function App() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1 flex items-center gap-1">
-                        <Percent className="w-3 h-3 text-teal-400" /> {text.optionalDiscount}
+                        <Percent className="w-3 h-3 text-teal-400" /> {translations.optionalDiscount}
                       </label>
                       <div className="flex flex-wrap gap-1">
                         {[0, 5, 10, 15, 25, 30, 50].map((pct) => {
@@ -2334,7 +2332,7 @@ export default function App() {
                               onClick={() => setSelectedDiscountPercent(pct)}
                               className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all border ${isSelected ? t.buttonSelected : `${t.isLight ? 'bg-slate-50 border-slate-300 text-slate-700 hover:border-slate-400' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-600'}`}`}
                             >
-                              {pct === 0 ? text.noDiscount : `${pct}%`}
+                              {pct === 0 ? translations.noDiscount : `${pct}%`}
                             </button>
                           );
                         })}
@@ -2351,7 +2349,7 @@ export default function App() {
                             className="w-3.5 h-3.5 accent-teal-500 rounded cursor-pointer"
                           />
                           <span className="text-amber-500 font-extrabold flex items-center gap-1">
-                            ⚡ {text.expressRushOrder}
+                            ⚡ {translations.expressRushOrder}
                           </span>
                         </label>
 
@@ -2362,21 +2360,21 @@ export default function App() {
                               onClick={() => setRushFeeType('fixed')}
                               className={`px-2 py-0.5 rounded text-[10px] font-bold border ${rushFeeType === 'fixed' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
                             >
-                              {text.fixedFee}
+                              {translations.fixedFee}
                             </button>
                             <button
                               type="button"
                               onClick={() => setRushFeeType('percent')}
                               className={`px-2 py-0.5 rounded text-[10px] font-bold border ${rushFeeType === 'percent' ? t.buttonSelected : 'border-slate-700 opacity-70'}`}
                             >
-                              {text.percentRush}
+                              {translations.percentRush}
                             </button>
                           </div>
                         )}
                       </div>
                       {isRushOrder && (
                         <p className="text-[10px] text-amber-500 font-medium">
-                          {rushFeeType === 'fixed' ? text.rushFeeAdded : text.rushPercentAdded}
+                          {rushFeeType === 'fixed' ? translations.rushFeeAdded : translations.rushPercentAdded}
                         </p>
                       )}
                     </div>
@@ -2385,7 +2383,7 @@ export default function App() {
                   <div className="pt-2 border-t border-opacity-30 grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
                     <div>
                       <label className="block text-[10px] font-semibold uppercase tracking-wider opacity-80 mb-1">
-                        {text.totalPrice} {selectedDiscountPercent > 0 && <span className="text-teal-400 font-bold">({selectedDiscountPercent}% {text.discountLabel})</span>} {isRushOrder && <span className="text-amber-500 font-bold">(⚡ {text.rushAddedLabel})</span>}
+                        {translations.totalPrice} {selectedDiscountPercent > 0 && <span className="text-teal-400 font-bold">({selectedDiscountPercent}% {translations.discountLabel})</span>} {isRushOrder && <span className="text-amber-500 font-bold">(⚡ {translations.rushAddedLabel})</span>}
                       </label>
                       <input 
                         type="number" 
@@ -2404,7 +2402,7 @@ export default function App() {
                         type="submit"
                         className={`w-full font-bold py-3 px-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-xs ${t.primary}`}
                       >
-                        <Printer className="w-4 h-4" /> {text.completePrint}
+                        <Printer className="w-4 h-4" /> {translations.completePrint}
                       </button>
                     </div>
                   </div>
@@ -2415,7 +2413,7 @@ export default function App() {
               <div className={`border rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-sm flex flex-col justify-between ${t.cardBg}`}>
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <Printer className={`w-3.5 h-3.5 ${t.textAccent}`} /> {text.thermalPreview}
+                    <Printer className={`w-3.5 h-3.5 ${t.textAccent}`} /> {translations.thermalPreview}
                   </h3>
                   {selectedOrderForPrint ? (
                     <div className="thermal-print-container space-y-3 overflow-visible pr-1">
@@ -2478,7 +2476,7 @@ export default function App() {
                   ) : (
                     <div className={`text-center py-12 opacity-70 border border-dashed rounded-2xl ${t.subCardBg}`}>
                       <Printer className="w-7 h-7 mx-auto mb-2 opacity-60" />
-                      <p className="text-xs">{text.submitReceiptPrompt}</p>
+                      <p className="text-xs">{translations.submitReceiptPrompt}</p>
                     </div>
                   )}
                 </div>
@@ -2488,7 +2486,7 @@ export default function App() {
                     onClick={() => window.print()}
                     className={`mt-3 w-full font-semibold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                   >
-                    <Printer className="w-3.5 h-3.5" /> {text.printReceiptsNow}
+                    <Printer className="w-3.5 h-3.5" /> {translations.printReceiptsNow}
                   </button>
                 )}
               </div>
@@ -2503,26 +2501,26 @@ export default function App() {
               <div className="flex justify-between items-center flex-wrap gap-4">
                 <div>
                   <h2 className="text-xl font-bold flex items-center gap-2">
-                    <Tag className={`w-6 h-6 ${t.textAccent}`} /> {text.priceBookTitle}
+                    <Tag className={`w-6 h-6 ${t.textAccent}`} /> {translations.priceBookTitle}
                   </h2>
-                  <p className="text-xs opacity-75">{text.priceBookDesc}</p>
+                  <p className="text-xs opacity-75">{translations.priceBookDesc}</p>
                 </div>
                 <button
                   onClick={handleResetPriceBookDefaults}
                   className="px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-all"
                 >
-                  {text.resetDuplicatesBtn}
+                  {translations.resetDuplicatesBtn}
                 </button>
               </div>
 
               {/* CREATE NEW CATEGORY SECTION */}
               <form onSubmit={handleAddCategory} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <FolderPlus className="w-4 h-4 text-teal-400" /> {text.addNewCategoryTitle}
+                  <FolderPlus className="w-4 h-4 text-teal-400" /> {translations.addNewCategoryTitle}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.categoryNameLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.categoryNameLabel}</label>
                     <input 
                       type="text"
                       required
@@ -2537,7 +2535,7 @@ export default function App() {
                       type="submit"
                       className={`w-full font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5 ${t.primary}`}
                     >
-                      <Plus className="w-4 h-4" /> {text.addCategoryBtn}
+                      <Plus className="w-4 h-4" /> {translations.addCategoryBtn}
                     </button>
                   </div>
                 </div>
@@ -2545,10 +2543,10 @@ export default function App() {
 
               {/* ADD NEW REPAIR TASK SECTION */}
               <form onSubmit={handleAddPriceItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
-                <h3 className="text-xs font-bold uppercase tracking-wider">{text.addNewTaskTitle}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider">{translations.addNewTaskTitle}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.garmentCategoryLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.garmentCategoryLabel}</label>
                     <select
                       value={newGarmentCategory}
                       onChange={(e) => setNewGarmentCategory(e.target.value)}
@@ -2560,7 +2558,7 @@ export default function App() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.taskNameLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.taskNameLabel}</label>
                     <input 
                       type="text"
                       required
@@ -2571,7 +2569,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.priceLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.priceLabel}</label>
                     <input 
                       type="number"
                       step="0.50"
@@ -2587,19 +2585,19 @@ export default function App() {
                   type="submit"
                   className={`font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5 ${t.primary}`}
                 >
-                  <Plus className="w-4 h-4" /> {text.saveToPriceBookBtn}
+                  <Plus className="w-4 h-4" /> {translations.saveToPriceBookBtn}
                 </button>
               </form>
 
               <div className="pt-2 space-y-4">
                 <div className="flex justify-between items-center flex-wrap gap-3">
-                  <h3 className="text-sm font-bold">{text.currentPriceItems} ({filteredPriceBook.length} of {activePriceBook.length})</h3>
+                  <h3 className="text-sm font-bold">{translations.currentPriceItems} ({filteredPriceBook.length} of {activePriceBook.length})</h3>
                   
                   <div className="relative">
                     <Search className="w-4 h-4 absolute left-3 top-3 opacity-50" />
                     <input 
                       type="text"
-                      placeholder={text.searchPriceBookPlaceholder}
+                      placeholder={translations.searchPriceBookPlaceholder}
                       value={priceBookSearchTerm}
                       onChange={(e) => setPriceBookSearchTerm(e.target.value)}
                       className={`pl-9 pr-4 py-2 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg} w-64`}
@@ -2611,10 +2609,10 @@ export default function App() {
                   <table className="w-full text-left border-collapse text-xs min-w-[600px]">
                     <thead>
                       <tr className="border-b border-slate-700/50 opacity-70">
-                        <th className="py-3 px-3">{text.garmentCategoryLabel}</th>
-                        <th className="py-3 px-3">{text.taskNameLabel}</th>
-                        <th className="py-3 px-3">{text.priceLabel}</th>
-                        <th className="py-3 px-3 text-right">{text.actions}</th>
+                        <th className="py-3 px-3">{translations.garmentCategoryLabel}</th>
+                        <th className="py-3 px-3">{translations.taskNameLabel}</th>
+                        <th className="py-3 px-3">{translations.priceLabel}</th>
+                        <th className="py-3 px-3 text-right">{translations.actions}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700/20">
@@ -2660,13 +2658,13 @@ export default function App() {
                                       onClick={() => handleUpdatePriceItem(item.docId)}
                                       className="px-3 py-1 bg-teal-500 text-slate-950 font-bold rounded-lg text-[11px]"
                                     >
-                                      {text.saveBtn}
+                                      {translations.saveBtn}
                                     </button>
                                     <button
                                       onClick={() => setEditingPriceId(null)}
                                       className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-[11px]"
                                     >
-                                      {text.cancelBtn}
+                                      {translations.cancelBtn}
                                     </button>
                                   </>
                                 ) : (
@@ -2678,13 +2676,13 @@ export default function App() {
                                       }}
                                       className="px-3 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] inline-flex items-center gap-1 font-semibold"
                                     >
-                                      <Edit2 className="w-3 h-3" /> {text.editBtn}
+                                      <Edit2 className="w-3 h-3" /> {translations.editBtn}
                                     </button>
                                     <button
                                       onClick={() => deletePriceItem(item.docId)}
                                       className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px] font-semibold"
                                     >
-                                      {text.delete}
+                                      {translations.delete}
                                     </button>
                                   </>
                                 )}
@@ -2708,17 +2706,17 @@ export default function App() {
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                   <h2 className="text-xl font-bold flex items-center gap-2">
-                    <Package className={`w-6 h-6 ${t.textAccent}`} /> {text.inventoryTitle}
+                    <Package className={`w-6 h-6 ${t.textAccent}`} /> {translations.inventoryTitle}
                   </h2>
-                  <p className="text-xs opacity-75">{text.inventoryDesc}</p>
+                  <p className="text-xs opacity-75">{translations.inventoryDesc}</p>
                 </div>
               </div>
 
               <form onSubmit={handleAddInventoryItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
-                <h3 className="text-xs font-bold uppercase tracking-wider">{text.addNewSupplyTitle}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider">{translations.addNewSupplyTitle}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.itemNameLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.itemNameLabel}</label>
                     <input 
                       type="text"
                       required
@@ -2729,7 +2727,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.initialQtyLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.initialQtyLabel}</label>
                     <input 
                       type="number"
                       required
@@ -2740,7 +2738,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.lowStockMinLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.lowStockMinLabel}</label>
                     <input 
                       type="number"
                       required
@@ -2755,24 +2753,24 @@ export default function App() {
                   type="submit"
                   className={`font-bold py-2.5 px-6 rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5 ${t.primary}`}
                 >
-                  <Plus className="w-4 h-4" /> {text.addToInventoryBtn}
+                  <Plus className="w-4 h-4" /> {translations.addToInventoryBtn}
                 </button>
               </form>
 
               <div className="pt-2 overflow-x-auto">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-bold">{text.currentStockTitle}</h3>
+                  <h3 className="text-sm font-bold">{translations.currentStockTitle}</h3>
                   <span className="text-xs opacity-75">{inventoryItems.length} {lang === 'ru' ? 'позиций' : 'items tracked'}</span>
                 </div>
                 <table className="w-full text-left border-collapse text-xs min-w-[600px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
-                      <th className="py-3 px-3">{text.itemNameLabel}</th>
-                      <th className="py-3 px-3">{text.skuCodeLabel}</th>
-                      <th className="py-3 px-3">{text.currentQtyLabel}</th>
-                      <th className="py-3 px-3">{text.stockStatusLabel}</th>
-                      <th className="py-3 px-3 text-right">{text.quickAdjustLabel}</th>
-                      <th className="py-3 px-3 text-right">{text.actions}</th>
+                      <th className="py-3 px-3">{translations.itemNameLabel}</th>
+                      <th className="py-3 px-3">{translations.skuCodeLabel}</th>
+                      <th className="py-3 px-3">{translations.currentQtyLabel}</th>
+                      <th className="py-3 px-3">{translations.stockStatusLabel}</th>
+                      <th className="py-3 px-3 text-right">{translations.quickAdjustLabel}</th>
+                      <th className="py-3 px-3 text-right">{translations.actions}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
@@ -2791,11 +2789,11 @@ export default function App() {
                           <td className="py-3 px-3">
                             {isLow ? (
                               <span className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-                                {text.lowStockBadge}
+                                {translations.lowStockBadge}
                               </span>
                             ) : (
                               <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-                                {text.inStockBadge}
+                                {translations.inStockBadge}
                               </span>
                             )}
                           </td>
@@ -2818,7 +2816,7 @@ export default function App() {
                               onClick={() => deleteInventoryItem(item.docId)}
                               className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
                             >
-                              {text.delete}
+                              {translations.delete}
                             </button>
                           </td>
                         </tr>
@@ -2837,18 +2835,18 @@ export default function App() {
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div>
                 <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Award className={`w-6 h-6 ${t.textAccent}`} /> {text.customersTitle}
+                  <Award className={`w-6 h-6 ${t.textAccent}`} /> {translations.customersTitle}
                 </h2>
-                <p className="text-xs opacity-75">{text.customersDesc}</p>
+                <p className="text-xs opacity-75">{translations.customersDesc}</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.totalUniqueCustomers}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{translations.totalUniqueCustomers}</p>
                   <p className={`text-2xl font-extrabold ${t.textAccent}`}>{customers.length}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.repeatVisitors}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{translations.repeatVisitors}</p>
                   <p className="text-2xl font-extrabold text-teal-400">
                     {customers.filter(c => c.totalVisits >= 2).length}
                   </p>
@@ -2856,12 +2854,12 @@ export default function App() {
               </div>
 
               <div className="pt-4 overflow-x-auto">
-                <h3 className="text-sm font-bold mb-3">{text.customerDirectoryTitle}</h3>
+                <h3 className="text-sm font-bold mb-3">{translations.customerDirectoryTitle}</h3>
                 <table className="w-full text-left border-collapse text-xs min-w-[700px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
-                      <th className="py-3 px-3">{text.customerName}</th>
-                      <th className="py-3 px-3">{text.phone}</th>
+                      <th className="py-3 px-3">{translations.customerName}</th>
+                      <th className="py-3 px-3">{translations.phone}</th>
                       <th className="py-3 px-3">Email</th>
                       <th className="py-3 px-3">{lang === 'ru' ? 'Всего заказов' : 'Total Orders'}</th>
                       <th className="py-3 px-3">{lang === 'ru' ? 'Сумма трат' : 'Total Lifetime Spend'}</th>
@@ -2891,7 +2889,7 @@ export default function App() {
                           <td className="py-3 px-3 opacity-80">{c.lastVisit || '—'}</td>
                           <td className="py-3 px-3 text-right">
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[11px] font-bold">
-                              <Eye className="w-3.5 h-3.5" /> {text.viewHistoryBtn}
+                              <Eye className="w-3.5 h-3.5" /> {translations.viewHistoryBtn}
                             </span>
                           </td>
                         </tr>
@@ -2907,13 +2905,13 @@ export default function App() {
         {activeTab === 'orders' && (
           <div className={`border rounded-3xl p-4 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
             <div className="flex flex-wrap justify-between items-center gap-4">
-              <h2 className="text-lg font-bold">{text.ticketHistory}</h2>
+              <h2 className="text-lg font-bold">{translations.ticketHistory}</h2>
               <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto">
                 <div className="relative flex-1 sm:flex-initial">
                   <Search className="w-4 h-4 absolute left-3 top-3.5 opacity-50" />
                   <input 
                     type="text"
-                    placeholder={text.searchPlaceholder}
+                    placeholder={translations.searchPlaceholder}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className={`w-full sm:w-auto pl-9 pr-4 py-2.5 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
@@ -2924,10 +2922,10 @@ export default function App() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className={`px-4 py-2.5 rounded-xl text-xs border focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                 >
-                  <option value="All">{text.allStatuses}</option>
-                  <option value="Pending">{text.pending}</option>
-                  <option value="In Progress">{text.inProgress}</option>
-                  <option value="Completed">{text.completed}</option>
+                  <option value="All">{translations.allStatuses}</option>
+                  <option value="Pending">{translations.pending}</option>
+                  <option value="In Progress">{translations.inProgress}</option>
+                  <option value="Completed">{translations.completed}</option>
                 </select>
               </div>
             </div>
@@ -2950,19 +2948,19 @@ export default function App() {
                         onChange={(e) => updateStatus(o.docId, e.target.value)}
                         className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${t.innerInputBg}`}
                       >
-                        <option value="Pending">{text.pending}</option>
-                        <option value="In Progress">{text.inProgress}</option>
-                        <option value="Completed">{text.completed}</option>
+                        <option value="Pending">{translations.pending}</option>
+                        <option value="In Progress">{translations.inProgress}</option>
+                        <option value="Completed">{translations.completed}</option>
                       </select>
                     </div>
 
                     <div className="space-y-1 text-xs">
-                      <p><strong>{text.customer}:</strong> {o.customerName}</p>
-                      <p><strong>{text.phone}:</strong> {o.phone}</p>
+                      <p><strong>{translations.customer}:</strong> {o.customerName}</p>
+                      <p><strong>{translations.phone}:</strong> {o.phone}</p>
                       {o.customerEmail && <p><strong>Email:</strong> {o.customerEmail}</p>}
-                      <p><strong>{text.service}:</strong> <span className="uppercase">{o.serviceType}</span></p>
-                      <p><strong>{text.readyDate}:</strong> {o.dueDate}</p>
-                      <p><strong>{text.total}:</strong> <span className="font-bold text-teal-500">€{o.total.toFixed(2)}</span></p>
+                      <p><strong>{translations.service}:</strong> <span className="uppercase">{o.serviceType}</span></p>
+                      <p><strong>{translations.readyDate}:</strong> {o.dueDate}</p>
+                      <p><strong>{translations.total}:</strong> <span className="font-bold text-teal-500">€{o.total.toFixed(2)}</span></p>
                     </div>
 
                     <div className="flex justify-end gap-2 pt-2 border-t border-slate-700/30">
@@ -2973,14 +2971,14 @@ export default function App() {
                         }}
                         className={`px-3 py-1.5 rounded-xl text-xs font-medium text-white ${t.isLight ? 'bg-slate-800' : 'bg-slate-700'}`}
                       >
-                        {text.print}
+                        {translations.print}
                       </button>
                       {isAdmin && (
                         <button
                           onClick={() => deleteOrder(o.docId)}
                           className="px-3 py-1.5 bg-rose-500/10 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-medium"
                         >
-                          {text.delete}
+                          {translations.delete}
                         </button>
                       )}
                     </div>
@@ -2993,15 +2991,15 @@ export default function App() {
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className={`border-b text-xs uppercase opacity-70 ${t.isLight ? 'border-slate-200' : 'border-slate-700'}`}>
-                    <th className="py-3 px-4">{text.tagId}</th>
-                    <th className="py-3 px-4">{text.customer}</th>
-                    <th className="py-3 px-4">{text.phone}</th>
+                    <th className="py-3 px-4">{translations.tagId}</th>
+                    <th className="py-3 px-4">{translations.customer}</th>
+                    <th className="py-3 px-4">{translations.phone}</th>
                     <th className="py-3 px-4">Email</th>
-                    <th className="py-3 px-4">{text.service}</th>
-                    <th className="py-3 px-4">{text.readyDate}</th>
-                    <th className="py-3 px-4">{text.total}</th>
-                    <th className="py-3 px-4">{text.status}</th>
-                    <th className="py-3 px-4 text-right">{text.actions}</th>
+                    <th className="py-3 px-4">{translations.service}</th>
+                    <th className="py-3 px-4">{translations.readyDate}</th>
+                    <th className="py-3 px-4">{translations.total}</th>
+                    <th className="py-3 px-4">{translations.status}</th>
+                    <th className="py-3 px-4 text-right">{translations.actions}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/30 text-xs">
@@ -3030,9 +3028,9 @@ export default function App() {
                             onChange={(e) => updateStatus(o.docId, e.target.value)}
                             className={`px-3 py-1 rounded-lg text-xs font-semibold border ${t.innerInputBg}`}
                           >
-                            <option value="Pending">{text.pending}</option>
-                            <option value="In Progress">{text.inProgress}</option>
-                            <option value="Completed">{text.completed}</option>
+                            <option value="Pending">{translations.pending}</option>
+                            <option value="In Progress">{translations.inProgress}</option>
+                            <option value="Completed">{translations.completed}</option>
                           </select>
                         </td>
                         <td className="py-4 px-4 text-right space-x-2">
@@ -3043,14 +3041,14 @@ export default function App() {
                             }}
                             className={`px-3 py-1 rounded-lg font-medium text-white ${t.isLight ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-700 hover:bg-slate-600'}`}
                           >
-                            {text.print}
+                            {translations.print}
                           </button>
                           {isAdmin && (
                             <button
                               onClick={() => deleteOrder(o.docId)}
                               className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg font-medium"
                             >
-                              {text.delete}
+                              {translations.delete}
                             </button>
                           )}
                         </td>
@@ -3068,8 +3066,8 @@ export default function App() {
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold">{text.reportsTitle}</h2>
-                  <p className="text-xs opacity-75">{text.reportsDesc}</p>
+                  <h2 className="text-xl font-bold">{translations.reportsTitle}</h2>
+                  <p className="text-xs opacity-75">{translations.reportsDesc}</p>
                 </div>
                 
                 <div className="flex items-center gap-3 flex-wrap">
@@ -3078,25 +3076,25 @@ export default function App() {
                       onClick={() => { setReportTimeframe('day'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'day' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.todayBtn}
+                      {translations.todayBtn}
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('week'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'week' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.thisWeekBtn}
+                      {translations.thisWeekBtn}
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('month'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'month' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.thisMonthBtn}
+                      {translations.thisMonthBtn}
                     </button>
                     <button
                       onClick={() => { setReportTimeframe('year'); setStartDateFilter(''); setEndDateFilter(''); }}
                       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${reportTimeframe === 'year' && !startDateFilter ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                     >
-                      {text.thisYearBtn}
+                      {translations.thisYearBtn}
                     </button>
                   </div>
 
@@ -3105,13 +3103,13 @@ export default function App() {
                       onClick={exportToCSV}
                       className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                     >
-                      <FileSpreadsheet className="w-4 h-4" /> {text.exportExcelBtn}
+                      <FileSpreadsheet className="w-4 h-4" /> {translations.exportExcelBtn}
                     </button>
                     <button
                       onClick={exportToPDF}
                       className={`px-4 py-2.5 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md ${t.isLight ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-700 hover:bg-slate-600'}`}
                     >
-                      <FileText className="w-4 h-4" /> {text.exportPdfBtn}
+                      <FileText className="w-4 h-4" /> {translations.exportPdfBtn}
                     </button>
                   </div>
                 </div>
@@ -3119,21 +3117,21 @@ export default function App() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.grossRevenue}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{translations.grossRevenue}</p>
                   <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalExpenses}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{translations.totalExpenses}</p>
                   <h3 className="text-2xl font-extrabold text-rose-400">€{periodExpenses.toFixed(2)}</h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.netOperatingProfit}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{translations.netOperatingProfit}</p>
                   <h3 className={`text-2xl font-extrabold ${periodNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     €{periodNetProfit.toFixed(2)}
                   </h3>
                 </div>
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-2`}>
-                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{text.totalOrders}</p>
+                  <p className="text-xs uppercase tracking-wider opacity-70 font-semibold">{translations.totalOrders}</p>
                   <h3 className={`text-2xl font-extrabold ${t.textAccent}`}>{periodOrderCount}</h3>
                 </div>
               </div>
@@ -3141,7 +3139,7 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
                   <h4 className="text-sm font-bold flex items-center gap-2">
-                    <TrendingUp className={`w-4 h-4 ${t.textAccent}`} /> {text.serviceRevenueSplit}
+                    <TrendingUp className={`w-4 h-4 ${t.textAccent}`} /> {translations.serviceRevenueSplit}
                   </h4>
                   <div className="space-y-3 text-xs">
                     <div className="flex justify-between items-center">
@@ -3157,19 +3155,19 @@ export default function App() {
 
                 <div className={`p-6 rounded-2xl border ${t.subCardBg} space-y-4`}>
                   <h4 className="text-sm font-bold flex items-center gap-2">
-                    <CreditCard className={`w-4 h-4 ${t.textAccent}`} /> {text.paymentBreakdown}
+                    <CreditCard className={`w-4 h-4 ${t.textAccent}`} /> {translations.paymentBreakdown}
                   </h4>
                   <div className="space-y-3 text-xs">
                     <div className="flex justify-between items-center">
-                      <span>💳 {text.cardPayments}</span>
+                      <span>💳 {translations.cardPayments}</span>
                       <span className="font-bold">€{cardRevenue.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>💵 {text.cashPayments}</span>
+                      <span>💵 {translations.cashPayments}</span>
                       <span className="font-bold">€{cashRevenue.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>🏦 {text.capitalPayments}</span>
+                      <span>🏦 {translations.capitalPayments}</span>
                       <span className="font-bold">€{capitalRevenue.toFixed(2)}</span>
                     </div>
                   </div>
@@ -3185,8 +3183,8 @@ export default function App() {
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold">{text.bookkeepingTitle}</h2>
-                  <p className="text-xs opacity-75">{text.bookkeepingDesc}</p>
+                  <h2 className="text-xl font-bold">{translations.bookkeepingTitle}</h2>
+                  <p className="text-xs opacity-75">{translations.bookkeepingDesc}</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -3194,7 +3192,7 @@ export default function App() {
                     onClick={exportExpensesToCSV}
                     className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
                   >
-                    <FileSpreadsheet className="w-4 h-4" /> {text.exportExpensesBtn}
+                    <FileSpreadsheet className="w-4 h-4" /> {translations.exportExpensesBtn}
                   </button>
                 </div>
               </div>
@@ -3206,30 +3204,30 @@ export default function App() {
                     onClick={() => { setBookkeepingTimeframe('day'); setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${bookkeepingTimeframe === 'day' && !bookkeepingStartDate ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                   >
-                    {text.todayBtn}
+                    {translations.todayBtn}
                   </button>
                   <button
                     onClick={() => { setBookkeepingTimeframe('week'); setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${bookkeepingTimeframe === 'week' && !bookkeepingStartDate ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                   >
-                    {text.thisWeekBtn}
+                    {translations.thisWeekBtn}
                   </button>
                   <button
                     onClick={() => { setBookkeepingTimeframe('month'); setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${bookkeepingTimeframe === 'month' && !bookkeepingStartDate ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                   >
-                    {text.thisMonthBtn}
+                    {translations.thisMonthBtn}
                   </button>
                   <button
                     onClick={() => { setBookkeepingTimeframe('year'); setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${bookkeepingTimeframe === 'year' && !bookkeepingStartDate ? t.tabActive : 'opacity-70 hover:opacity-100'}`}
                   >
-                    {text.thisYearBtn}
+                    {translations.thisYearBtn}
                   </button>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-semibold opacity-75">{text.customDateRange}</span>
+                  <span className="text-xs font-semibold opacity-75">{translations.customDateRange}</span>
                   <input 
                     type="date"
                     value={bookkeepingStartDate}
@@ -3250,7 +3248,7 @@ export default function App() {
                       onClick={() => { setBookkeepingStartDate(''); setBookkeepingEndDate(''); }}
                       className="text-xs text-teal-400 underline font-semibold hover:text-teal-300 ml-1"
                     >
-                      {text.clearCustomRange}
+                      {translations.clearCustomRange}
                     </button>
                   )}
                 </div>
@@ -3258,21 +3256,21 @@ export default function App() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-2">
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.grossRevenue}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{translations.grossRevenue}</p>
                   <p className={`text-xl font-extrabold ${t.textAccent}`}>€{periodRevenue.toFixed(2)}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.totalExpenses}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{translations.totalExpenses}</p>
                   <p className="text-xl font-extrabold text-rose-400">€{periodExpenses.toFixed(2)}</p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.netOperatingProfit}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{translations.netOperatingProfit}</p>
                   <p className={`text-xl font-extrabold ${periodNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     €{periodNetProfit.toFixed(2)}
                   </p>
                 </div>
                 <div className={`p-5 rounded-2xl border ${t.subCardBg} space-y-1`}>
-                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{text.profitMargin}</p>
+                  <p className="text-[11px] uppercase tracking-wider opacity-70 font-semibold">{translations.profitMargin}</p>
                   <p className={`text-xl font-extrabold ${profitMargin >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
                     {profitMargin.toFixed(1)}%
                   </p>
@@ -3282,7 +3280,7 @@ export default function App() {
               <form onSubmit={handleAddExpense} className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <div className="flex justify-between items-center">
                   <h3 className="text-sm font-bold flex items-center gap-2">
-                    <Wallet className={`w-4 h-4 ${t.textAccent}`} /> {text.recordNewExpense}
+                    <Wallet className={`w-4 h-4 ${t.textAccent}`} /> {translations.recordNewExpense}
                   </h3>
                   <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                     <input 
@@ -3291,7 +3289,7 @@ export default function App() {
                       onChange={(e) => setIsRecurringMonthly(e.target.checked)}
                       className="w-4 h-4 accent-teal-500 rounded cursor-pointer"
                     />
-                    <span className="flex items-center gap-1"><Repeat className="w-3.5 h-3.5 text-teal-400" /> {text.recurringMonthlyBill}</span>
+                    <span className="flex items-center gap-1"><Repeat className="w-3.5 h-3.5 text-teal-400" /> {translations.recurringMonthlyBill}</span>
                   </label>
                 </div>
 
@@ -3308,7 +3306,7 @@ export default function App() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.vendorLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.vendorLabel}</label>
                     <input 
                       type="text"
                       required
@@ -3319,7 +3317,7 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.categoryLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.categoryLabel}</label>
                     <select
                       value={expenseCategory}
                       onChange={(e) => setExpenseCategory(e.target.value)}
@@ -3334,7 +3332,7 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 items-end">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{text.amountLabel}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.amountLabel}</label>
                     <input 
                       type="number"
                       step="0.01"
@@ -3367,7 +3365,7 @@ export default function App() {
                       type="submit"
                       className={`w-full font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
                     >
-                      <Plus className="w-4 h-4" /> {text.recordExpenseBtn}
+                      <Plus className="w-4 h-4" /> {translations.recordExpenseBtn}
                     </button>
                   </div>
                 </div>
@@ -3375,18 +3373,18 @@ export default function App() {
 
               <div className="pt-4 overflow-x-auto">
                 <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
-                  <h3 className="text-sm font-bold">{text.recordedExpensesLog}</h3>
+                  <h3 className="text-sm font-bold">{translations.recordedExpensesLog}</h3>
                   <span className="font-mono text-sm font-extrabold text-rose-400">Total: €{periodExpenses.toFixed(2)}</span>
                 </div>
                 <table className="w-full text-left border-collapse text-xs min-w-[700px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
                       <th className="py-3 px-3">{lang === 'ru' ? 'Дата' : 'Date'}</th>
-                      <th className="py-3 px-3">{text.vendorLabel}</th>
-                      <th className="py-3 px-3">{text.categoryLabel}</th>
-                      <th className="py-3 px-3">{text.amountLabel}</th>
+                      <th className="py-3 px-3">{translations.vendorLabel}</th>
+                      <th className="py-3 px-3">{translations.categoryLabel}</th>
+                      <th className="py-3 px-3">{translations.amountLabel}</th>
                       <th className="py-3 px-3">{lang === 'ru' ? 'Чек' : 'Receipt'}</th>
-                      <th className="py-3 px-3 text-right">{text.actions}</th>
+                      <th className="py-3 px-3 text-right">{translations.actions}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
@@ -3435,13 +3433,13 @@ export default function App() {
                               }}
                               className="px-3 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1"
                             >
-                              <Edit2 className="w-3 h-3" /> {text.editBtn}
+                              <Edit2 className="w-3 h-3" /> {translations.editBtn}
                             </button>
                             <button
                               onClick={() => deleteExpense(ex.docId)}
                               className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
                             >
-                              {text.delete}
+                              {translations.delete}
                             </button>
                           </td>
                         </tr>
@@ -3454,7 +3452,7 @@ export default function App() {
               {/* Spending Breakdown by Category */}
               <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-sm font-bold flex items-center gap-2">
-                  <PieChart className={`w-4 h-4 ${t.textAccent}`} /> {text.spendingBreakdownTitle}
+                  <PieChart className={`w-4 h-4 ${t.textAccent}`} /> {translations.spendingBreakdownTitle}
                 </h3>
                 <div className="space-y-3 pt-1">
                   {EXPENSE_CATEGORIES.map(cat => {
@@ -3486,7 +3484,7 @@ export default function App() {
           <div className="space-y-6 max-w-xl mx-auto w-full">
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <Palette className={`w-5 h-5 ${t.textAccent}`} /> {text.appearanceTitle}
+                <Palette className={`w-5 h-5 ${t.textAccent}`} /> {translations.appearanceTitle}
               </h2>
               
               <div className="grid grid-cols-2 gap-4 pt-2">
@@ -3495,7 +3493,7 @@ export default function App() {
                   className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-dark' ? 'border-teal-500 bg-teal-500/10 shadow-md' : 'border-slate-700 bg-slate-900'}`}
                 >
                   <div className="w-6 h-6 rounded-full bg-teal-500"></div>
-                  <p className="text-xs font-bold text-white">{text.tealDark}</p>
+                  <p className="text-xs font-bold text-white">{translations.tealDark}</p>
                 </button>
 
                 <button
@@ -3503,7 +3501,7 @@ export default function App() {
                   className={`p-4 rounded-2xl border text-left space-y-2 transition-all ${themeMode === 'teal-light' ? 'border-teal-600 bg-teal-100 text-slate-900 shadow-md' : 'border-slate-300 bg-white text-slate-900'}`}
                 >
                   <div className="w-6 h-6 rounded-full bg-teal-600"></div>
-                  <p className="text-xs font-bold">{text.tealLight}</p>
+                  <p className="text-xs font-bold">{translations.tealLight}</p>
                 </button>
               </div>
             </div>
@@ -3511,14 +3509,14 @@ export default function App() {
             {isAdmin && (
               <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
                 <h2 className="text-lg font-bold flex items-center gap-2">
-                  <Sliders className={`w-5 h-5 ${t.textAccent}`} /> {text.displayScalingTitle}
+                  <Sliders className={`w-5 h-5 ${t.textAccent}`} /> {translations.displayScalingTitle}
                 </h2>
 
                 {!isOptimizationUnlocked ? (
                   <div className="space-y-4 pt-2">
-                    <p className="text-xs font-semibold">{text.enterPinCalibration}</p>
+                    <p className="text-xs font-semibold">{translations.enterPinCalibration}</p>
                     {optimizationPinError && (
-                      <p className="text-xs text-rose-400 font-medium">{text.incorrectPin}</p>
+                      <p className="text-xs text-rose-400 font-medium">{translations.incorrectPin}</p>
                     )}
                     <div className="flex gap-3">
                       <input 
@@ -3541,14 +3539,14 @@ export default function App() {
                         }}
                         className={`px-6 py-2.5 font-bold rounded-xl text-xs transition-all shadow-md ${t.primary}`}
                       >
-                        {text.unlockBtn}
+                        {translations.unlockBtn}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4 pt-2">
                     <div className="flex justify-between items-center text-xs font-bold">
-                      <span className={t.textAccent}>{text.calibrationUnlocked}</span>
+                      <span className={t.textAccent}>{translations.calibrationUnlocked}</span>
                       <button 
                         onClick={() => setIsOptimizationUnlocked(false)}
                         className="opacity-70 hover:opacity-100 underline"
@@ -3557,7 +3555,7 @@ export default function App() {
                       </button>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{text.displayScaleMultiplier}</label>
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">{translations.displayScaleMultiplier}</label>
                       <div className="flex items-center gap-4">
                         <input 
                           type="range"
