@@ -57,7 +57,9 @@ import {
   Percent,
   Tag,
   Edit2,
-  FolderPlus
+  FolderPlus,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -114,15 +116,20 @@ export default function App() {
   const [bookkeepingStartDate, setBookkeepingStartDate] = useState('');
   const [bookkeepingEndDate, setBookkeepingEndDate] = useState('');
 
-  // Expense Editing State
+  // Expense Editing & Receipt Modal State
   const [editingExpenseId, setEditingExpenseId] = useState(null);
   const [editExpenseValues, setEditExpenseValues] = useState({
     description: '',
     category: 'Supplies & Materials',
     amount: '',
     date: '',
-    isRecurring: false
+    isRecurring: false,
+    receiptUrl: ''
   });
+
+  // Receipt Preview Modal State
+  const [previewReceiptUrl, setPreviewReceiptUrl] = useState(null);
+  const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
 
   const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); 
   const [optimizationPin, setOptimizationPin] = useState('');
@@ -135,6 +142,7 @@ export default function App() {
   const [expenseAmount, setExpenseAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [isRecurringMonthly, setIsRecurringMonthly] = useState(false);
+  const [expenseReceiptUrl, setExpenseReceiptUrl] = useState('');
 
   const [inventoryItems, setInventoryItems] = useState([]);
   const [newItemName, setNewItemName] = useState('');
@@ -193,6 +201,40 @@ export default function App() {
     setTimeout(() => {
       setToastMessage(null);
     }, 5000);
+  };
+
+  // ImgBB Cloud Receipt Upload Handler
+  const uploadReceiptToImgBB = async (file, isEditModal = false) => {
+    if (!file) return;
+    setIsUploadingReceipt(true);
+    
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch('https://api.imgbb.com/1/upload?key=c1cc314eff30b360fd94ab3b1249e7d5', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      
+      if (data && data.success) {
+        const imageUrl = data.data.url;
+        if (isEditModal) {
+          setEditExpenseValues(prev => ({ ...prev, receiptUrl: imageUrl }));
+        } else {
+          setExpenseReceiptUrl(imageUrl);
+        }
+        showToast(lang === 'ru' ? 'Чек успешно загружен в облако!' : 'Receipt uploaded to cloud successfully!');
+      } else {
+        showToast(lang === 'ru' ? 'Ошибка загрузки чека.' : 'Failed to upload receipt image.');
+      }
+    } catch (err) {
+      console.error('ImgBB upload error:', err);
+      showToast(lang === 'ru' ? 'Ошибка сети при загрузке чека.' : 'Network error uploading receipt.');
+    } finally {
+      setIsUploadingReceipt(false);
+    }
   };
 
   const toggleFullscreen = () => {
@@ -1053,7 +1095,8 @@ export default function App() {
       description: finalDescription,
       category: expenseCategory,
       amount: amountNum,
-      isRecurring: isRecurringMonthly
+      isRecurring: isRecurringMonthly,
+      receiptUrl: expenseReceiptUrl || ''
     };
 
     try {
@@ -1061,7 +1104,8 @@ export default function App() {
       setExpenseDescription('');
       setExpenseAmount('');
       setIsRecurringMonthly(false);
-      showToast(lang === 'ru' ? 'Расход успешно записан!' : 'Expense recorded successfully!');
+      setExpenseReceiptUrl('');
+      showToast(lang === 'ru' ? 'Расход и чек успешно записаны!' : 'Expense and receipt recorded successfully!');
     } catch (error) {
       console.error('Error adding expense: ', error);
       showToast(lang === 'ru' ? 'Не удалось сохранить расход.' : 'Failed to save expense to cloud.');
@@ -1082,7 +1126,8 @@ export default function App() {
         category: editExpenseValues.category,
         amount: amountNum,
         date: editExpenseValues.date,
-        isRecurring: editExpenseValues.isRecurring
+        isRecurring: editExpenseValues.isRecurring,
+        receiptUrl: editExpenseValues.receiptUrl || ''
       });
       setEditingExpenseId(null);
       showToast(lang === 'ru' ? 'Расход успешно обновлен!' : 'Expense successfully updated!');
@@ -1304,12 +1349,13 @@ export default function App() {
   };
 
   const exportExpensesToCSV = () => {
-    const headers = ['Date', 'Description / Vendor', 'Category', 'Amount (€)'];
+    const headers = ['Date', 'Description / Vendor', 'Category', 'Amount (€)', 'Receipt URL'];
     const rows = filteredExpensesByTimeframe.map(ex => [
       ex.date || ex.createdAt?.split('T')[0],
       `"${ex.description || ''}"`,
       ex.category,
-      ex.amount.toFixed(2)
+      ex.amount.toFixed(2),
+      ex.receiptUrl || ''
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
@@ -1493,6 +1539,51 @@ export default function App() {
         }
       `}</style>
 
+      {/* Receipt Image Preview Modal */}
+      {previewReceiptUrl && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-lg w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 text-white animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-teal-400" /> {lang === 'ru' ? 'Просмотр чека' : 'Cloud Receipt Preview'}
+              </h3>
+              <button 
+                onClick={() => setPreviewReceiptUrl(null)}
+                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl flex items-center justify-center overflow-hidden max-h-[60vh]">
+              <img 
+                src={previewReceiptUrl} 
+                alt="Receipt" 
+                className="max-h-[55vh] object-contain rounded-xl"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setPreviewReceiptUrl(null)}
+                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-all border border-slate-700"
+              >
+                {lang === 'ru' ? 'Закрыть' : 'Close'}
+              </button>
+              <a
+                href={previewReceiptUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg flex items-center justify-center gap-1.5 text-center"
+              >
+                <FileText className="w-4 h-4" /> {lang === 'ru' ? 'Открыть оригинал' : 'Open Full Image'}
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Expense Edit Modal */}
       {editingExpenseId && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -1556,6 +1647,28 @@ export default function App() {
                   onChange={(e) => setEditExpenseValues({ ...editExpenseValues, amount: e.target.value })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold text-teal-400 focus:outline-none focus:border-teal-500"
                 />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Фото чека (Облако)' : 'Receipt Photo (Cloud)'}</label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => uploadReceiptToImgBB(e.target.files[0], true)}
+                    className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-500 file:text-slate-950 hover:file:bg-teal-400 cursor-pointer"
+                  />
+                  {editExpenseValues.receiptUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setPreviewReceiptUrl(editExpenseValues.receiptUrl)}
+                      className="px-3 py-2 bg-teal-500/20 text-teal-300 rounded-xl text-xs font-bold border border-teal-500/30 whitespace-nowrap"
+                    >
+                      {lang === 'ru' ? 'Просмотр' : 'View'}
+                    </button>
+                  )}
+                </div>
+                {isUploadingReceipt && <p className="text-[10px] text-teal-400 animate-pulse mt-1">{lang === 'ru' ? 'Загрузка в облако...' : 'Uploading receipt to cloud...'}</p>}
               </div>
 
               <div className="pt-2">
@@ -3205,10 +3318,27 @@ export default function App() {
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-2">
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Загрузить чек (Облако)' : 'Attach Receipt Photo'}</label>
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => uploadReceiptToImgBB(e.target.files[0], false)}
+                        className="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-500 file:text-slate-950 hover:file:bg-teal-400 cursor-pointer"
+                      />
+                      {expenseReceiptUrl && (
+                        <span className="text-teal-400 font-bold text-xs flex items-center gap-1 shrink-0">
+                          <CheckCircle2 className="w-4 h-4" /> {lang === 'ru' ? 'Загружен' : 'Ready'}
+                        </span>
+                      )}
+                    </div>
+                    {isUploadingReceipt && <p className="text-[10px] text-teal-400 animate-pulse mt-1">{lang === 'ru' ? 'Загрузка в облако...' : 'Uploading receipt to cloud...'}</p>}
+                  </div>
+                  <div>
                     <button
                       type="submit"
-                      className={`w-full md:w-auto font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
+                      className={`w-full font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
                     >
                       <Plus className="w-4 h-4" /> {text.recordExpenseBtn}
                     </button>
@@ -3221,20 +3351,21 @@ export default function App() {
                   <h3 className="text-sm font-bold">{text.recordedExpensesLog}</h3>
                   <span className="font-mono text-sm font-extrabold text-rose-400">Total: €{periodExpenses.toFixed(2)}</span>
                 </div>
-                <table className="w-full text-left border-collapse text-xs min-w-[600px]">
+                <table className="w-full text-left border-collapse text-xs min-w-[700px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
                       <th className="py-3 px-3">{lang === 'ru' ? 'Дата' : 'Date'}</th>
                       <th className="py-3 px-3">{text.vendorLabel}</th>
                       <th className="py-3 px-3">{text.categoryLabel}</th>
                       <th className="py-3 px-3">{text.amountLabel}</th>
+                      <th className="py-3 px-3">{lang === 'ru' ? 'Чек' : 'Receipt'}</th>
                       <th className="py-3 px-3 text-right">{text.actions}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
                     {filteredExpensesByTimeframe.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="text-center py-10 opacity-60">{lang === 'ru' ? 'За этот период расходов не найдено.' : 'No expenses recorded for this timeframe.'}</td>
+                        <td colSpan="6" className="text-center py-10 opacity-60">{lang === 'ru' ? 'За этот период расходов не найдено.' : 'No expenses recorded for this timeframe.'}</td>
                       </tr>
                     ) : (
                       filteredExpensesByTimeframe.map(ex => (
@@ -3250,6 +3381,18 @@ export default function App() {
                           </td>
                           <td className="py-3 px-3 opacity-80">{ex.category}</td>
                           <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
+                          <td className="py-3 px-3">
+                            {ex.receiptUrl ? (
+                              <button
+                                onClick={() => setPreviewReceiptUrl(ex.receiptUrl)}
+                                className="px-2.5 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 shadow-sm"
+                              >
+                                <Eye className="w-3 h-3" /> {lang === 'ru' ? 'Чек' : 'View'}
+                              </button>
+                            ) : (
+                              <span className="opacity-40 text-[11px]">—</span>
+                            )}
+                          </td>
                           <td className="py-3 px-3 text-right space-x-2">
                             <button
                               onClick={() => {
@@ -3259,7 +3402,8 @@ export default function App() {
                                   category: ex.category || 'Supplies & Materials',
                                   amount: ex.amount || '',
                                   date: ex.date || new Date().toISOString().split('T')[0],
-                                  isRecurring: !!ex.isRecurring
+                                  isRecurring: !!ex.isRecurring,
+                                  receiptUrl: ex.receiptUrl || ''
                                 });
                               }}
                               className="px-3 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1"
