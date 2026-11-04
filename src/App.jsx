@@ -17,7 +17,6 @@ import {
   onSnapshot,
   writeBatch 
 } from 'firebase/firestore';
-import emailjs from '@emailjs/browser';
 import { 
   Scissors, 
   Shirt, 
@@ -66,6 +65,42 @@ import {
 } from 'lucide-react';
 import logoImg from './logo.png';
 
+// MailerSend Helper Function for Sending Emails
+const sendMailerSendEmail = async (toEmail, toName, subject, htmlContent) => {
+  if (!toEmail) return;
+  const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
+  
+  try {
+    const response = await fetch('https://api.mailersend.com/v1/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        from: {
+          email: 'alena9506@gmail.com',
+          name: 'ALiCo Dublin'
+        },
+        to: [
+          {
+            email: toEmail,
+            name: toName || 'Customer / Employee'
+          }
+        ],
+        subject: subject,
+        html: htmlContent
+      })
+    });
+
+    if (!response.ok) {
+      console.error('MailerSend error response:', await response.text());
+    }
+  } catch (err) {
+    console.error('MailerSend network error:', err);
+  }
+};
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -73,7 +108,7 @@ export default function App() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  const [lang, setLang] = useState('en'); // 'en' or 'ru'
+  const [lang, setLang] = useState('en');
   
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('alico_active_tab') || 'intake';
@@ -119,13 +154,11 @@ export default function App() {
   const [bookkeepingStartDate, setBookkeepingStartDate] = useState('');
   const [bookkeepingEndDate, setBookkeepingEndDate] = useState('');
 
-  // Capital / Cash Float Injection Modal State
   const [isCapitalModalOpen, setIsCapitalModalOpen] = useState(false);
   const [capitalAmount, setCapitalAmount] = useState('');
   const [capitalNote, setCapitalNote] = useState('');
   const [capitalDate, setCapitalDate] = useState(() => new Date().toISOString().split('T')[0]);
 
-  // Capital Editing Modal State
   const [editingCapitalId, setEditingCapitalId] = useState(null);
   const [editCapitalValues, setEditCapitalValues] = useState({
     amount: '',
@@ -133,7 +166,6 @@ export default function App() {
     date: ''
   });
 
-  // Expense Editing & Receipt Modal State
   const [editingExpenseId, setEditingExpenseId] = useState(null);
   const [editExpenseValues, setEditExpenseValues] = useState({
     description: '',
@@ -144,15 +176,12 @@ export default function App() {
     receiptUrl: ''
   });
 
-  // Receipt Preview Modal State
   const [previewReceiptUrl, setPreviewReceiptUrl] = useState(null);
   const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
 
-  // --- MULTI-EMPLOYEE & PAYROLL STATE ---
   const [employees, setEmployees] = useState([]);
   const [payrollRecords, setPayrollRecords] = useState([]);
 
-  // Add/Edit Employee Form Modal State
   const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
   const [editingEmployeeId, setEditingEmployeeId] = useState(null);
   const [empForm, setEmpForm] = useState({
@@ -165,7 +194,6 @@ export default function App() {
     status: 'Active'
   });
 
-  // Current Selected Employee for Payslip Calculator
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [employeeName, setEmployeeName] = useState('Maria Smith');
   const [employeeEmail, setEmployeeEmail] = useState('');
@@ -762,10 +790,8 @@ export default function App() {
   const gpRate = Number(hourlyRate) || 0;
   const grossPay = gpHours * gpRate;
   
-  // Weekly PRSI (Class A employee: 4% if weekly earnings > €352, else 0%)
   const employeePrsi = grossPay > 352 ? grossPay * 0.04 : 0;
   
-  // Weekly USC (Standard Irish thresholds: 0.5% up to €257/wk, 2% up to €643/wk)
   let employeeUsc = 0;
   if (grossPay > 257) {
     const firstTier = Math.min(grossPay, 643) - 257;
@@ -778,7 +804,6 @@ export default function App() {
     employeeUsc += grossPay * 0.005;
   }
 
-  // Weekly PAYE (20% standard rate up to standard cutoff, minus tax credits)
   const taxCreditNum = Number(weeklyTaxCredit) || 0;
   const grossTaxBeforeCredit = grossPay * 0.20;
   const employeePaye = Math.max(0, grossTaxBeforeCredit - taxCreditNum);
@@ -837,18 +862,15 @@ export default function App() {
     return () => unsubscribeInventory();
   }, [user]);
 
-  // Firestore Snapshot for Employees & Payroll Ledger
   useEffect(() => {
     if (!user) return;
 
-    // Load Employees
     const qEmp = query(collection(db, 'employees'), orderBy('name', 'asc'));
     const unsubscribeEmployees = onSnapshot(qEmp, (snapshot) => {
       const empData = snapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
       setEmployees(empData);
     });
 
-    // Load Payroll History Ledger
     const qPay = query(collection(db, 'payrollRecords'), orderBy('payDate', 'desc'));
     const unsubscribePayroll = onSnapshot(qPay, (snapshot) => {
       const payData = snapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
@@ -887,7 +909,6 @@ export default function App() {
     return () => unsubscribePrices();
   }, [user]);
 
-  // Employee Selection Handler
   const handleSelectEmployee = (empDocId) => {
     setSelectedEmployeeId(empDocId);
     if (!empDocId) return;
@@ -901,7 +922,6 @@ export default function App() {
     }
   };
 
-  // Add / Edit Employee in Firestore
   const handleSaveEmployee = async (e) => {
     e.preventDefault();
     if (!empForm.name.trim()) {
@@ -966,7 +986,6 @@ export default function App() {
     });
   };
 
-  // Save Calculated Payslip Record to Ledger & Expense Log
   const handleSavePayslipToLedger = async () => {
     if (!employeeName.trim() || grossPay <= 0) {
       showToast(lang === 'ru' ? 'Сначала рассчитайте корректную зарплату.' : 'Please calculate a valid payslip first.');
@@ -990,10 +1009,8 @@ export default function App() {
     };
 
     try {
-      // 1. Add to Payroll Records Ledger
       await addDoc(collection(db, 'payrollRecords'), payslipRecord);
 
-      // 2. Automatically log as business expense under Payroll category
       await addDoc(collection(db, 'expenses'), {
         createdAt: new Date().toISOString(),
         date: payDate,
@@ -1011,39 +1028,55 @@ export default function App() {
     }
   };
 
-  // Automatically Email Payslip to Employee via EmailJS
+  // 3rd Email Template: Email Payslip via MailerSend
   const handleEmailPayslipToEmployee = async () => {
     if (!employeeEmail.trim()) {
       showToast(lang === 'ru' ? 'У сотрудника не указан email адрес!' : 'Employee email address is missing!');
       return;
     }
 
-    try {
-      const templateParams = {
-        to_email: employeeEmail.trim(),
-        employee_name: employeeName,
-        pay_date: payDate,
-        hours_worked: hoursWorked,
-        gross_pay: grossPay.toFixed(2),
-        paye: employeePaye.toFixed(2),
-        prsi: employeePrsi.toFixed(2),
-        usc: employeeUsc.toFixed(2),
-        total_deductions: totalDeductions.toFixed(2),
-        net_pay: netPay.toFixed(2)
-      };
+    const subject = `ALiCo Dublin - Payslip for Pay Date ${payDate}`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b;">
+        <h2 style="color: #0f766e; text-align: center; margin-bottom: 5px;">ALiCo DUBLIN</h2>
+        <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 0;">Official Statement of Earnings (Payslip)</p>
+        
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 15px 0;" />
+        
+        <p><strong>Employee Name:</strong> ${employeeName}</p>
+        <p><strong>PPSN:</strong> ${employeePPSN}</p>
+        <p><strong>Pay Date:</strong> ${payDate}</p>
+        <p><strong>Hours Worked:</strong> ${hoursWorked} hrs @ €${Number(hourlyRate).toFixed(2)}/hr</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;"><strong>Gross Pay</strong></td>
+            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; font-weight: bold;">€${grossPay.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">PAYE (Income Tax)</td>
+            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; color: #dc2626;">-€${employeePaye.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">PRSI (Class A1)</td>
+            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; color: #dc2626;">-€${employeePrsi.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">USC (Universal Social Charge)</td>
+            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; color: #dc2626;">-€${employeeUsc.toFixed(2)}</td>
+          </tr>
+          <tr style="background-color: #f8fafc;">
+            <td style="padding: 10px; font-weight: bold;">Net Take-Home Pay</td>
+            <td style="padding: 10px; text-align: right; font-weight: bold; color: #0f766e; font-size: 16px;">€${netPay.toFixed(2)}</td>
+          </tr>
+        </table>
 
-      await emailjs.send(
-        'service_u334299',
-        'template_2ka75ti', // Or your dedicated payslip email template ID
-        templateParams,
-        '50tnv-rcE0P4zclZ9'
-      );
+        <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px;">ALiCo Alterations & Laundry POS • Dublin, Ireland</p>
+      </div>
+    `;
 
-      showToast(lang === 'ru' ? `Расчетный листок успешно отправлен на ${employeeEmail}!` : `Payslip successfully emailed to ${employeeEmail}!`);
-    } catch (err) {
-      console.error('Error emailing payslip:', err);
-      showToast(lang === 'ru' ? 'Не удалось отправить email с листком.' : 'Failed to email payslip. Check EmailJS configuration.');
-    }
+    await sendMailerSendEmail(employeeEmail.trim(), employeeName, subject, htmlContent);
+    showToast(lang === 'ru' ? `Расчетный листок успешно отправлен на ${employeeEmail}!` : `Payslip successfully emailed to ${employeeEmail}!`);
   };
 
   const deletePayrollRecord = (payDocId) => {
@@ -1355,6 +1388,7 @@ export default function App() {
     }
   };
 
+  // 1st Email Template: Order Created Confirmation via MailerSend
   const handleCreateOrder = async (e) => {
     e.preventDefault();
     if (!phone) {
@@ -1404,26 +1438,32 @@ export default function App() {
       setSelectedOrderForPrint(newOrder);
 
       if (newOrder.customerEmail) {
-        try {
-          const templateParams = {
-            to_email: newOrder.customerEmail,
-            customer_name: newOrder.customerName,
-            order_id: newOrder.id,
-            service_type: newOrder.serviceType.toUpperCase(),
-            total: newOrder.total.toFixed(2),
-            payment_method: newOrder.paymentMethod,
-            due_date: newOrder.dueDate
-          };
+        const subject = `Your ALiCo Dublin Receipt - Tag #${newOrder.id}`;
+        const htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b;">
+            <h2 style="color: #0f766e; text-align: center; margin-bottom: 5px;">ALiCo DUBLIN</h2>
+            <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 0;">Digital Claim Check Receipt</p>
+            
+            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 12px; color: #166534; font-weight: bold; display: block;">TAG ID</span>
+              <span style="font-size: 28px; font-weight: 900; color: #15803d;">#${newOrder.id}</span>
+            </div>
 
-          await emailjs.send(
-            'service_u334299',
-            'template_2ka75ti',
-            templateParams,
-            '50tnv-rcE0P4zclZ9'
-          );
-        } catch (emailErr) {
-          console.error('Failed to send email via EmailJS:', emailErr);
-        }
+            <p>Hi <strong>${newOrder.customerName}</strong>,</p>
+            <p>Thank you for choosing ALiCo Dublin! Here are your digital claim check details:</p>
+            
+            <ul style="line-height: 1.6; font-size: 14px;">
+              <li><strong>Service Type:</strong> ${newOrder.serviceType.toUpperCase()}</li>
+              <li><strong>Target Ready Date:</strong> ${newOrder.dueDate}</li>
+              <li><strong>Payment Method:</strong> ${newOrder.paymentMethod}</li>
+              <li><strong>Total Paid:</strong> €${newOrder.total.toFixed(2)}</li>
+            </ul>
+
+            <p style="margin-top: 20px;">You can show this email when picking up your garments. Have a wonderful day!</p>
+            <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px;">ALiCo Alterations & Laundry POS • Dublin, Ireland</p>
+          </div>
+        `;
+        await sendMailerSendEmail(newOrder.customerEmail, newOrder.customerName, subject, htmlContent);
       }
 
       setNextTagId(Math.floor(7000 + Math.random() * 900).toString());
@@ -1442,7 +1482,7 @@ export default function App() {
       setRushFeeType('fixed');
       
       const successMsg = newOrder.customerEmail 
-        ? (lang === 'ru' ? 'Заказ создан и цифровая квитанция отправлена на email!' : 'Ticket created & digital receipt emailed successfully!') 
+        ? (lang === 'ru' ? 'Заказ создан и цифровая квитанция отправлена на email!' : 'Ticket created & digital receipt emailed successfully via MailerSend!') 
         : (lang === 'ru' ? 'Заказ создан и синхронизирован с облаком!' : 'Ticket created and synced to cloud database!');
       showToast(successMsg);
     } catch (error) {
@@ -1583,6 +1623,7 @@ export default function App() {
     });
   };
 
+  // 2nd Email Template: Order Completed / Ready for Collection via MailerSend
   const updateStatus = async (docId, newStatus) => {
     try {
       const orderRef = doc(db, 'orders', docId);
@@ -1590,25 +1631,26 @@ export default function App() {
 
       const targetOrder = orders.find(o => o.docId === docId);
       if (newStatus === 'Completed' && targetOrder && targetOrder.customerEmail) {
-        try {
-          const templateParams = {
-            to_email: targetOrder.customerEmail,
-            customer_name: targetOrder.customerName || 'Valued Customer',
-            order_id: targetOrder.id,
-            service_type: targetOrder.serviceType.toUpperCase(),
-            total: targetOrder.total.toFixed(2)
-          };
+        const subject = `⚡ Your ALiCo garments are ready for collection! Tag #${targetOrder.id}`;
+        const htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b;">
+            <h2 style="color: #0f766e; text-align: center; margin-bottom: 5px;">ALiCo DUBLIN</h2>
+            <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 0;">Ready for Collection Notice</p>
+            
+            <div style="background-color: #fef3c7; border: 1px solid #fde047; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 12px; color: #854d0e; font-weight: bold; display: block;">READY TAG ID</span>
+              <span style="font-size: 28px; font-weight: 900; color: #a16207;">#${targetOrder.id}</span>
+            </div>
 
-          await emailjs.send(
-            'service_u334299',
-            'template_boon6r6',
-            templateParams,
-            '50tnv-rcE0P4zclZ9'
-          );
-          showToast(lang === 'ru' ? `Уведомление о готовности отправлено на ${targetOrder.customerEmail}!` : `Ready-for-collection notification emailed to ${targetOrder.customerEmail}!`);
-        } catch (emailErr) {
-          console.error('Failed to send completion email via EmailJS:', emailErr);
-        }
+            <p>Hi <strong>${targetOrder.customerName || 'Valued Customer'}</strong>,</p>
+            <p>Great news! Your garments for Tag ID <strong>#${targetOrder.id}</strong> are now fully completed, pressed, and ready to be collected at our Dublin counter.</p>
+            
+            <p style="margin-top: 20px;">We look forward to seeing you!</p>
+            <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px;">ALiCo Alterations & Laundry POS • Dublin, Ireland</p>
+          </div>
+        `;
+        await sendMailerSendEmail(targetOrder.customerEmail, targetOrder.customerName, subject, htmlContent);
+        showToast(lang === 'ru' ? `Уведомление о готовности отправлено на ${targetOrder.customerEmail}!` : `Ready-for-collection notification emailed to ${targetOrder.customerEmail}!`);
       }
     } catch (error) {
       console.error('Error updating status: ', error);
@@ -1915,7 +1957,6 @@ export default function App() {
             page-break-inside: avoid;
           }
 
-          /* Allows the Official Payslip Card to print cleanly on A4/Letter */
           .payslip-print-card, .payslip-print-card * {
             visibility: visible !important;
           }
@@ -3348,20 +3389,20 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* ROS Copy-Paste Helper & Actions */}
+                {/* MailerSend Action Buttons */}
                 <div className="bg-slate-900 text-slate-100 p-4 rounded-2xl space-y-3 text-xs font-mono">
                   <div className="flex justify-between items-center flex-wrap gap-2">
-                    <p className="text-teal-400 font-bold font-sans">📋 {lang === 'ru' ? 'Действия и отправка:' : 'Payslip Actions & ROS Quick-Copy:'}</p>
+                    <p className="text-teal-400 font-bold font-sans">📋 {lang === 'ru' ? 'Действия и отправка:' : 'Payslip Actions & MailerSend:'}</p>
                     <div className="flex gap-2 font-sans">
                       <button
                         onClick={handleEmailPayslipToEmployee}
-                        className="px-3.5 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md inline-flex items-center gap-1.5"
+                        className="px-3.5 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-md inline-flex items-center gap-1.5 cursor-pointer"
                       >
                         <Mail className="w-4 h-4" /> {lang === 'ru' ? '📧 Отправить по Email' : '📧 Email Payslip'}
                       </button>
                       <button
                         onClick={handleSavePayslipToLedger}
-                        className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all border border-slate-700"
+                        className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all border border-slate-700 cursor-pointer"
                       >
                         💾 {lang === 'ru' ? 'Сохранить в архив' : 'Save to Ledger'}
                       </button>
