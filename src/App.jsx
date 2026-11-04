@@ -121,6 +121,15 @@ export default function App() {
   const [isCapitalModalOpen, setIsCapitalModalOpen] = useState(false);
   const [capitalAmount, setCapitalAmount] = useState('');
   const [capitalNote, setCapitalNote] = useState('');
+  const [capitalDate, setCapitalDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  // Capital Editing Modal State
+  const [editingCapitalId, setEditingCapitalId] = useState(null);
+  const [editCapitalValues, setEditCapitalValues] = useState({
+    amount: '',
+    notes: '',
+    date: ''
+  });
 
   // Expense Editing & Receipt Modal State
   const [editingExpenseId, setEditingExpenseId] = useState(null);
@@ -836,7 +845,7 @@ export default function App() {
       customerName: lang === 'ru' ? 'Ввод капитала / Касса' : 'Business Capital / Float',
       phone: 'N/A',
       customerEmail: '',
-      dueDate: new Date().toISOString().split('T')[0],
+      dueDate: capitalDate || new Date().toISOString().split('T')[0],
       notes: capitalNote.trim() || (lang === 'ru' ? 'Стартовый капитал или разменная касса' : 'Starting capital or cash float injection'),
       paymentMethod: 'Capital / Cash Drawer Float',
       total: amountNum,
@@ -858,6 +867,46 @@ export default function App() {
       console.error('Error adding capital:', err);
       showToast(lang === 'ru' ? 'Не удалось зачислить капитал.' : 'Failed to save capital injection.');
     }
+  };
+
+  const handleUpdateCapital = async (e) => {
+    e.preventDefault();
+    const amountNum = Number(editCapitalValues.amount);
+    if (!amountNum || amountNum <= 0) {
+      showToast(lang === 'ru' ? 'Введите корректную сумму.' : 'Please enter a valid amount.');
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, 'orders', editingCapitalId), {
+        total: amountNum,
+        dueDate: editCapitalValues.date,
+        notes: editCapitalValues.notes
+      });
+      setEditingCapitalId(null);
+      showToast(lang === 'ru' ? 'Капитал успешно обновлен!' : 'Capital entry updated successfully!');
+    } catch (err) {
+      console.error('Error updating capital:', err);
+      showToast(lang === 'ru' ? 'Не удалось обновить капитал.' : 'Failed to update capital entry.');
+    }
+  };
+
+  const deleteCapitalOrder = (docId) => {
+    if (!isAdmin) return;
+    setConfirmModal({
+      isOpen: true,
+      title: lang === 'ru' ? 'Удалить ввод капитала' : 'Delete Capital Entry',
+      message: lang === 'ru' ? 'Вы уверены, что хотите удалить этот ввод капитала?' : 'Are you sure you want to delete this capital entry?',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'orders', docId));
+          showToast(lang === 'ru' ? 'Капитал успешно удален.' : 'Capital entry successfully deleted.');
+        } catch (error) {
+          console.error('Error deleting capital:', error);
+        }
+        setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+      }
+    });
   };
 
   const executeAddCategory = async (cat) => {
@@ -1364,6 +1413,12 @@ export default function App() {
     return matchesTimeframe(dateStr, reportTimeframe, startDateFilter, endDateFilter);
   });
 
+  const capitalOrdersList = orders.filter(o => o.serviceType === 'capital');
+  const filteredCapitalList = capitalOrdersList.filter(cap => {
+    const dateStr = cap.dueDate || cap.createdAt?.split('T')[0];
+    return matchesTimeframe(dateStr, bookkeepingTimeframe, bookkeepingStartDate, bookkeepingEndDate);
+  });
+
   const filteredExpensesByTimeframe = expenses.filter(ex => {
     const dateStr = ex.date || ex.createdAt?.split('T')[0];
     return matchesTimeframe(dateStr, bookkeepingTimeframe, bookkeepingStartDate, bookkeepingEndDate);
@@ -1623,6 +1678,18 @@ export default function App() {
 
             <form onSubmit={handleAddCapital} className="space-y-4">
               <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Дата' : 'Date'}</label>
+                <input 
+                  type="date"
+                  required
+                  value={capitalDate}
+                  style={{ colorScheme: dateInputColorScheme }}
+                  onChange={(e) => setCapitalDate(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
                 <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Сумма (€)' : 'Amount (€)'}</label>
                 <input 
                   type="number"
@@ -1660,6 +1727,77 @@ export default function App() {
                   className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg"
                 >
                   {lang === 'ru' ? 'Зачислить в кассу' : 'Save Capital'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Capital Edit Modal */}
+      {editingCapitalId && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 text-white animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-teal-400" /> {lang === 'ru' ? 'Редактировать капитал' : 'Edit Capital Entry'}
+              </h3>
+              <button 
+                onClick={() => setEditingCapitalId(null)}
+                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateCapital} className="space-y-4">
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Дата' : 'Date'}</label>
+                <input 
+                  type="date"
+                  required
+                  value={editCapitalValues.date}
+                  style={{ colorScheme: dateInputColorScheme }}
+                  onChange={(e) => setEditCapitalValues({ ...editCapitalValues, date: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Сумма (€)' : 'Amount (€)'}</label>
+                <input 
+                  type="number"
+                  step="0.01"
+                  required
+                  value={editCapitalValues.amount}
+                  onChange={(e) => setEditCapitalValues({ ...editCapitalValues, amount: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold text-teal-400 focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Примечание' : 'Note'}</label>
+                <input 
+                  type="text"
+                  value={editCapitalValues.notes}
+                  onChange={(e) => setEditCapitalValues({ ...editCapitalValues, notes: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingCapitalId(null)}
+                  className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl text-xs transition-all border border-slate-700"
+                >
+                  {translations.cancelBtn}
+                </button>
+                <button
+                  type="submit"
+                  className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition-all shadow-lg"
+                >
+                  {translations.saveBtn}
                 </button>
               </div>
             </form>
@@ -3386,6 +3524,67 @@ export default function App() {
                   <p className={`text-xl font-extrabold ${profitMargin >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
                     {profitMargin.toFixed(1)}%
                   </p>
+                </div>
+              </div>
+
+              {/* CAPITAL & CASH FLOAT LOG */}
+              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <div className="flex justify-between items-center flex-wrap gap-2">
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    <DollarSign className={`w-4 h-4 ${t.textAccent}`} /> {lang === 'ru' ? 'Журнал ввода капитала и кассы' : 'Capital & Cash Float Injection Log'}
+                  </h3>
+                  <span className="font-mono text-xs font-bold text-teal-400">
+                    Total Injected: €{filteredCapitalList.reduce((sum, c) => sum + c.total, 0).toFixed(2)}
+                  </span>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs min-w-[600px]">
+                    <thead>
+                      <tr className="border-b border-slate-700/50 opacity-70">
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Дата' : 'Date'}</th>
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Примечание' : 'Description / Note'}</th>
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Сумма' : 'Amount'}</th>
+                        <th className="py-2.5 px-3 text-right">{translations.actions}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/20">
+                      {filteredCapitalList.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="text-center py-6 opacity-60">{lang === 'ru' ? 'За этот период вводов капитала нет.' : 'No capital or float entries for this period.'}</td>
+                        </tr>
+                      ) : (
+                        filteredCapitalList.map(cap => (
+                          <tr key={cap.docId} className="hover:bg-slate-500/5 transition-colors">
+                            <td className="py-3 px-3 font-mono">{cap.dueDate || cap.createdAt?.split('T')[0]}</td>
+                            <td className="py-3 px-3 font-semibold">{cap.notes || (lang === 'ru' ? 'Стартовый капитал' : 'Capital Injection')}</td>
+                            <td className="py-3 px-3 font-bold text-teal-400">€{cap.total.toFixed(2)}</td>
+                            <td className="py-3 px-3 text-right space-x-2">
+                              <button
+                                onClick={() => {
+                                  setEditingCapitalId(cap.docId);
+                                  setEditCapitalValues({
+                                    amount: cap.total || '',
+                                    notes: cap.notes || '',
+                                    date: cap.dueDate || new Date().toISOString().split('T')[0]
+                                  });
+                                }}
+                                className="px-3 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1"
+                              >
+                                <Edit2 className="w-3 h-3" /> {translations.editBtn}
+                              </button>
+                              <button
+                                onClick={() => deleteCapitalOrder(cap.docId)}
+                                className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                              >
+                                {translations.delete}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
