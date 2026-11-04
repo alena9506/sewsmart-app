@@ -417,6 +417,7 @@ export default function App() {
       paymentBreakdown: 'Payment Breakdown',
       cardPayments: 'Card Payments',
       cashPayments: 'Cash Payments',
+      capitalPayments: 'Capital / Float',
       bookkeepingTitle: 'Business Expense Bookkeeping',
       bookkeepingDesc: 'Record and edit business expenses below.',
       exportExpensesBtn: 'Export Expenses (CSV)',
@@ -551,6 +552,7 @@ export default function App() {
       paymentBreakdown: 'Способы оплаты',
       cardPayments: 'Оплата картой',
       cashPayments: 'Наличные',
+      capitalPayments: 'Капитал / Размен',
       bookkeepingTitle: 'Бухгалтерия и учет расходов',
       bookkeepingDesc: 'Вносите и редактируйте расходы ниже.',
       exportExpensesBtn: 'Экспорт расходов (CSV)',
@@ -1331,8 +1333,9 @@ export default function App() {
 
   const periodOrderCount = filteredOrdersByTimeframe.length;
 
-  const cardRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Card')).reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
-  const cashRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Cash')).reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+  const cardRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Card') || o.paymentMethod?.includes('Банковская')).reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+  const cashRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Cash') || o.paymentMethod?.includes('Наличные')).reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
+  const capitalRevenue = filteredOrdersByTimeframe.filter(o => o.paymentMethod?.includes('Capital') || o.paymentMethod?.includes('Капитал')).reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
 
   const alterationRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'alteration').reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
   const laundryRevenue = filteredOrdersByTimeframe.filter(o => o.serviceType === 'laundry').reduce((acc, o) => acc + o.total, 0) * revenueMultiplier;
@@ -2155,6 +2158,7 @@ export default function App() {
                       >
                         <option>{lang === 'ru' ? 'Банковская карта' : 'Credit / Debit Card'}</option>
                         <option>{lang === 'ru' ? 'Наличные' : 'Cash'}</option>
+                        <option>{lang === 'ru' ? 'Капитал / Разменная касса' : 'Capital / Cash Drawer Float'}</option>
                       </select>
                     </div>
                     <div>
@@ -3163,6 +3167,10 @@ export default function App() {
                     <div className="flex justify-between items-center">
                       <span>💵 {text.cashPayments}</span>
                       <span className="font-bold">€{cashRevenue.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>🏦 {text.capitalPayments}</span>
+                      <span className="font-bold">€{capitalRevenue.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
