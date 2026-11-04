@@ -304,7 +304,7 @@ export default function App() {
     };
   }, [user, isTerminalLocked]);
 
-  const translations = {
+  const translationsDict = {
     en: {
       subtitle: 'Alterations & Service Laundry POS (Cloud Sync)',
       newTicket: 'New Ticket',
@@ -577,7 +577,7 @@ export default function App() {
     }
   };
 
-  const translations = translations[lang] || translations.en; // Wait, handled below correctly
+  const translations = translationsDict[lang] || translationsDict.en;
 
   const EXPENSE_CATEGORIES = [
     { key: 'Supplies & Materials', label: lang === 'ru' ? 'Расходные материалы и сырье' : 'Supplies & Materials' },
