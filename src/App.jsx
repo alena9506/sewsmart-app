@@ -59,7 +59,8 @@ import {
   Edit2,
   FolderPlus,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  DollarSign
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -115,6 +116,11 @@ export default function App() {
   
   const [bookkeepingStartDate, setBookkeepingStartDate] = useState('');
   const [bookkeepingEndDate, setBookkeepingEndDate] = useState('');
+
+  // Capital / Cash Float Injection Modal State
+  const [isCapitalModalOpen, setIsCapitalModalOpen] = useState(false);
+  const [capitalAmount, setCapitalAmount] = useState('');
+  const [capitalNote, setCapitalNote] = useState('');
 
   // Expense Editing & Receipt Modal State
   const [editingExpenseId, setEditingExpenseId] = useState(null);
@@ -815,6 +821,45 @@ export default function App() {
     });
   };
 
+  const handleAddCapital = async (e) => {
+    e.preventDefault();
+    const amountNum = Number(capitalAmount);
+    if (!amountNum || amountNum <= 0) {
+      showToast(lang === 'ru' ? 'Введите корректную сумму капитала.' : 'Please enter a valid capital amount.');
+      return;
+    }
+
+    const newCapitalOrder = {
+      id: 'CAP-' + Math.floor(1000 + Math.random() * 9000),
+      createdAt: new Date().toISOString(),
+      serviceType: 'capital',
+      customerName: lang === 'ru' ? 'Ввод капитала / Касса' : 'Business Capital / Float',
+      phone: 'N/A',
+      customerEmail: '',
+      dueDate: new Date().toISOString().split('T')[0],
+      notes: capitalNote.trim() || (lang === 'ru' ? 'Стартовый капитал или разменная касса' : 'Starting capital or cash float injection'),
+      paymentMethod: 'Capital / Cash Drawer Float',
+      total: amountNum,
+      isRush: false,
+      rushType: null,
+      status: 'Completed',
+      details: {
+        items: [{ garmentType: lang === 'ru' ? 'Капитал / Касса' : 'Capital / Cash Float', alterations: [], customNote: capitalNote, price: amountNum }]
+      }
+    };
+
+    try {
+      await addDoc(collection(db, 'orders'), newCapitalOrder);
+      setCapitalAmount('');
+      setCapitalNote('');
+      setIsCapitalModalOpen(false);
+      showToast(lang === 'ru' ? 'Капитал / касса успешно зачислены!' : 'Capital / cash float added successfully!');
+    } catch (err) {
+      console.error('Error adding capital:', err);
+      showToast(lang === 'ru' ? 'Не удалось зачислить капитал.' : 'Failed to save capital injection.');
+    }
+  };
+
   const executeAddCategory = async (cat) => {
     try {
       await addDoc(collection(db, 'priceBook'), {
@@ -947,7 +992,7 @@ export default function App() {
   const loyaltyCustomersMap = {};
   orders.forEach(o => {
     const p = (o.phone || '').trim();
-    if (!p) return;
+    if (!p || p === 'N/A') return;
     if (!loyaltyCustomersMap[p]) {
       loyaltyCustomersMap[p] = {
         phone: p,
@@ -1560,6 +1605,68 @@ export default function App() {
         }
       `}</style>
 
+      {/* Capital / Cash Float Modal */}
+      {isCapitalModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 text-white animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-teal-400" /> {lang === 'ru' ? 'Ввод капитала / Кассы' : 'Add Capital / Cash Float'}
+              </h3>
+              <button 
+                onClick={() => setIsCapitalModalOpen(false)}
+                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddCapital} className="space-y-4">
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Сумма (€)' : 'Amount (€)'}</label>
+                <input 
+                  type="number"
+                  step="0.01"
+                  required
+                  autoFocus
+                  value={capitalAmount}
+                  onChange={(e) => setCapitalAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-base font-extrabold text-teal-400 focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Примечание / Описание' : 'Note / Description'}</label>
+                <input 
+                  type="text"
+                  value={capitalNote}
+                  onChange={(e) => setCapitalNote(e.target.value)}
+                  placeholder={lang === 'ru' ? 'напр. Стартовый капитал кассы' : 'e.g. Starting float cash for register'}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCapitalModalOpen(false)}
+                  className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-all border border-slate-700"
+                >
+                  {translations.cancelBtn}
+                </button>
+                <button
+                  type="submit"
+                  className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg"
+                >
+                  {lang === 'ru' ? 'Зачислить в кассу' : 'Save Capital'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Receipt Image Preview Modal */}
       {previewReceiptUrl && (
         <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -2156,7 +2263,6 @@ export default function App() {
                       >
                         <option>{lang === 'ru' ? 'Банковская карта' : 'Credit / Debit Card'}</option>
                         <option>{lang === 'ru' ? 'Наличные' : 'Cash'}</option>
-                        <option>{lang === 'ru' ? 'Капитал / Разменная касса' : 'Capital / Cash Drawer Float'}</option>
                       </select>
                     </div>
                     <div>
@@ -3188,6 +3294,12 @@ export default function App() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => setIsCapitalModalOpen(true)}
+                    className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-lg"
+                  >
+                    <DollarSign className="w-4 h-4" /> {lang === 'ru' ? '+ Ввод капитала / Касса' : '+ Add Capital / Cash Float'}
+                  </button>
                   <button
                     onClick={exportExpensesToCSV}
                     className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
