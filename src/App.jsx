@@ -60,7 +60,9 @@ import {
   FolderPlus,
   Upload,
   Image as ImageIcon,
-  DollarSign
+  DollarSign,
+  Users,
+  UserPlus
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -146,14 +148,31 @@ export default function App() {
   const [previewReceiptUrl, setPreviewReceiptUrl] = useState(null);
   const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
 
-  // Payroll / Payslip State
+  // --- MULTI-EMPLOYEE & PAYROLL STATE ---
+  const [employees, setEmployees] = useState([]);
+  const [payrollRecords, setPayrollRecords] = useState([]);
+
+  // Add/Edit Employee Form Modal State
+  const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
+  const [editingEmployeeId, setEditingEmployeeId] = useState(null);
+  const [empForm, setEmpForm] = useState({
+    name: '',
+    ppsn: '',
+    hourlyRate: '13.50',
+    weeklyTaxCredit: '71.50',
+    role: 'Seamstress / Tailor',
+    status: 'Active'
+  });
+
+  // Current Selected Employee for Payslip Calculator
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [employeeName, setEmployeeName] = useState('Maria Smith');
   const [employeePPSN, setEmployeePPSN] = useState('1234567A');
   const [payPeriod, setPayPeriod] = useState('Weekly');
   const [payDate, setPayDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [hoursWorked, setHoursWorked] = useState('39');
   const [hourlyRate, setHourlyRate] = useState('13.50');
-  const [weeklyTaxCredit, setWeeklyTaxCredit] = useState('71.50'); // Standard single person weekly tax credit approx
+  const [weeklyTaxCredit, setWeeklyTaxCredit] = useState('71.50');
 
   const [revenueMultiplier, setRevenueMultiplier] = useState(1.00); 
   const [optimizationPin, setOptimizationPin] = useState('');
@@ -335,7 +354,7 @@ export default function App() {
       orders: 'Orders',
       reports: 'Reports',
       bookkeeping: 'Bookkeeping',
-      payroll: 'Payroll',
+      payroll: 'Payroll & Staff',
       inventory: 'Inventory',
       loyalty: 'Customer Visits',
       priceBookTab: 'Price Book',
@@ -471,7 +490,7 @@ export default function App() {
       orders: 'Заказы',
       reports: 'Отчеты',
       bookkeeping: 'Бухгалтерия',
-      payroll: 'Зарплата',
+      payroll: 'Персонал и Зарплата',
       inventory: 'Склад',
       loyalty: 'Клиенты',
       priceBookTab: 'Цены',
@@ -816,6 +835,30 @@ export default function App() {
     return () => unsubscribeInventory();
   }, [user]);
 
+  // Firestore Snapshot for Employees & Payroll Ledger
+  useEffect(() => {
+    if (!user) return;
+
+    // Load Employees
+    const qEmp = query(collection(db, 'employees'), orderBy('name', 'asc'));
+    const unsubscribeEmployees = onSnapshot(qEmp, (snapshot) => {
+      const empData = snapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+      setEmployees(empData);
+    });
+
+    // Load Payroll History Ledger
+    const qPay = query(collection(db, 'payrollRecords'), orderBy('payDate', 'desc'));
+    const unsubscribePayroll = onSnapshot(qPay, (snapshot) => {
+      const payData = snapshot.docs.map(d => ({ docId: d.id, ...d.data() }));
+      setPayrollRecords(payData);
+    });
+
+    return () => {
+      unsubscribeEmployees();
+      unsubscribePayroll();
+    };
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, 'priceBook'), orderBy('category', 'asc'));
@@ -841,6 +884,143 @@ export default function App() {
     });
     return () => unsubscribePrices();
   }, [user]);
+
+  // Employee Selection Handler
+  const handleSelectEmployee = (empId) => {
+    setSelectedEmployeeId(empId);
+    if (!empId) return;
+    const emp = employees.find(e => e.docId === empId);
+    if (emp) {
+      setEmployeeName(emp.name || '');
+      setEmployeePPSN(emp.ppsn || '');
+      setHourlyRate(emp.hourlyRate ? String(emp.hourlyRate) : '13.50');
+      setWeeklyTaxCredit(emp.weeklyTaxCredit ? String(emp.weeklyTaxCredit) : '71.50');
+    }
+  };
+
+  // Add / Edit Employee in Firestore
+  const handleSaveEmployee = async (e) => {
+    e.preventDefault();
+    if (!empForm.name.trim()) {
+      showToast(lang === 'ru' ? 'Введите имя сотрудника.' : 'Please enter an employee name.');
+      return;
+    }
+
+    const payload = {
+      name: empForm.name.trim(),
+      ppsn: empForm.ppsn.trim(),
+      hourlyRate: Number(empForm.hourlyRate) || 13.50,
+      weeklyTaxCredit: Number(empForm.weeklyTaxCredit) || 71.50,
+      role: empForm.role.trim() || 'Seamstress / Tailor',
+      status: empForm.status || 'Active',
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      if (editingEmployeeId) {
+        await updateDoc(doc(db, 'employees', editingEmployeeId), payload);
+        showToast(lang === 'ru' ? 'Данные сотрудника обновлены!' : 'Employee updated successfully!');
+      } else {
+        await addDoc(collection(db, 'employees'), {
+          ...payload,
+          createdAt: new Date().toISOString()
+        });
+        showToast(lang === 'ru' ? 'Новый сотрудник добавлен!' : 'New employee added successfully!');
+      }
+
+      setIsEmployeeModalOpen(false);
+      setEditingEmployeeId(null);
+      setEmpForm({
+        name: '',
+        ppsn: '',
+        hourlyRate: '13.50',
+        weeklyTaxCredit: '71.50',
+        role: 'Seamstress / Tailor',
+        status: 'Active'
+      });
+    } catch (err) {
+      console.error('Error saving employee:', err);
+      showToast(lang === 'ru' ? 'Ошибка при сохранении сотрудника.' : 'Failed to save employee.');
+    }
+  };
+
+  const deleteEmployee = (empDocId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: lang === 'ru' ? 'Удалить сотрудника' : 'Delete Employee',
+      message: lang === 'ru' ? 'Вы уверены, что хотите удалить этого сотрудника из системы?' : 'Are you sure you want to remove this employee from your staff directory?',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'employees', empDocId));
+          showToast(lang === 'ru' ? 'Сотрудник удален.' : 'Employee removed successfully.');
+        } catch (err) {
+          console.error('Error deleting employee:', err);
+        }
+        setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+      }
+    });
+  };
+
+  // Save Calculated Payslip Record to Ledger & Expense Log
+  const handleSavePayslipToLedger = async () => {
+    if (!employeeName.trim() || grossPay <= 0) {
+      showToast(lang === 'ru' ? 'Сначала рассчитайте корректную зарплату.' : 'Please calculate a valid payslip first.');
+      return;
+    }
+
+    const payslipRecord = {
+      payDate,
+      employeeName,
+      ppsn: employeePPSN,
+      hoursWorked: gpHours,
+      hourlyRate: gpRate,
+      grossPay,
+      employeePaye,
+      employeePrsi,
+      employeeUsc,
+      totalDeductions,
+      netPay,
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      // 1. Add to Payroll Records Ledger
+      await addDoc(collection(db, 'payrollRecords'), payslipRecord);
+
+      // 2. Automatically log as business expense under Payroll category
+      await addDoc(collection(db, 'expenses'), {
+        createdAt: new Date().toISOString(),
+        date: payDate,
+        description: `Salary: ${employeeName} (${gpHours} hrs)`,
+        category: 'Payroll & Subcontractors',
+        amount: grossPay,
+        isRecurring: false,
+        receiptUrl: ''
+      });
+
+      showToast(lang === 'ru' ? 'Расчетный листок сохранен в архив и внесен в расходы!' : 'Payslip recorded to payroll ledger & expense log!');
+    } catch (err) {
+      console.error('Error recording payslip:', err);
+      showToast(lang === 'ru' ? 'Ошибка сохранения расчетного листка.' : 'Failed to save payslip.');
+    }
+  };
+
+  const deletePayrollRecord = (payDocId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: lang === 'ru' ? 'Удалить ведомость' : 'Delete Payslip Record',
+      message: lang === 'ru' ? 'Удалить эту запись выплат из архива?' : 'Delete this payroll record from history ledger?',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, 'payrollRecords', payDocId));
+          showToast(lang === 'ru' ? 'Запись удалена.' : 'Payroll record deleted.');
+        } catch (err) {
+          console.error('Error deleting payroll record:', err);
+        }
+        setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null });
+      }
+    });
+  };
 
   const handleResetPriceBookDefaults = async () => {
     setConfirmModal({
@@ -1700,6 +1880,124 @@ export default function App() {
         }
       `}</style>
 
+      {/* Add / Edit Employee Modal */}
+      {isEmployeeModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 text-white animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-teal-400" /> {editingEmployeeId ? (lang === 'ru' ? 'Редактировать сотрудника' : 'Edit Employee') : (lang === 'ru' ? 'Добавить нового сотрудника' : 'Add New Employee')}
+              </h3>
+              <button 
+                onClick={() => {
+                  setIsEmployeeModalOpen(false);
+                  setEditingEmployeeId(null);
+                }}
+                className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEmployee} className="space-y-4">
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Имя и фамилия' : 'Full Name *'}</label>
+                <input 
+                  type="text"
+                  required
+                  autoFocus
+                  value={empForm.name}
+                  onChange={(e) => setEmpForm({ ...empForm, name: e.target.value })}
+                  placeholder="e.g. Maria Smith"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'PPSN (ИНН)' : 'PPSN'}</label>
+                <input 
+                  type="text"
+                  value={empForm.ppsn}
+                  onChange={(e) => setEmpForm({ ...empForm, ppsn: e.target.value })}
+                  placeholder="e.g. 1234567A"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Ставка в час (€)' : 'Hourly Rate (€)'}</label>
+                  <input 
+                    type="number"
+                    step="0.25"
+                    required
+                    value={empForm.hourlyRate}
+                    onChange={(e) => setEmpForm({ ...empForm, hourlyRate: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-teal-400 focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Нед. налог. кредит (€)' : 'Weekly Tax Credit (€)'}</label>
+                  <input 
+                    type="number"
+                    step="0.50"
+                    required
+                    value={empForm.weeklyTaxCredit}
+                    onChange={(e) => setEmpForm({ ...empForm, weeklyTaxCredit: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Должность' : 'Role / Title'}</label>
+                  <input 
+                    type="text"
+                    value={empForm.role}
+                    onChange={(e) => setEmpForm({ ...empForm, role: e.target.value })}
+                    placeholder="e.g. Seamstress"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Статус' : 'Status'}</label>
+                  <select 
+                    value={empForm.status}
+                    onChange={(e) => setEmpForm({ ...empForm, status: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Part-Time">Part-Time</option>
+                    <option value="On Leave">On Leave</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEmployeeModalOpen(false);
+                    setEditingEmployeeId(null);
+                  }}
+                  className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-all border border-slate-700"
+                >
+                  {translations.cancelBtn}
+                </button>
+                <button
+                  type="submit"
+                  className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg"
+                >
+                  {translations.saveBtn}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Capital / Cash Float Modal */}
       {isCapitalModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -2293,7 +2591,7 @@ export default function App() {
                   className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'payroll' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
                   title={translations.payroll}
                 >
-                  <User className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.payroll}</span>
+                  <Users className="w-3.5 h-3.5" /> <span className="hidden md:inline">{translations.payroll}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('loyalty')}
@@ -2785,29 +3083,58 @@ export default function App() {
           </div>
         )}
 
-        {/* PAYROLL & PAYSLIP GENERATOR TAB */}
+        {/* MULTI-EMPLOYEE PAYROLL & STAFF DIRECTORY TAB */}
         {activeTab === 'payroll' && isAdmin && (
-          <div className="space-y-6 max-w-4xl mx-auto w-full">
+          <div className="space-y-6 max-w-5xl mx-auto w-full">
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
               <div className="flex justify-between items-center flex-wrap gap-4">
                 <div>
                   <h2 className="text-xl font-bold flex items-center gap-2">
-                    <User className={`w-6 h-6 ${t.textAccent}`} /> {lang === 'ru' ? 'Зарплата и генератор расчетных листков (Ирландия)' : 'Irish Payroll & Payslip Generator'}
+                    <Users className={`w-6 h-6 ${t.textAccent}`} /> {lang === 'ru' ? 'Управление персоналом и зарплатами (Ирландия)' : 'Staff Directory & Payroll Management'}
                   </h2>
-                  <p className="text-xs opacity-75">{lang === 'ru' ? 'Рассчитывайте часы, налоги PAYE/PRSI/USC и генерируйте платежные ведомости для ROS.' : 'Track hours, compute Irish statutory deductions (PAYE, PRSI, USC), and generate compliant payslips.'}</p>
+                  <p className="text-xs opacity-75">{lang === 'ru' ? 'Управляйте сотрудниками, рассчитывайте налоги PAYE/PRSI/USC и сохраняйте ведомости.' : 'Manage full employee database, compute Irish PAYE/PRSI/USC, and save payroll logs.'}</p>
                 </div>
-                <button
-                  onClick={() => window.print()}
-                  className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-lg"
-                >
-                  <Printer className="w-4 h-4" /> {lang === 'ru' ? 'Печать / Сохранить листок' : 'Print / Save Payslip'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingEmployeeId(null);
+                      setEmpForm({ name: '', ppsn: '', hourlyRate: '13.50', weeklyTaxCredit: '71.50', role: 'Seamstress', status: 'Active' });
+                      setIsEmployeeModalOpen(true);
+                    }}
+                    className="px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-lg"
+                  >
+                    <UserPlus className="w-4 h-4" /> {lang === 'ru' ? '+ Добавить сотрудника' : '+ Add Employee'}
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md ${t.isLight ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-slate-700 text-white hover:bg-slate-600'}`}
+                  >
+                    <Printer className="w-4 h-4" /> {lang === 'ru' ? 'Печать листка' : 'Print Payslip'}
+                  </button>
+                </div>
               </div>
 
-              {/* Employee Input Form */}
-              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
-                <h3 className="text-xs font-bold uppercase tracking-wider">{lang === 'ru' ? 'Данные сотрудника и расчет периода' : 'Employee Details & Period Calculation'}</h3>
-                
+              {/* EMPLOYEE SELECTOR & PAYSLIP CALCULATOR */}
+              <div className={`p-6 rounded-2xl border space-y-5 ${t.subCardBg}`}>
+                <div className="flex justify-between items-center flex-wrap gap-3 pb-3 border-b border-slate-700/30">
+                  <h3 className="text-xs font-bold uppercase tracking-wider">{lang === 'ru' ? 'Расчет расчетного листка' : 'Payslip Calculator & Employee Selection'}</h3>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-slate-400">{lang === 'ru' ? 'Выбрать сотрудника:' : 'Select Employee:'}</span>
+                    <select
+                      value={selectedEmployeeId}
+                      onChange={(e) => handleSelectEmployee(e.target.value)}
+                      className={`border rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    >
+                      <option value="">{lang === 'ru' ? '-- Ручной ввод --' : '-- Custom Manual Entry --'}</option>
+                      {employees.map(emp => (
+                        <option key={emp.docId} value={emp.docId}>{emp.name} ({emp.role || 'Staff'})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Form Inputs for Selected Employee Payroll */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Имя сотрудника' : 'Employee Name'}</label>
@@ -2815,7 +3142,7 @@ export default function App() {
                       type="text"
                       value={employeeName}
                       onChange={(e) => setEmployeeName(e.target.value)}
-                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
                   <div>
@@ -2824,7 +3151,7 @@ export default function App() {
                       type="text"
                       value={employeePPSN}
                       onChange={(e) => setEmployeePPSN(e.target.value)}
-                      className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs font-mono focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
                   <div>
@@ -2839,7 +3166,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Отработано часов' : 'Hours Worked'}</label>
                     <input 
@@ -2857,7 +3184,7 @@ export default function App() {
                       step="0.25"
                       value={hourlyRate}
                       onChange={(e) => setHourlyRate(e.target.value)}
-                      className={`w-full border rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                      className={`w-full border rounded-xl px-4 py-2.5 text-xs font-bold text-teal-400 focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
                   <div>
@@ -2873,7 +3200,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Official Payslip Preview Card */}
+              {/* Official Payslip Card Preview */}
               <div className="bg-white text-slate-900 border border-slate-300 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
                 <div className="flex justify-between items-start border-b border-slate-200 pb-4">
                   <div>
@@ -2941,10 +3268,19 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* ROS Copy-Paste Helper Box */}
-                <div className="bg-slate-900 text-slate-100 p-4 rounded-2xl space-y-2 text-xs font-mono">
-                  <p className="text-teal-400 font-bold font-sans">📋 {lang === 'ru' ? 'Данные для копирования в ROS (Real-Time PAYE):' : 'ROS Submission Quick-Copy Values:'}</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] pt-1">
+                {/* ROS Copy-Paste Helper & Save Action */}
+                <div className="bg-slate-900 text-slate-100 p-4 rounded-2xl space-y-3 text-xs font-mono">
+                  <div className="flex justify-between items-center">
+                    <p className="text-teal-400 font-bold font-sans">📋 {lang === 'ru' ? 'Данные для копирования в ROS (Real-Time PAYE):' : 'ROS Submission Quick-Copy Values:'}</p>
+                    <button
+                      onClick={handleSavePayslipToLedger}
+                      className="px-3 py-1.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-lg font-sans text-xs transition-all shadow-md"
+                    >
+                      💾 {lang === 'ru' ? 'Сохранить листок в архив' : 'Save Payslip to Ledger'}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
                     <div className="bg-slate-950 p-2 rounded-xl border border-slate-800">
                       <span className="text-slate-400 block text-[9px]">Gross Pay</span>
                       <span className="font-bold text-white">€{grossPay.toFixed(2)}</span>
@@ -2964,6 +3300,130 @@ export default function App() {
                   </div>
                 </div>
               </div>
+
+              {/* TABLE 1: ALL EMPLOYEES DIRECTORY */}
+              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    <Users className={`w-4 h-4 ${t.textAccent}`} /> {lang === 'ru' ? 'Список сотрудников' : 'Employee Directory'} ({employees.length})
+                  </h3>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs min-w-[650px]">
+                    <thead>
+                      <tr className="border-b border-slate-700/50 opacity-70">
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Имя' : 'Employee Name'}</th>
+                        <th className="py-2.5 px-3">PPSN</th>
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Должность' : 'Role'}</th>
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Ставка/час' : 'Hourly Rate'}</th>
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Налог. кредит' : 'Tax Credit/wk'}</th>
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Статус' : 'Status'}</th>
+                        <th className="py-2.5 px-3 text-right">{translations.actions}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/20">
+                      {employees.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="text-center py-6 opacity-60">{lang === 'ru' ? 'Сотрудники не добавлены.' : 'No employees in directory yet. Click "+ Add Employee" above.'}</td>
+                        </tr>
+                      ) : (
+                        employees.map(emp => (
+                          <tr key={emp.docId} className="hover:bg-slate-500/5 transition-colors">
+                            <td className="py-3 px-3 font-semibold">{emp.name}</td>
+                            <td className="py-3 px-3 font-mono opacity-80">{emp.ppsn || '—'}</td>
+                            <td className="py-3 px-3">{emp.role}</td>
+                            <td className="py-3 px-3 font-bold text-teal-400">€{Number(emp.hourlyRate).toFixed(2)}/hr</td>
+                            <td className="py-3 px-3">€{Number(emp.weeklyTaxCredit).toFixed(2)}</td>
+                            <td className="py-3 px-3">
+                              <span className="bg-teal-500/10 border border-teal-500/30 text-teal-400 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                                {emp.status || 'Active'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-right space-x-2">
+                              <button
+                                onClick={() => {
+                                  setEditingEmployeeId(emp.docId);
+                                  setEmpForm({
+                                    name: emp.name || '',
+                                    ppsn: emp.ppsn || '',
+                                    hourlyRate: emp.hourlyRate ? String(emp.hourlyRate) : '13.50',
+                                    weeklyTaxCredit: emp.weeklyTaxCredit ? String(emp.weeklyTaxCredit) : '71.50',
+                                    role: emp.role || 'Seamstress',
+                                    status: emp.status || 'Active'
+                                  });
+                                  setIsEmployeeModalOpen(true);
+                                }}
+                                className="px-2.5 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-semibold"
+                              >
+                                {translations.editBtn}
+                              </button>
+                              <button
+                                onClick={() => deleteEmployee(emp.docId)}
+                                className="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                              >
+                                {translations.delete}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* TABLE 2: PAYROLL HISTORY LEDGER */}
+              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    <FileText className={`w-4 h-4 ${t.textAccent}`} /> {lang === 'ru' ? 'Архив выплат зарплаты (Payroll Ledger)' : 'Historical Payroll Ledger'} ({payrollRecords.length})
+                  </h3>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs min-w-[700px]">
+                    <thead>
+                      <tr className="border-b border-slate-700/50 opacity-70">
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Дата' : 'Pay Date'}</th>
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Сотрудник' : 'Employee'}</th>
+                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Часы' : 'Hours'}</th>
+                        <th className="py-2.5 px-3">Gross (€)</th>
+                        <th className="py-2.5 px-3">PAYE/PRSI/USC</th>
+                        <th className="py-2.5 px-3">Net Pay (€)</th>
+                        <th className="py-2.5 px-3 text-right">{translations.actions}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/20">
+                      {payrollRecords.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="text-center py-6 opacity-60">{lang === 'ru' ? 'Сохраненных выплат пока нет.' : 'No saved payroll entries in history.'}</td>
+                        </tr>
+                      ) : (
+                        payrollRecords.map(pr => (
+                          <tr key={pr.docId} className="hover:bg-slate-500/5 transition-colors">
+                            <td className="py-3 px-3 font-mono">{pr.payDate}</td>
+                            <td className="py-3 px-3 font-semibold">{pr.employeeName}</td>
+                            <td className="py-3 px-3">{pr.hoursWorked} hrs</td>
+                            <td className="py-3 px-3 font-bold text-white">€{Number(pr.grossPay).toFixed(2)}</td>
+                            <td className="py-3 px-3 font-mono text-rose-400">-€{Number(pr.totalDeductions).toFixed(2)}</td>
+                            <td className="py-3 px-3 font-bold text-teal-400">€{Number(pr.netPay).toFixed(2)}</td>
+                            <td className="py-3 px-3 text-right">
+                              <button
+                                onClick={() => deletePayrollRecord(pr.docId)}
+                                className="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
+                              >
+                                {translations.delete}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
             </div>
           </div>
         )}
