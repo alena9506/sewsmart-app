@@ -203,6 +203,26 @@ export default function App() {
     }, 5000);
   };
 
+  // Direct File Download Handler (Fetches blob to force browser download)
+  const handleDownloadFile = async (url) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `ALiCo-Receipt-${new Date().toISOString().slice(0, 10)}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      showToast(lang === 'ru' ? 'Чек успешно скачан!' : 'Receipt downloaded successfully!');
+    } catch (err) {
+      console.error('Download error:', err);
+      window.open(url, '_blank');
+    }
+  };
+
   // ImgBB Cloud Receipt Upload Handler
   const uploadReceiptToImgBB = async (file, isEditModal = false) => {
     if (!file) return;
@@ -1564,15 +1584,13 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
-              <a
-                href={previewReceiptUrl}
-                download="receipt"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-all border border-slate-700 text-center flex items-center justify-center gap-1.5"
+              <button
+                type="button"
+                onClick={() => handleDownloadFile(previewReceiptUrl)}
+                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-all border border-slate-700 text-center flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <FileText className="w-4 h-4 text-teal-400" /> {lang === 'ru' ? 'Скачать чек' : 'Download File'}
-              </a>
+              </button>
               <button
                 type="button"
                 onClick={() => setPreviewReceiptUrl(null)}
