@@ -1564,21 +1564,22 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
+              <a
+                href={previewReceiptUrl}
+                download="receipt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-all border border-slate-700 text-center flex items-center justify-center gap-1.5"
+              >
+                <FileText className="w-4 h-4 text-teal-400" /> {lang === 'ru' ? 'Скачать чек' : 'Download File'}
+              </a>
               <button
                 type="button"
                 onClick={() => setPreviewReceiptUrl(null)}
-                className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-all border border-slate-700"
+                className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg text-center"
               >
                 {lang === 'ru' ? 'Закрыть' : 'Close'}
               </button>
-              <a
-                href={previewReceiptUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg flex items-center justify-center gap-1.5 text-center"
-              >
-                <FileText className="w-4 h-4" /> {lang === 'ru' ? 'Открыть оригинал' : 'Open Full Image'}
-              </a>
             </div>
           </div>
         </div>
