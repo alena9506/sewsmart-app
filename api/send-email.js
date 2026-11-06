@@ -18,16 +18,30 @@ export default async function handler(req, res) {
 
   const { toEmail, toName, templateId, variables } = req.body;
 
-  if (!toEmail || !templateId) {
-    return res.status(400).json({ error: 'Missing required fields (toEmail or templateId)' });
+  if (!toEmail) {
+    return res.status(400).json({ error: 'Missing required field: toEmail' });
   }
 
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
 
-  // Fallback plain text / subject construction if variables aren't supported on unverified sender
+  // Build dynamic content based on which action triggered the email
+  let subject = 'ALiCo Dublin - Order Update';
+  let htmlContent = `<p>Hello ${toName || 'Valued Customer'},</p><p>Thank you for choosing ALiCo Dublin! Your order has been updated successfully.</p>`;
+
+  if (templateId === '3vz9dle67m7gkj50') {
+    subject = 'ALiCo Dublin - Order Confirmation';
+    htmlContent = `<p>Dear ${toName},</p><p>Your order <strong>#${variables?.order_id || ''}</strong> has been successfully created.</p><p><b>Service:</b> ${variables?.service_type || ''}<br><b>Total:</b> €${variables?.total || ''}<br><b>Ready Date:</b> ${variables?.due_date || ''}</p><p>Thank you for your business!</p>`;
+  } else if (templateId === '3yxj6lijv9qldo2r') {
+    subject = 'ALiCo Dublin - Order Ready for Collection!';
+    htmlContent = `<p>Dear ${toName},</p><p>Great news! Your tailoring/laundry order <strong>#${variables?.order_id || ''}</strong> is now <strong>completed</strong> and ready for collection at our Dublin shop.</p><p>We look forward to seeing you!</p>`;
+  } else if (templateId === '3yxj6lijv50ldo2r') {
+    subject = 'ALiCo Dublin - Payslip Statement';
+    htmlContent = `<p>Dear ${toName},</p><p>Your weekly payslip statement for <strong>${variables?.pay_date || ''}</strong> has been processed.</p><p><b>Gross Pay:</b> €${variables?.gross_pay || ''}<br><b>Net Pay:</b> €${variables?.net_pay || ''}</p>`;
+  }
+
   const payload = {
     from: {
-      email: 'alena9506@gmail.com',
+      email: 'info@trial-z86org89z1pger13.mlsender.net',
       name: 'ALiCo Dublin'
     },
     to: [
@@ -36,9 +50,9 @@ export default async function handler(req, res) {
         name: toName || 'Valued Customer / Employee'
       }
     ],
-    template_id: templateId,
-    subject: "ALiCo Dublin Order Update"
-    // Removed 'variables' entirely so MailerSend won't enforce domain verification checks on free/personal emails
+    subject: subject,
+    html: htmlContent,
+    text: htmlContent.replace(/<[^>]*>?/gm, '') // Plain text fallback
   };
 
   try {
