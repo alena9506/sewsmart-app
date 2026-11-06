@@ -183,7 +183,8 @@ export default function App() {
     amount: '',
     date: '',
     isRecurring: false,
-    receiptUrl: ''
+    receiptUrl: '',
+    paidBy: 'Alena'
   });
 
   const [previewReceiptUrl, setPreviewReceiptUrl] = useState(null);
@@ -226,6 +227,7 @@ export default function App() {
   const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [isRecurringMonthly, setIsRecurringMonthly] = useState(false);
   const [expenseReceiptUrl, setExpenseReceiptUrl] = useState('');
+  const [expensePaidBy, setExpensePaidBy] = useState('Alena');
 
   const [inventoryItems, setInventoryItems] = useState([]);
   const [newItemName, setNewItemName] = useState('');
@@ -1030,7 +1032,8 @@ export default function App() {
         category: 'Payroll & Subcontractors',
         amount: grossPay,
         isRecurring: false,
-        receiptUrl: ''
+        receiptUrl: '',
+        paidBy: 'Alena'
       });
 
       showToast(lang === 'ru' ? 'Расчетный листок сохранен в архив и внесен в расходы!' : 'Payslip recorded to payroll ledger & expense log!');
@@ -1040,7 +1043,6 @@ export default function App() {
     }
   };
 
-  // 3rd Email Template: Email Payslip using Template ID '3yxj6lijv50ldo2r'
   const handleEmailPayslipToEmployee = async () => {
     if (!employeeEmail.trim()) {
       showToast(lang === 'ru' ? 'У сотрудника не указан email адрес!' : 'Employee email address is missing!');
@@ -1374,7 +1376,6 @@ export default function App() {
     }
   };
 
-  // 1st Email Template: Order Created Confirmation (Template ID: '3vz9dle67m7gkj50')
   const handleCreateOrder = async (e) => {
     e.preventDefault();
     if (!phone) {
@@ -1484,7 +1485,8 @@ export default function App() {
       category: expenseCategory,
       amount: amountNum,
       isRecurring: isRecurringMonthly,
-      receiptUrl: expenseReceiptUrl || ''
+      receiptUrl: expenseReceiptUrl || '',
+      paidBy: expensePaidBy || 'Alena'
     };
 
     try {
@@ -1493,6 +1495,7 @@ export default function App() {
       setExpenseAmount('');
       setIsRecurringMonthly(false);
       setExpenseReceiptUrl('');
+      setExpensePaidBy('Alena');
       showToast(lang === 'ru' ? 'Расход и чек успешно записаны!' : 'Expense and receipt recorded successfully!');
     } catch (error) {
       console.error('Error adding expense: ', error);
@@ -1515,7 +1518,8 @@ export default function App() {
         amount: amountNum,
         date: editExpenseValues.date,
         isRecurring: editExpenseValues.isRecurring,
-        receiptUrl: editExpenseValues.receiptUrl || ''
+        receiptUrl: editExpenseValues.receiptUrl || '',
+        paidBy: editExpenseValues.paidBy || 'Alena'
       });
       setEditingExpenseId(null);
       showToast(lang === 'ru' ? 'Расход успешно обновлен!' : 'Expense successfully updated!');
@@ -1596,7 +1600,6 @@ export default function App() {
     });
   };
 
-  // 2nd Email Template: Order Completed / Ready for Collection (Template ID: '3yxj6lijv9qldo2r')
   const updateStatus = async (docId, newStatus) => {
     try {
       const orderRef = doc(db, 'orders', docId);
@@ -1711,6 +1714,17 @@ export default function App() {
       .reduce((sum, ex) => sum + ex.amount, 0);
   });
 
+  // Who Paid breakdown (Staff attribution for expenses)
+  const paidByTotals = {};
+  filteredExpensesByTimeframe.forEach(ex => {
+    const pBy = ex.paidBy || 'Alena';
+    if (!paidByTotals[pBy]) {
+      paidByTotals[pBy] = { total: 0, items: [] };
+    }
+    paidByTotals[pBy].total += ex.amount;
+    paidByTotals[pBy].items.push(ex);
+  });
+
   const exportToCSV = () => {
     const headers = ['Tag ID', 'Date', 'Customer Name', 'Phone', 'Email', 'Service Type', 'Payment Method', 'Status', 'Total (€)'];
     const rows = filteredOrdersByTimeframe.map(o => [
@@ -1736,11 +1750,12 @@ export default function App() {
   };
 
   const exportExpensesToCSV = () => {
-    const headers = ['Date', 'Description / Vendor', 'Category', 'Amount (€)', 'Receipt URL'];
+    const headers = ['Date', 'Description / Vendor', 'Category', 'Paid By', 'Amount (€)', 'Receipt URL'];
     const rows = filteredExpensesByTimeframe.map(ex => [
       ex.date || ex.createdAt?.split('T')[0],
       `"${ex.description || ''}"`,
       ex.category,
+      `"${ex.paidBy || 'Alena'}"`,
       ex.amount.toFixed(2),
       ex.receiptUrl || ''
     ]);
@@ -2314,6 +2329,22 @@ export default function App() {
               </div>
 
               <div>
+                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Кто оплатил / Тег (Paid By)' : 'Paid By / Staff Tag'}</label>
+                <select
+                  value={editExpenseValues.paidBy || 'Alena'}
+                  onChange={(e) => setEditExpenseValues({ ...editExpenseValues, paidBy: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-teal-500"
+                >
+                  <option value="Alena">Alena (Admin)</option>
+                  {employees.map(emp => (
+                    <option key={emp.docId} value={emp.name}>{emp.name} (Staff)</option>
+                  ))}
+                  <option value="Partner / Co-Owner">Partner / Co-Owner</option>
+                  <option value="Cash Drawer">Cash Drawer / Register</option>
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{translations.amountLabel}</label>
                 <input 
                   type="number"
@@ -2561,7 +2592,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Header - Single Row with Major Tabs + Dropdown Menu for Admin/Other Tabs */}
+      {/* Header - Single Row with Major Tabs + Dropdown Menu */}
       <header className={`border-b px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-md ${t.headerBg}`}>
         <div className="flex items-center gap-3">
           <div className="w-10 sm:w-14 h-7 sm:h-9 flex items-center justify-center shrink-0">
@@ -3199,7 +3230,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Form Inputs for Selected Employee Payroll */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Имя сотрудника' : 'Employee Name'}</label>
@@ -3344,7 +3374,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* MailerSend Action Buttons */}
                 <div className="bg-slate-900 text-slate-100 p-4 rounded-2xl space-y-3 text-xs font-mono">
                   <div className="flex justify-between items-center flex-wrap gap-2">
                     <p className="text-teal-400 font-bold font-sans">📋 {lang === 'ru' ? 'Действия и отправка:' : 'Payslip Actions & MailerSend:'}</p>
@@ -3547,7 +3576,6 @@ export default function App() {
                 </button>
               </div>
 
-              {/* CREATE NEW CATEGORY SECTION */}
               <form onSubmit={handleAddCategory} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                   <FolderPlus className="w-4 h-4 text-teal-400" /> {translations.addNewCategoryTitle}
@@ -3575,7 +3603,6 @@ export default function App() {
                 </div>
               </form>
 
-              {/* ADD NEW REPAIR TASK SECTION */}
               <form onSubmit={handleAddPriceItem} className={`p-5 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <h3 className="text-xs font-bold uppercase tracking-wider">{translations.addNewTaskTitle}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -4317,6 +4344,51 @@ export default function App() {
                 </div>
               </div>
 
+              {/* DEDICATED STAFF SPENDING ATTRIBUTION REPORT (WHO PAID FOR WHAT) */}
+              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                  <Users className={`w-4 h-4 ${t.textAccent}`} /> {lang === 'ru' ? 'Отчет по расходам персонала (Кто что оплатил)' : 'Staff Expense Attribution Report (Who Paid For What)'}
+                </h3>
+                <p className="text-xs opacity-75">{lang === 'ru' ? 'Этот отчет виден только администратору и детализирует личные вклады в расходы без изменения общего баланса.' : 'This report is exclusively visible to Admin and details who incurred or paid for each business expense.'}</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+                  {Object.keys(paidByTotals).length === 0 ? (
+                    <p className="text-xs opacity-60 col-span-full">{lang === 'ru' ? 'Нет данных о расходах персонала.' : 'No expense attribution records found for this period.'}</p>
+                  ) : (
+                    Object.entries(paidByTotals).map(([staffName, data]) => {
+                      const sharePct = periodExpenses > 0 ? (data.total / periodExpenses) * 100 : 0;
+                      return (
+                        <div key={staffName} className="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-sm text-white flex items-center gap-1.5">
+                              <User className="w-4 h-4 text-teal-400" /> {staffName}
+                            </span>
+                            <span className="font-mono text-xs font-extrabold text-teal-400">€{data.total.toFixed(2)}</span>
+                          </div>
+
+                          <div className="space-y-1 text-[11px] text-slate-300 border-t border-slate-800 pt-2">
+                            <p className="text-[10px] text-slate-400 font-semibold">{lang === 'ru' ? 'Позиции (' : 'Items ('}{data.items.length}):</p>
+                            {data.items.slice(0, 3).map((it, idx) => (
+                              <div key={idx} className="flex justify-between truncate">
+                                <span className="truncate pr-2">• {it.description}</span>
+                                <span className="font-mono font-bold">€{it.amount.toFixed(2)}</span>
+                              </div>
+                            ))}
+                            {data.items.length > 3 && (
+                              <p className="text-[10px] text-teal-400 italic">+{data.items.length - 3} more items...</p>
+                            )}
+                          </div>
+
+                          <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                            <div className="bg-teal-500 h-full rounded-full" style={{ width: `${sharePct}%` }}></div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
               {/* CAPITAL & CASH FLOAT LOG */}
               <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <div className="flex justify-between items-center flex-wrap gap-2">
@@ -4433,6 +4505,21 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 items-end">
                   <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Кто оплатил (Paid By)' : 'Paid By / Staff Tag'}</label>
+                    <select
+                      value={expensePaidBy}
+                      onChange={(e) => setExpensePaidBy(e.target.value)}
+                      className={`w-full border rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                    >
+                      <option value="Alena">Alena (Admin)</option>
+                      {employees.map(emp => (
+                        <option key={emp.docId} value={emp.name}>{emp.name} (Staff)</option>
+                      ))}
+                      <option value="Partner / Co-Owner">Partner / Co-Owner</option>
+                      <option value="Cash Drawer">Cash Drawer / Register</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.amountLabel}</label>
                     <input 
                       type="number"
@@ -4444,27 +4531,21 @@ export default function App() {
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Загрузить чек (Облако)' : 'Attach Receipt Photo'}</label>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Загрузить чек' : 'Attach Receipt'}</label>
                     <div className="flex items-center gap-2">
                       <input 
                         type="file"
                         accept="image/*"
                         onChange={(e) => uploadReceiptToImgBB(e.target.files[0], false)}
-                        className="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-500 file:text-slate-950 hover:file:bg-teal-400 cursor-pointer"
+                        className="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-2 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-teal-500 file:text-slate-950 hover:file:bg-teal-400 cursor-pointer"
                       />
-                      {expenseReceiptUrl && (
-                        <span className="text-teal-400 font-bold text-xs flex items-center gap-1 shrink-0">
-                          <CheckCircle2 className="w-4 h-4" /> {lang === 'ru' ? 'Загружен' : 'Ready'}
-                        </span>
-                      )}
                     </div>
-                    {isUploadingReceipt && <p className="text-[10px] text-teal-400 animate-pulse mt-1">{lang === 'ru' ? 'Загрузка в облако...' : 'Uploading receipt to cloud...'}</p>}
                   </div>
                   <div>
                     <button
                       type="submit"
-                      className={`w-full font-bold py-2.5 px-6 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
+                      className={`w-full font-bold py-2.5 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md ${t.primary}`}
                     >
                       <Plus className="w-4 h-4" /> {translations.recordExpenseBtn}
                     </button>
@@ -4483,6 +4564,7 @@ export default function App() {
                       <th className="py-3 px-3">{lang === 'ru' ? 'Дата' : 'Date'}</th>
                       <th className="py-3 px-3">{translations.vendorLabel}</th>
                       <th className="py-3 px-3">{translations.categoryLabel}</th>
+                      <th className="py-3 px-3">{lang === 'ru' ? 'Кто оплатил' : 'Paid By'}</th>
                       <th className="py-3 px-3">{translations.amountLabel}</th>
                       <th className="py-3 px-3">{lang === 'ru' ? 'Чек' : 'Receipt'}</th>
                       <th className="py-3 px-3 text-right">{translations.actions}</th>
@@ -4491,7 +4573,7 @@ export default function App() {
                   <tbody className="divide-y divide-slate-700/20">
                     {filteredExpensesByTimeframe.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-10 opacity-60">{lang === 'ru' ? 'За этот период расходов не найдено.' : 'No expenses recorded for this timeframe.'}</td>
+                        <td colSpan="7" className="text-center py-10 opacity-60">{lang === 'ru' ? 'За этот период расходов не найдено.' : 'No expenses recorded for this timeframe.'}</td>
                       </tr>
                     ) : (
                       filteredExpensesByTimeframe.map(ex => (
@@ -4506,6 +4588,11 @@ export default function App() {
                             )}
                           </td>
                           <td className="py-3 px-3 opacity-80">{ex.category}</td>
+                          <td className="py-3 px-3">
+                            <span className="bg-slate-900 border border-slate-700 text-teal-400 px-2 py-0.5 rounded-md font-bold text-[11px]">
+                              {ex.paidBy || 'Alena'}
+                            </span>
+                          </td>
                           <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
                           <td className="py-3 px-3">
                             {ex.receiptUrl ? (
@@ -4529,7 +4616,8 @@ export default function App() {
                                   amount: ex.amount || '',
                                   date: ex.date || new Date().toISOString().split('T')[0],
                                   isRecurring: !!ex.isRecurring,
-                                  receiptUrl: ex.receiptUrl || ''
+                                  receiptUrl: ex.receiptUrl || '',
+                                  paidBy: ex.paidBy || 'Alena'
                                 });
                               }}
                               className="px-3 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1"
