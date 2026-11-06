@@ -26,7 +26,6 @@ export default async function handler(req, res) {
 
   const payload = {
     from: {
-      // MailerSend requires a trial/verified domain sender or trial domain format
       email: 'info@trial-z86org89z1pger13.mlsender.net', 
       name: 'ALiCo Dublin'
     },
