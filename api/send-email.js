@@ -24,23 +24,21 @@ export default async function handler(req, res) {
 
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
 
-  let subject = 'ALiCo Dublin - Order Update';
-  let htmlContent = `<p>Hello ${toName || 'Valued Customer'},</p><p>Thank you for choosing ALiCo Dublin! Your order has been updated successfully.</p>`;
-
+  // Map your old alphanumeric IDs to your MailerSend NUMERIC template IDs below:
+  let numericTemplateId;
   if (templateId === '3vz9dle67m7gkj50') {
-    subject = 'ALiCo Dublin - Order Confirmation';
-    htmlContent = `<p>Dear ${toName},</p><p>Your order <strong>#${variables?.order_id || ''}</strong> has been successfully created.</p><p><b>Service:</b> ${variables?.service_type || ''}<br><b>Total:</b> €${variables?.total || ''}<br><b>Ready Date:</b> ${variables?.due_date || ''}</p><p>Thank you for your business!</p>`;
+    numericTemplateId = 1; // <-- REPLACE WITH YOUR ACTUAL NUMERIC TEMPLATE ID FOR ORDER CONFIRMATION
   } else if (templateId === '3yxj6lijv9qldo2r') {
-    subject = 'ALiCo Dublin - Order Ready for Collection!';
-    htmlContent = `<p>Dear ${toName},</p><p>Great news! Your tailoring/laundry order <strong>#${variables?.order_id || ''}</strong> is now <strong>completed</strong> and ready for collection at our Dublin shop.</p><p>We look forward to seeing you!</p>`;
+    numericTemplateId = 2; // <-- REPLACE WITH YOUR ACTUAL NUMERIC TEMPLATE ID FOR READY FOR COLLECTION
   } else if (templateId === '3yxj6lijv50ldo2r') {
-    subject = 'ALiCo Dublin - Payslip Statement';
-    htmlContent = `<p>Dear ${toName},</p><p>Your weekly payslip statement for <strong>${variables?.pay_date || ''}</strong> has been processed.</p><p><b>Gross Pay:</b> €${variables?.gross_pay || ''}<br><b>Net Pay:</b> €${variables?.net_pay || ''}</p>`;
+    numericTemplateId = 3; // <-- REPLACE WITH YOUR ACTUAL NUMERIC TEMPLATE ID FOR PAYSLIP
+  } else {
+    numericTemplateId = Number(templateId) || 1;
   }
 
   const payload = {
     from: {
-      email: 'info@test-69oxl5envwdl785k.mlsender.net', // Using your verified MailerSend test domain
+      email: 'info@test-69oxl5envwdl785k.mlsender.net',
       name: 'ALiCo Dublin'
     },
     to: [
@@ -49,9 +47,13 @@ export default async function handler(req, res) {
         name: toName || 'Valued Customer / Employee'
       }
     ],
-    subject: subject,
-    html: htmlContent,
-    text: htmlContent.replace(/<[^>]*>?/gm, '')
+    template_id: numericTemplateId,
+    variables: [
+      {
+        email: toEmail,
+        substitutions: variables || {}
+      }
+    ]
   };
 
   try {
@@ -70,7 +72,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to send email via MailerSend', details: errorText });
     }
 
-    return res.status(200).json({ success: true, message: 'Email sent successfully' });
+    return res.status(200).json({ success: true, message: 'Email sent successfully via MailerSend template' });
   } catch (err) {
     console.error('Serverless function error:', err);
     return res.status(500).json({ error: 'Internal server error', details: err.message });
