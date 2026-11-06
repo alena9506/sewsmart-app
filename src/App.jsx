@@ -65,39 +65,53 @@ import {
 } from 'lucide-react';
 import logoImg from './logo.png';
 
-// MailerSend Template-based Helper Function with CORS Proxy Bypass
+// MailerSend Template-based Helper Function with Direct API & Fallback Proxy
 const sendMailerSendTemplate = async (toEmail, toName, templateId, variables) => {
   if (!toEmail) return;
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
   
+  const payload = {
+    from: {
+      email: 'alena9506@gmail.com',
+      name: 'ALiCo Dublin'
+    },
+    to: [
+      {
+        email: toEmail,
+        name: toName || 'Valued Customer / Employee'
+      }
+    ],
+    template_id: templateId,
+    variables: [
+      {
+        email: toEmail,
+        substitutions: variables
+      }
+    ]
+  };
+
   try {
-    const response = await fetch('https://corsproxy.io/?https://api.mailersend.com/v1/email', {
+    // Try primary proxy endpoint first to bypass browser CORS preflight
+    let response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.mailersend.com/v1/email'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-        'X-Requested-With': 'XMLHttpRequest'
+        'Authorization': `Bearer ${API_KEY}`
       },
-      body: JSON.stringify({
-        from: {
-          email: 'alena9506@gmail.com',
-          name: 'ALiCo Dublin'
-        },
-        to: [
-          {
-            email: toEmail,
-            name: toName || 'Valued Customer / Employee'
-          }
-        ],
-        template_id: templateId,
-        variables: [
-          {
-            email: toEmail,
-            substitutions: variables
-          }
-        ]
-      })
+      body: JSON.stringify(payload)
     });
+
+    if (!response.ok) {
+      // Fallback proxy endpoint
+      response = await fetch('https://thingproxy.freeboard.io/fetch/https://api.mailersend.com/v1/email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify(payload)
+      });
+    }
 
     if (!response.ok) {
       console.error('MailerSend error response:', await response.text());
