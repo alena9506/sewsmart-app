@@ -24,7 +24,6 @@ export default async function handler(req, res) {
 
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
 
-  // Determine correct subject line based on template ID
   let defaultSubject = 'ALiCo Dublin - Order Update';
   if (templateId === '3vz9dle67m7gkj50') {
     defaultSubject = 'ALiCo Dublin - Order Confirmation';
@@ -46,7 +45,10 @@ export default async function handler(req, res) {
       }
     ],
     subject: defaultSubject,
-    template_id: templateId, // Passes your exact alphanumeric ID string (e.g., '3vz9dle67m7gkj50')
+    template_id: templateId,
+    // MailerSend requires text or html fallbacks even when using templates with variables
+    html: '<p>Please view this email in an HTML-compatible client.</p>',
+    text: 'Please view this email in a compatible client.',
     variables: [
       {
         email: toEmail,
