@@ -24,7 +24,6 @@ export default async function handler(req, res) {
 
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
 
-  // Build dynamic content based on which action triggered the email
   let subject = 'ALiCo Dublin - Order Update';
   let htmlContent = `<p>Hello ${toName || 'Valued Customer'},</p><p>Thank you for choosing ALiCo Dublin! Your order has been updated successfully.</p>`;
 
@@ -41,7 +40,7 @@ export default async function handler(req, res) {
 
   const payload = {
     from: {
-      email: 'info@trial-z86org89z1pger13.mlsender.net',
+      email: 'info@test-69oxl5envwdl785k.mlsender.net', // Using your verified MailerSend test domain
       name: 'ALiCo Dublin'
     },
     to: [
@@ -52,7 +51,7 @@ export default async function handler(req, res) {
     ],
     subject: subject,
     html: htmlContent,
-    text: htmlContent.replace(/<[^>]*>?/gm, '') // Plain text fallback
+    text: htmlContent.replace(/<[^>]*>?/gm, '')
   };
 
   try {
