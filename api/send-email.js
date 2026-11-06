@@ -45,7 +45,10 @@ export default async function handler(req, res) {
       }
     ],
     subject: defaultSubject,
-    template_id: templateId, // Uses your exact alphanumeric template ID string
+    template_id: templateId,
+    // MailerSend requires html/text fallbacks even when using templates with variables
+    html: '<p>Loading your ALiCo Dublin template...</p>',
+    text: 'Loading your ALiCo Dublin template...',
     variables: [
       {
         email: toEmail,
