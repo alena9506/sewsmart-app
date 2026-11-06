@@ -65,61 +65,33 @@ import {
 } from 'lucide-react';
 import logoImg from './logo.png';
 
-// MailerSend Template-based Helper Function with Direct API & Fallback Proxy
+// MailerSend Helper Function calling our secure Vercel Serverless API Route (/api/send-email)
 const sendMailerSendTemplate = async (toEmail, toName, templateId, variables) => {
   if (!toEmail) return;
-  const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
-  
-  const payload = {
-    from: {
-      email: 'alena9506@gmail.com',
-      name: 'ALiCo Dublin'
-    },
-    to: [
-      {
-        email: toEmail,
-        name: toName || 'Valued Customer / Employee'
-      }
-    ],
-    template_id: templateId,
-    variables: [
-      {
-        email: toEmail,
-        substitutions: variables
-      }
-    ]
-  };
 
   try {
-    // Try primary proxy endpoint first to bypass browser CORS preflight
-    let response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.mailersend.com/v1/email'), {
+    const response = await fetch('/api/send-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        toEmail,
+        toName,
+        templateId,
+        variables
+      })
     });
 
-    if (!response.ok) {
-      // Fallback proxy endpoint
-      response = await fetch('https://thingproxy.freeboard.io/fetch/https://api.mailersend.com/v1/email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify(payload)
-      });
-    }
+    const data = await response.json();
 
     if (!response.ok) {
-      console.error('MailerSend error response:', await response.text());
+      console.error('Failed to trigger email via backend:', data);
     } else {
-      console.log('MailerSend email sent successfully via template ID:', templateId);
+      console.log('MailerSend email dispatched successfully via backend for template ID:', templateId);
     }
   } catch (err) {
-    console.error('MailerSend network error:', err);
+    console.error('Network error calling email backend:', err);
   }
 };
 
@@ -1465,7 +1437,7 @@ export default function App() {
       setRushFeeType('fixed');
       
       const successMsg = newOrder.customerEmail 
-        ? (lang === 'ru' ? 'Заказ создан и цифровая квитанция отправлена на email!' : 'Ticket created & digital receipt emailed successfully via MailerSend template!') 
+        ? (lang === 'ru' ? 'Заказ создан и цифровая квитанция отправлена на email!' : 'Ticket created & digital receipt emailed successfully via MailerSend backend API route!') 
         : (lang === 'ru' ? 'Заказ создан и синхронизирован с облаком!' : 'Ticket created and synced to cloud database!');
       showToast(successMsg);
     } catch (error) {
