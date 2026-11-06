@@ -18,27 +18,20 @@ export default async function handler(req, res) {
 
   const { toEmail, toName, templateId, variables } = req.body;
 
-  if (!toEmail) {
-    return res.status(400).json({ error: 'Missing required field: toEmail' });
+  if (!toEmail || !templateId) {
+    return res.status(400).json({ error: 'Missing required fields (toEmail or templateId)' });
   }
 
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
 
-  // Map your alphanumeric IDs to your MailerSend NUMERIC template IDs
-  let numericTemplateId;
+  // Determine correct subject line based on template ID
   let defaultSubject = 'ALiCo Dublin - Order Update';
-
   if (templateId === '3vz9dle67m7gkj50') {
-    numericTemplateId = 1; // Replace with your numeric ID for Order Confirmation
     defaultSubject = 'ALiCo Dublin - Order Confirmation';
   } else if (templateId === '3yxj6lijv9qldo2r') {
-    numericTemplateId = 2; // Replace with your numeric ID for Ready for Collection
     defaultSubject = 'ALiCo Dublin - Order Ready for Collection!';
   } else if (templateId === '3yxj6lijv50ldo2r') {
-    numericTemplateId = 3; // Replace with your numeric ID for Payslip
     defaultSubject = 'ALiCo Dublin - Payslip Statement';
-  } else {
-    numericTemplateId = Number(templateId) || 1;
   }
 
   const payload = {
@@ -52,8 +45,8 @@ export default async function handler(req, res) {
         name: toName || 'Valued Customer / Employee'
       }
     ],
-    subject: defaultSubject, // Required by MailerSend API when personalizations are used
-    template_id: numericTemplateId,
+    subject: defaultSubject,
+    template_id: templateId, // Passes your exact alphanumeric ID string (e.g., '3vz9dle67m7gkj50')
     variables: [
       {
         email: toEmail,
