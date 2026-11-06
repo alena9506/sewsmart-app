@@ -18,19 +18,60 @@ export default async function handler(req, res) {
 
   const { toEmail, toName, templateId, variables } = req.body;
 
-  if (!toEmail || !templateId) {
-    return res.status(400).json({ error: 'Missing required fields (toEmail or templateId)' });
+  if (!toEmail) {
+    return res.status(400).json({ error: 'Missing required field: toEmail' });
   }
 
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
 
-  let defaultSubject = 'ALiCo Dublin - Order Update';
+  // Build clean, professional HTML matching your templates
+  let subject = 'ALiCo Dublin - Order Update';
+  let htmlContent = `<div style="font-family:sans-serif;padding:20px;color:#333;"><h2>ALiCo Dublin</h2><p>Hello ${toName || 'Valued Customer'},</p><p>Your order has been updated successfully.</p></div>`;
+
   if (templateId === '3vz9dle67m7gkj50') {
-    defaultSubject = 'ALiCo Dublin - Order Confirmation';
+    subject = `ALiCo Dublin - Order Confirmation #${variables?.order_id || ''}`;
+    htmlContent = `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:20px;border:1px solid #eaeaea;border-radius:10px;">
+        <h2 style="color:#0d9488;">ALiCo Dublin</h2>
+        <p>Hi <strong>${toName}</strong>,</p>
+        <p>Thank you for choosing ALiCo Dublin! Your digital claim check has been successfully created.</p>
+        <div style="background:#f8fafc;padding:15px;border-radius:8px;margin:15px 0;">
+          <p style="margin:5px 0;"><strong>Ticket / Tag Number:</strong> #${variables?.order_id || ''}</p>
+          <p style="margin:5px 0;"><strong>Service Type:</strong> ${variables?.service_type || ''}</p>
+          <p style="margin:5px 0;"><strong>Total Paid:</strong> €${variables?.total || ''} (${variables?.payment_method || ''})</p>
+          <p style="margin:5px 0;"><strong>Target Ready Date:</strong> ${variables?.due_date || ''}</p>
+        </div>
+        <p style="font-size:12px;color:#666;">You can show this email or your tag number when picking up your garments.</p>
+      </div>`;
   } else if (templateId === '3yxj6lijv9qldo2r') {
-    defaultSubject = 'ALiCo Dublin - Order Ready for Collection!';
+    subject = `ALiCo Dublin - Order #${variables?.order_id || ''} Ready for Collection!`;
+    htmlContent = `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:20px;border:1px solid #eaeaea;border-radius:10px;">
+        <h2 style="color:#0d9488;">ALiCo Dublin</h2>
+        <p>Hi <strong>${toName}</strong>,</p>
+        <div style="background:#ecfdf5;color:#065f46;padding:15px;border-radius:8px;margin:15px 0;font-weight:bold;">
+          ✨ Great News! Your order is ready for collection.
+        </div>
+        <p>Your garments for order <strong>#${variables?.order_id || ''}</strong> have been completed and are ready to be picked up at our counter.</p>
+        <p>We look forward to seeing you!</p>
+      </div>`;
   } else if (templateId === '3yxj6lijv50ldo2r') {
-    defaultSubject = 'ALiCo Dublin - Payslip Statement';
+    subject = `ALiCo Dublin - Payslip Statement (${variables?.pay_date || ''})`;
+    htmlContent = `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:20px;border:1px solid #eaeaea;border-radius:10px;">
+        <h2 style="color:#0d9488;">ALiCo Dublin</h2>
+        <p>Hi <strong>${toName}</strong>,</p>
+        <p>Here is your official payroll statement and tax breakdown for the recent pay period (${variables?.pay_date || ''}).</p>
+        <div style="background:#f8fafc;padding:15px;border-radius:8px;margin:15px 0;font-size:13px;">
+          <p><strong>PPSN:</strong> ${variables?.ppsn || ''}</p>
+          <p><strong>Hours Worked:</strong> ${variables?.hours_worked || ''} hrs (@ €${variables?.hourly_rate || ''}/hr)</p>
+          <p><strong>Gross Pay:</strong> €${variables?.gross_pay || ''}</p>
+          <p><strong>PAYE:</strong> -€${variables?.paye || ''}</p>
+          <p><strong>PRSI:</strong> -€${variables?.prsi || ''}</p>
+          <p><strong>USC:</strong> -€${variables?.usc || ''}</p>
+          <p style="font-size:15px;color:#0d9488;margin-top:10px;"><strong>Net Take-Home Pay: €${variables?.net_pay || ''}</strong></p>
+        </div>
+      </div>`;
   }
 
   const payload = {
@@ -44,17 +85,9 @@ export default async function handler(req, res) {
         name: toName || 'Valued Customer / Employee'
       }
     ],
-    subject: defaultSubject,
-    template_id: templateId,
-    // MailerSend requires text or html fallbacks even when using templates with variables
-    html: '<p>Please view this email in an HTML-compatible client.</p>',
-    text: 'Please view this email in a compatible client.',
-    variables: [
-      {
-        email: toEmail,
-        substitutions: variables || {}
-      }
-    ]
+    subject: subject,
+    html: htmlContent,
+    text: htmlContent.replace(/<[^>]*>?/gm, '')
   };
 
   try {
@@ -73,7 +106,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to send email via MailerSend', details: errorText });
     }
 
-    return res.status(200).json({ success: true, message: 'Email sent successfully via MailerSend template' });
+    return res.status(200).json({ success: true, message: 'Email sent successfully' });
   } catch (err) {
     console.error('Serverless function error:', err);
     return res.status(500).json({ error: 'Internal server error', details: err.message });
