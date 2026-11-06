@@ -65,17 +65,18 @@ import {
 } from 'lucide-react';
 import logoImg from './logo.png';
 
-// MailerSend Template-based Helper Function
+// MailerSend Template-based Helper Function with CORS Proxy Bypass
 const sendMailerSendTemplate = async (toEmail, toName, templateId, variables) => {
   if (!toEmail) return;
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
   
   try {
-    const response = await fetch('https://api.mailersend.com/v1/email', {
+    const response = await fetch('https://corsproxy.io/?https://api.mailersend.com/v1/email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
+        'Authorization': `Bearer ${API_KEY}`,
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({
         from: {
@@ -100,6 +101,8 @@ const sendMailerSendTemplate = async (toEmail, toName, templateId, variables) =>
 
     if (!response.ok) {
       console.error('MailerSend error response:', await response.text());
+    } else {
+      console.log('MailerSend email sent successfully via template ID:', templateId);
     }
   } catch (err) {
     console.error('MailerSend network error:', err);
