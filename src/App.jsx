@@ -61,7 +61,9 @@ import {
   Image as ImageIcon,
   DollarSign,
   Users,
-  UserPlus
+  UserPlus,
+  Menu,
+  ChevronDown
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -111,6 +113,20 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('alico_active_tab', activeTab);
   }, [activeTab]);
+
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target)) {
+        setIsMoreMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const [serviceType, setServiceType] = useState('alteration');
   
@@ -383,6 +399,7 @@ export default function App() {
       loyalty: 'Customer Visits',
       priceBookTab: 'Price Book',
       settings: 'Settings',
+      menu: 'Menu',
       alterationTicket: 'Alteration Ticket',
       laundryTicket: 'Laundry Ticket',
       customerPayment: 'Customer & Payment Details',
@@ -519,6 +536,7 @@ export default function App() {
       loyalty: 'Клиенты',
       priceBookTab: 'Цены',
       settings: 'Настройки',
+      menu: 'Меню',
       alterationTicket: 'Ателье (Ремонт одежды)',
       laundryTicket: 'Прачечная',
       customerPayment: 'Клиент и Оплата',
@@ -2543,134 +2561,152 @@ export default function App() {
         </div>
       )}
 
-      {/* Header - Optimized with wrapping and flex layouts to prevent overflow */}
-      <header className={`border-b px-3 sm:px-6 py-3 flex flex-col gap-3 shadow-md ${t.headerBg}`}>
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 sm:w-14 h-7 sm:h-9 flex items-center justify-center">
-              <img 
-                src={logoImg} 
-                alt="ALiCo Logo" 
-                className="w-full h-full object-contain"
-                onError={(e)=>{e.target.style.display='none'}}
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h1 className="text-base sm:text-lg font-bold tracking-tight">ALiCo</h1>
-                <span className={`font-semibold text-[10px] sm:text-xs px-1.5 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
-              </div>
-              <p className="text-[10px] opacity-80 font-medium hidden sm:block">{translations.subtitle}</p>
-            </div>
+      {/* Header - Single Row with Major Tabs + Dropdown Menu for Admin/Other Tabs */}
+      <header className={`border-b px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-md ${t.headerBg}`}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 sm:w-14 h-7 sm:h-9 flex items-center justify-center shrink-0">
+            <img 
+              src={logoImg} 
+              alt="ALiCo Logo" 
+              className="w-full h-full object-contain"
+              onError={(e)=>{e.target.style.display='none'}}
+            />
           </div>
-
-          <div className="flex items-center gap-2">
-            {revenueMultiplier !== 1.00 && (
-              <span className="bg-slate-800 border border-slate-700 text-slate-300 px-2.5 py-1 rounded-xl text-[11px] font-semibold hidden lg:flex items-center gap-1">
-                <Sliders className="w-3.5 h-3.5 text-teal-400" /> Scale: {Math.round(revenueMultiplier * 100)}%
-              </span>
-            )}
-
-            <button
-              onClick={() => setIsTerminalLocked(true)}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-bold flex items-center gap-1 shadow-sm"
-              title="Lock Terminal"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span className="hidden xl:inline">{lang === 'ru' ? 'Блок' : 'Lock'}</span>
-            </button>
-
-            <button
-              onClick={toggleFullscreen}
-              className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1 ${t.navToggleBg}`}
-              title="Fullscreen"
-            >
-              {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-teal-400" /> : <Maximize className="w-3.5 h-3.5 text-teal-400" />}
-            </button>
-
-            <button
-              onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
-              className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1 ${t.navToggleBg}`}
-            >
-              <Globe className="w-3.5 h-3.5 text-teal-400" />
-              {lang === 'en' ? 'RU' : 'EN'}
-            </button>
-
-            <button 
-              onClick={handleLogout}
-              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold flex items-center gap-1"
-              title="Sign Out"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden xl:inline">{lang === 'ru' ? 'Выход' : 'Logout'}</span>
-            </button>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-base sm:text-lg font-bold tracking-tight">ALiCo</h1>
+              <span className={`font-semibold text-[10px] sm:text-xs px-1.5 py-0.5 rounded-md border ${t.primaryBadge}`}>Dublin</span>
+            </div>
+            <p className="text-[10px] opacity-80 font-medium hidden md:block">{translations.subtitle}</p>
           </div>
         </div>
 
-        {/* Navigation Tabs - Fully Wrapping & Responsive */}
-        <div className={`flex p-1.5 rounded-2xl border shadow-inner gap-1.5 flex-wrap items-center ${t.navToggleBg}`}>
+        {/* Major Tabs + Dropdown Menu */}
+        <div className="flex items-center gap-1.5">
           <button 
             onClick={() => setActiveTab('intake')}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'intake' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'intake' ? t.tabActive : `${t.navToggleBg} opacity-80 hover:opacity-100`}`}
           >
             <PlusCircle className="w-3.5 h-3.5" /> <span>{translations.newTicket}</span>
           </button>
+          
           <button 
             onClick={() => setActiveTab('orders')}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'orders' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'orders' ? t.tabActive : `${t.navToggleBg} opacity-80 hover:opacity-100`}`}
           >
-            <Clock className="w-3.5 h-3.5" /> <span>{translations.orders}</span> <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
+            <Clock className="w-3.5 h-3.5" /> <span>{translations.orders}</span> 
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${t.textAccent}`}>{orders.length}</span>
           </button>
-          
-          {isAdmin && (
-            <>
-              <button 
-                onClick={() => setActiveTab('priceBook')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'priceBook' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              >
-                <Tag className="w-3.5 h-3.5" /> <span>{translations.priceBookTab}</span>
-              </button>
-              <button 
-                onClick={() => setActiveTab('inventory')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'inventory' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              >
-                <Package className="w-3.5 h-3.5" /> <span>{translations.inventory}</span>
-                {inventoryItems.some(i => i.quantity <= i.minQuantity) && (
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+
+          {/* More Menu Dropdown */}
+          <div className="relative" ref={moreMenuRef}>
+            <button 
+              onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap border ${
+                ['priceBook', 'inventory', 'payroll', 'loyalty', 'analytics', 'bookkeeping'].includes(activeTab) 
+                  ? t.tabActive 
+                  : t.navToggleBg
+              }`}
+            >
+              <Menu className="w-3.5 h-3.5" /> 
+              <span>{translations.menu}</span>
+              <ChevronDown className="w-3 h-3 opacity-75" />
+            </button>
+
+            {isMoreMenuOpen && (
+              <div className={`absolute right-0 mt-2 w-52 rounded-2xl border shadow-2xl p-1.5 z-50 space-y-1 ${t.cardBg} animate-in fade-in zoom-in duration-150`}>
+                {isAdmin && (
+                  <>
+                    <button 
+                      onClick={() => { setActiveTab('priceBook'); setIsMoreMenuOpen(false); }}
+                      className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'priceBook' ? t.tabActive : 'hover:bg-slate-500/10'}`}
+                    >
+                      <Tag className="w-3.5 h-3.5 text-teal-400" /> <span>{translations.priceBookTab}</span>
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('inventory'); setIsMoreMenuOpen(false); }}
+                      className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'inventory' ? t.tabActive : 'hover:bg-slate-500/10'}`}
+                    >
+                      <Package className="w-3.5 h-3.5 text-teal-400" /> <span>{translations.inventory}</span>
+                      {inventoryItems.some(i => i.quantity <= i.minQuantity) && (
+                        <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse ml-auto"></span>
+                      )}
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('payroll'); setIsMoreMenuOpen(false); }}
+                      className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'payroll' ? t.tabActive : 'hover:bg-slate-500/10'}`}
+                    >
+                      <Users className="w-3.5 h-3.5 text-teal-400" /> <span>{translations.payroll}</span>
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('loyalty'); setIsMoreMenuOpen(false); }}
+                      className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'loyalty' ? t.tabActive : 'hover:bg-slate-500/10'}`}
+                    >
+                      <Award className="w-3.5 h-3.5 text-teal-400" /> <span>{translations.loyalty}</span>
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('analytics'); setIsMoreMenuOpen(false); }}
+                      className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'analytics' ? t.tabActive : 'hover:bg-slate-500/10'}`}
+                    >
+                      <BarChart3 className="w-3.5 h-3.5 text-teal-400" /> <span>{translations.reports}</span>
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('bookkeeping'); setIsMoreMenuOpen(false); }}
+                      className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookkeeping' ? t.tabActive : 'hover:bg-slate-500/10'}`}
+                    >
+                      <Wallet className="w-3.5 h-3.5 text-teal-400" /> <span>{translations.bookkeeping}</span>
+                    </button>
+                  </>
                 )}
-              </button>
-              <button 
-                onClick={() => setActiveTab('payroll')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'payroll' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              >
-                <Users className="w-3.5 h-3.5" /> <span>{translations.payroll}</span>
-              </button>
-              <button 
-                onClick={() => setActiveTab('loyalty')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'loyalty' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              >
-                <Award className="w-3.5 h-3.5" /> <span>{translations.loyalty}</span>
-              </button>
-              <button 
-                onClick={() => setActiveTab('analytics')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'analytics' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              >
-                <BarChart3 className="w-3.5 h-3.5" /> <span>{translations.reports}</span>
-              </button>
-              <button 
-                onClick={() => setActiveTab('bookkeeping')}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'bookkeeping' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
-              >
-                <Wallet className="w-3.5 h-3.5" /> <span>{translations.bookkeeping}</span>
-              </button>
-            </>
+                <button 
+                  onClick={() => { setActiveTab('settings'); setIsMoreMenuOpen(false); }}
+                  className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'settings' ? t.tabActive : 'hover:bg-slate-500/10'}`}
+                >
+                  <Settings className="w-3.5 h-3.5 text-teal-400" /> <span>{translations.settings}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right utility buttons */}
+        <div className="flex items-center gap-1.5">
+          {revenueMultiplier !== 1.00 && (
+            <span className="bg-slate-800 border border-slate-700 text-slate-300 px-2 py-1 rounded-xl text-[11px] font-semibold hidden xl:flex items-center gap-1">
+              <Sliders className="w-3 h-3 text-teal-400" /> {Math.round(revenueMultiplier * 100)}%
+            </span>
           )}
 
-          <button 
-            onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'settings' ? t.tabActive : 'opacity-80 hover:opacity-100'}`}
+          <button
+            onClick={() => setIsTerminalLocked(true)}
+            className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-bold flex items-center gap-1 shadow-sm"
+            title="Lock Terminal"
           >
-            <Settings className="w-3.5 h-3.5" /> <span>{translations.settings}</span>
+            <Lock className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            onClick={toggleFullscreen}
+            className={`p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1 ${t.navToggleBg}`}
+            title="Fullscreen"
+          >
+            {isFullscreen ? <Minimize className="w-3.5 h-3.5 text-teal-400" /> : <Maximize className="w-3.5 h-3.5 text-teal-400" />}
+          </button>
+
+          <button
+            onClick={() => setLang(lang === 'en' ? 'ru' : 'en')}
+            className={`px-2 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1 ${t.navToggleBg}`}
+          >
+            <Globe className="w-3.5 h-3.5 text-teal-400" />
+            {lang === 'en' ? 'RU' : 'EN'}
+          </button>
+
+          <button 
+            onClick={handleLogout}
+            className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold flex items-center gap-1"
+            title="Sign Out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
       </header>
@@ -3985,19 +4021,19 @@ export default function App() {
               )}
             </div>
 
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[700px]">
+            <div className="hidden sm:block overflow-x-auto w-full">
+              <table className="w-full text-left border-collapse table-auto">
                 <thead>
                   <tr className={`border-b text-xs uppercase opacity-70 ${t.isLight ? 'border-slate-200' : 'border-slate-700'}`}>
-                    <th className="py-3 px-4">{translations.tagId}</th>
-                    <th className="py-3 px-4">{translations.customer}</th>
-                    <th className="py-3 px-4">{translations.phone}</th>
-                    <th className="py-3 px-4">Email</th>
-                    <th className="py-3 px-4">{translations.service}</th>
-                    <th className="py-3 px-4">{translations.readyDate}</th>
-                    <th className="py-3 px-4">{translations.total}</th>
-                    <th className="py-3 px-4">{translations.status}</th>
-                    <th className="py-3 px-4 text-right">{translations.actions}</th>
+                    <th className="py-3 px-3">{translations.tagId}</th>
+                    <th className="py-3 px-3">{translations.customer}</th>
+                    <th className="py-3 px-3">{translations.phone}</th>
+                    <th className="py-3 px-3">Email</th>
+                    <th className="py-3 px-3">{translations.service}</th>
+                    <th className="py-3 px-3">{translations.readyDate}</th>
+                    <th className="py-3 px-3">{translations.total}</th>
+                    <th className="py-3 px-3">{translations.status}</th>
+                    <th className="py-3 px-3 text-right">{translations.actions}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/30 text-xs">
@@ -4008,30 +4044,30 @@ export default function App() {
                   ) : (
                     filteredOrders.map(o => (
                       <tr key={o.docId} className="hover:bg-slate-500/5 transition-colors">
-                        <td className="py-4 px-4 font-mono font-black text-sm">
+                        <td className="py-4 px-3 font-mono font-black text-sm whitespace-nowrap">
                           <span className={t.textAccent}>#{o.id}</span>
                           {o.isRush && (
                             <span className="ml-2 bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded">⚡ {lang === 'ru' ? 'СРОЧНО' : 'RUSH'}</span>
                           )}
                         </td>
-                        <td className="py-4 px-4 font-semibold">{o.customerName}</td>
-                        <td className="py-4 px-4 font-mono">{o.phone}</td>
-                        <td className="py-4 px-4 font-mono opacity-80">{o.customerEmail || '—'}</td>
-                        <td className="py-4 px-4 uppercase font-medium">{o.serviceType}</td>
-                        <td className="py-4 px-4">{o.dueDate}</td>
-                        <td className="py-4 px-4 font-bold">€{o.total.toFixed(2)}</td>
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-3 font-semibold">{o.customerName}</td>
+                        <td className="py-4 px-3 font-mono whitespace-nowrap">{o.phone}</td>
+                        <td className="py-4 px-3 font-mono opacity-80 break-all">{o.customerEmail || '—'}</td>
+                        <td className="py-4 px-3 uppercase font-medium whitespace-nowrap">{o.serviceType}</td>
+                        <td className="py-4 px-3 whitespace-nowrap">{o.dueDate}</td>
+                        <td className="py-4 px-3 font-bold whitespace-nowrap">€{o.total.toFixed(2)}</td>
+                        <td className="py-4 px-3 whitespace-nowrap">
                           <select
                             value={o.status}
                             onChange={(e) => updateStatus(o.docId, e.target.value)}
-                            className={`px-3 py-1 rounded-lg text-xs font-semibold border ${t.innerInputBg}`}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${t.innerInputBg}`}
                           >
                             <option value="Pending">{translations.pending}</option>
                             <option value="In Progress">{translations.inProgress}</option>
                             <option value="Completed">{translations.completed}</option>
                           </select>
                         </td>
-                        <td className="py-4 px-4 text-right space-x-2">
+                        <td className="py-4 px-3 text-right space-x-2 whitespace-nowrap">
                           <button
                             onClick={() => {
                               setSelectedOrderForPrint(o);
