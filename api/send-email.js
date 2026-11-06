@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Enable CORS headers just in case
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -27,7 +26,8 @@ export default async function handler(req, res) {
 
   const payload = {
     from: {
-      email: 'alena9506@gmail.com',
+      // MailerSend requires a trial/verified domain sender or trial domain format
+      email: 'info@trial-z86org89z1pger13.mlsender.net', 
       name: 'ALiCo Dublin'
     },
     to: [
