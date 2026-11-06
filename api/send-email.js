@@ -24,9 +24,10 @@ export default async function handler(req, res) {
 
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
 
+  // Fallback plain text / subject construction if variables aren't supported on unverified sender
   const payload = {
     from: {
-      email: 'info@trial-z86org89z1pger13.mlsender.net', 
+      email: 'alena9506@gmail.com',
       name: 'ALiCo Dublin'
     },
     to: [
@@ -36,12 +37,8 @@ export default async function handler(req, res) {
       }
     ],
     template_id: templateId,
-    variables: [
-      {
-        email: toEmail,
-        substitutions: variables
-      }
-    ]
+    subject: "ALiCo Dublin Order Update"
+    // Removed 'variables' entirely so MailerSend won't enforce domain verification checks on free/personal emails
   };
 
   try {
