@@ -65,8 +65,8 @@ import {
 } from 'lucide-react';
 import logoImg from './logo.png';
 
-// MailerSend Helper Function for Sending Emails
-const sendMailerSendEmail = async (toEmail, toName, subject, htmlContent) => {
+// MailerSend Template-based Helper Function
+const sendMailerSendTemplate = async (toEmail, toName, templateId, variables) => {
   if (!toEmail) return;
   const API_KEY = 'mlsn.4d7a02a6f2412d7a463619372d556abd47e1072beca9d992e31e5fffa7b53fac';
   
@@ -85,11 +85,16 @@ const sendMailerSendEmail = async (toEmail, toName, subject, htmlContent) => {
         to: [
           {
             email: toEmail,
-            name: toName || 'Customer / Employee'
+            name: toName || 'Valued Customer / Employee'
           }
         ],
-        subject: subject,
-        html: htmlContent
+        template_id: templateId,
+        variables: [
+          {
+            email: toEmail,
+            substitutions: variables
+          }
+        ]
       })
     });
 
@@ -1028,55 +1033,29 @@ export default function App() {
     }
   };
 
-  // 3rd Email Template: Email Payslip via MailerSend
+  // 3rd Email Template: Email Payslip using Template ID '3yxj6lijv50ldo2r'
   const handleEmailPayslipToEmployee = async () => {
     if (!employeeEmail.trim()) {
       showToast(lang === 'ru' ? 'У сотрудника не указан email адрес!' : 'Employee email address is missing!');
       return;
     }
 
-    const subject = `ALiCo Dublin - Payslip for Pay Date ${payDate}`;
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b;">
-        <h2 style="color: #0f766e; text-align: center; margin-bottom: 5px;">ALiCo DUBLIN</h2>
-        <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 0;">Official Statement of Earnings (Payslip)</p>
-        
-        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 15px 0;" />
-        
-        <p><strong>Employee Name:</strong> ${employeeName}</p>
-        <p><strong>PPSN:</strong> ${employeePPSN}</p>
-        <p><strong>Pay Date:</strong> ${payDate}</p>
-        <p><strong>Hours Worked:</strong> ${hoursWorked} hrs @ €${Number(hourlyRate).toFixed(2)}/hr</p>
-        
-        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
-          <tr>
-            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;"><strong>Gross Pay</strong></td>
-            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; font-weight: bold;">€${grossPay.toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">PAYE (Income Tax)</td>
-            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; color: #dc2626;">-€${employeePaye.toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">PRSI (Class A1)</td>
-            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; color: #dc2626;">-€${employeePrsi.toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">USC (Universal Social Charge)</td>
-            <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; color: #dc2626;">-€${employeeUsc.toFixed(2)}</td>
-          </tr>
-          <tr style="background-color: #f8fafc;">
-            <td style="padding: 10px; font-weight: bold;">Net Take-Home Pay</td>
-            <td style="padding: 10px; text-align: right; font-weight: bold; color: #0f766e; font-size: 16px;">€${netPay.toFixed(2)}</td>
-          </tr>
-        </table>
+    const templateId = '3yxj6lijv50ldo2r';
+    const variables = {
+      employee_name: employeeName,
+      pay_date: payDate,
+      ppsn: employeePPSN,
+      hours_worked: String(gpHours),
+      hourly_rate: gpRate.toFixed(2),
+      gross_pay: grossPay.toFixed(2),
+      paye: employeePaye.toFixed(2),
+      prsi: employeePrsi.toFixed(2),
+      usc: employeeUsc.toFixed(2),
+      net_pay: netPay.toFixed(2)
+    };
 
-        <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px;">ALiCo Alterations & Laundry POS • Dublin, Ireland</p>
-      </div>
-    `;
-
-    await sendMailerSendEmail(employeeEmail.trim(), employeeName, subject, htmlContent);
-    showToast(lang === 'ru' ? `Расчетный листок успешно отправлен на ${employeeEmail}!` : `Payslip successfully emailed to ${employeeEmail}!`);
+    await sendMailerSendTemplate(employeeEmail.trim(), employeeName, templateId, variables);
+    showToast(lang === 'ru' ? `Расчетный листок отправлен на ${employeeEmail}!` : `Payslip successfully emailed to ${employeeEmail}!`);
   };
 
   const deletePayrollRecord = (payDocId) => {
@@ -1388,7 +1367,7 @@ export default function App() {
     }
   };
 
-  // 1st Email Template: Order Created Confirmation via MailerSend
+  // 1st Email Template: Order Created Confirmation (Template ID: '3vz9dle67m7gkj50')
   const handleCreateOrder = async (e) => {
     e.preventDefault();
     if (!phone) {
@@ -1438,32 +1417,19 @@ export default function App() {
       setSelectedOrderForPrint(newOrder);
 
       if (newOrder.customerEmail) {
-        const subject = `Your ALiCo Dublin Receipt - Tag #${newOrder.id}`;
-        const htmlContent = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b;">
-            <h2 style="color: #0f766e; text-align: center; margin-bottom: 5px;">ALiCo DUBLIN</h2>
-            <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 0;">Digital Claim Check Receipt</p>
-            
-            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
-              <span style="font-size: 12px; color: #166534; font-weight: bold; display: block;">TAG ID</span>
-              <span style="font-size: 28px; font-weight: 900; color: #15803d;">#${newOrder.id}</span>
-            </div>
-
-            <p>Hi <strong>${newOrder.customerName}</strong>,</p>
-            <p>Thank you for choosing ALiCo Dublin! Here are your digital claim check details:</p>
-            
-            <ul style="line-height: 1.6; font-size: 14px;">
-              <li><strong>Service Type:</strong> ${newOrder.serviceType.toUpperCase()}</li>
-              <li><strong>Target Ready Date:</strong> ${newOrder.dueDate}</li>
-              <li><strong>Payment Method:</strong> ${newOrder.paymentMethod}</li>
-              <li><strong>Total Paid:</strong> €${newOrder.total.toFixed(2)}</li>
-            </ul>
-
-            <p style="margin-top: 20px;">You can show this email when picking up your garments. Have a wonderful day!</p>
-            <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px;">ALiCo Alterations & Laundry POS • Dublin, Ireland</p>
-          </div>
-        `;
-        await sendMailerSendEmail(newOrder.customerEmail, newOrder.customerName, subject, htmlContent);
+        await sendMailerSendTemplate(
+          newOrder.customerEmail,
+          newOrder.customerName,
+          '3vz9dle67m7gkj50',
+          {
+            customer_name: newOrder.customerName,
+            order_id: newOrder.id,
+            service_type: newOrder.serviceType.toUpperCase(),
+            total: newOrder.total.toFixed(2),
+            payment_method: newOrder.paymentMethod,
+            due_date: newOrder.dueDate
+          }
+        );
       }
 
       setNextTagId(Math.floor(7000 + Math.random() * 900).toString());
@@ -1482,7 +1448,7 @@ export default function App() {
       setRushFeeType('fixed');
       
       const successMsg = newOrder.customerEmail 
-        ? (lang === 'ru' ? 'Заказ создан и цифровая квитанция отправлена на email!' : 'Ticket created & digital receipt emailed successfully via MailerSend!') 
+        ? (lang === 'ru' ? 'Заказ создан и цифровая квитанция отправлена на email!' : 'Ticket created & digital receipt emailed successfully via MailerSend template!') 
         : (lang === 'ru' ? 'Заказ создан и синхронизирован с облаком!' : 'Ticket created and synced to cloud database!');
       showToast(successMsg);
     } catch (error) {
@@ -1623,7 +1589,7 @@ export default function App() {
     });
   };
 
-  // 2nd Email Template: Order Completed / Ready for Collection via MailerSend
+  // 2nd Email Template: Order Completed / Ready for Collection (Template ID: '3yxj6lijv9qldo2r')
   const updateStatus = async (docId, newStatus) => {
     try {
       const orderRef = doc(db, 'orders', docId);
@@ -1631,25 +1597,15 @@ export default function App() {
 
       const targetOrder = orders.find(o => o.docId === docId);
       if (newStatus === 'Completed' && targetOrder && targetOrder.customerEmail) {
-        const subject = `⚡ Your ALiCo garments are ready for collection! Tag #${targetOrder.id}`;
-        const htmlContent = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b;">
-            <h2 style="color: #0f766e; text-align: center; margin-bottom: 5px;">ALiCo DUBLIN</h2>
-            <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 0;">Ready for Collection Notice</p>
-            
-            <div style="background-color: #fef3c7; border: 1px solid #fde047; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
-              <span style="font-size: 12px; color: #854d0e; font-weight: bold; display: block;">READY TAG ID</span>
-              <span style="font-size: 28px; font-weight: 900; color: #a16207;">#${targetOrder.id}</span>
-            </div>
-
-            <p>Hi <strong>${targetOrder.customerName || 'Valued Customer'}</strong>,</p>
-            <p>Great news! Your garments for Tag ID <strong>#${targetOrder.id}</strong> are now fully completed, pressed, and ready to be collected at our Dublin counter.</p>
-            
-            <p style="margin-top: 20px;">We look forward to seeing you!</p>
-            <p style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 30px;">ALiCo Alterations & Laundry POS • Dublin, Ireland</p>
-          </div>
-        `;
-        await sendMailerSendEmail(targetOrder.customerEmail, targetOrder.customerName, subject, htmlContent);
+        await sendMailerSendTemplate(
+          targetOrder.customerEmail,
+          targetOrder.customerName,
+          '3yxj6lijv9qldo2r',
+          {
+            customer_name: targetOrder.customerName || 'Valued Customer',
+            order_id: targetOrder.id
+          }
+        );
         showToast(lang === 'ru' ? `Уведомление о готовности отправлено на ${targetOrder.customerEmail}!` : `Ready-for-collection notification emailed to ${targetOrder.customerEmail}!`);
       }
     } catch (error) {
