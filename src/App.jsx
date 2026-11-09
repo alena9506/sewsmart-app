@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { db, auth } from './firebase';
 import { 
   signInWithEmailAndPassword,
@@ -33,7 +33,6 @@ import {
   LogOut,
   Globe,
   TrendingUp,
-  Calendar,
   CreditCard,
   FileSpreadsheet,
   FileText,
@@ -57,13 +56,14 @@ import {
   Tag,
   Edit2,
   FolderPlus,
-  Upload,
   Image as ImageIcon,
   DollarSign,
   Users,
   UserPlus,
   Menu,
-  ChevronDown
+  ChevronDown,
+  CheckCircle,
+  RefreshCw
 } from 'lucide-react';
 import logoImg from './logo.png';
 
@@ -184,7 +184,9 @@ export default function App() {
     date: '',
     isRecurring: false,
     receiptUrl: '',
-    paidBy: 'Alena'
+    paidBy: 'Alena (Shop Account)',
+    splitType: '100',
+    customSplitPercent: '50'
   });
 
   const [previewReceiptUrl, setPreviewReceiptUrl] = useState(null);
@@ -209,7 +211,6 @@ export default function App() {
   const [employeeName, setEmployeeName] = useState('Maria Smith');
   const [employeeEmail, setEmployeeEmail] = useState('');
   const [employeePPSN, setEmployeePPSN] = useState('1234567A');
-  const [payPeriod, setPayPeriod] = useState('Weekly');
   const [payDate, setPayDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [hoursWorked, setHoursWorked] = useState('39');
   const [hourlyRate, setHourlyRate] = useState('13.50');
@@ -227,7 +228,10 @@ export default function App() {
   const [expenseDate, setExpenseDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [isRecurringMonthly, setIsRecurringMonthly] = useState(false);
   const [expenseReceiptUrl, setExpenseReceiptUrl] = useState('');
-  const [expensePaidBy, setExpensePaidBy] = useState('Alena');
+  const [expensePaidBy, setExpensePaidBy] = useState('Alena (Shop Account)');
+  const [customPayerName, setCustomPayerName] = useState('');
+  const [splitType, setSplitType] = useState('100'); // '100', '50', 'custom'
+  const [customSplitPercent, setCustomSplitPercent] = useState('50');
 
   const [inventoryItems, setInventoryItems] = useState([]);
   const [newItemName, setNewItemName] = useState('');
@@ -407,12 +411,10 @@ export default function App() {
       customerPayment: 'Customer & Payment Details',
       customerName: 'Customer Name',
       phone: 'Phone Number *',
-      emailOptional: 'Customer Email (Optional for Digital Receipt)',
       targetDate: 'Target Ready Date',
       paymentMethod: 'Upfront Payment Method',
       garmentType: 'Garment Type',
       fixOptions: 'Fix Options for',
-      customNotes: 'Custom Notes / Pinning Instructions',
       laundryService: 'Service Type',
       weightQty: 'Weight / Bag Quantity',
       totalPrice: 'Total Price (€) *',
@@ -503,8 +505,8 @@ export default function App() {
       cardPayments: 'Card Payments',
       cashPayments: 'Cash Payments',
       capitalPayments: 'Capital / Cash Float',
-      bookkeepingTitle: 'Business Expense Bookkeeping',
-      bookkeepingDesc: 'Record and edit business expenses below.',
+      bookkeepingTitle: 'Business Expense & Partner Reimbursement Ledger',
+      bookkeepingDesc: 'Record expenses, track custom partner payments, and manage live payback balances.',
       exportExpensesBtn: 'Export Expenses (CSV)',
       customDateRange: 'Custom Date Range:',
       clearCustomRange: 'Clear Custom Range',
@@ -532,7 +534,7 @@ export default function App() {
       newTicket: 'Новый заказ',
       orders: 'Заказы',
       reports: 'Отчеты',
-      bookkeeping: 'Бухгалтерия',
+      bookkeeping: 'Бухгалтерия и Взаиморасчеты',
       payroll: 'Персонал и Зарплата',
       inventory: 'Склад',
       loyalty: 'Клиенты',
@@ -544,12 +546,10 @@ export default function App() {
       customerPayment: 'Клиент и Оплата',
       customerName: 'Имя клиента',
       phone: 'Номер телефона *',
-      emailOptional: 'Email клиента (Необязательно)',
       targetDate: 'Дата готовности',
       paymentMethod: 'Способ оплаты',
       garmentType: 'Тип одежды',
       fixOptions: 'Варианты ремонта для',
-      customNotes: 'Примечания / Инструкции по примерке',
       laundryService: 'Тип услуги',
       weightQty: 'Вес / Количество мешков',
       totalPrice: 'Итоговая цена (€) *',
@@ -640,8 +640,8 @@ export default function App() {
       cardPayments: 'Оплата картой',
       cashPayments: 'Наличные',
       capitalPayments: 'Капитал / Разменная касса',
-      bookkeepingTitle: 'Бухгалтерия и учет расходов',
-      bookkeepingDesc: 'Вносите и редактируйте расходы ниже.',
+      bookkeepingTitle: 'Бухгалтерия и учет взаиморасчетов с партнерами',
+      bookkeepingDesc: 'Вносите расходы, учитывайте оплату партнерами и контролируйте баланс долга.',
       exportExpensesBtn: 'Экспорт расходов (CSV)',
       customDateRange: 'Произвольный диапазон дат:',
       clearCustomRange: 'Сбросить даты',
@@ -1033,7 +1033,10 @@ export default function App() {
         amount: grossPay,
         isRecurring: false,
         receiptUrl: '',
-        paidBy: 'Alena'
+        paidBy: 'Alena (Shop Account)',
+        splitType: 'N/A',
+        owedAmount: 0,
+        status: 'Settled'
       });
 
       showToast(lang === 'ru' ? 'Расчетный листок сохранен в архив и внесен в расходы!' : 'Payslip recorded to payroll ledger & expense log!');
@@ -1144,7 +1147,7 @@ export default function App() {
       setCapitalAmount('');
       setCapitalNote('');
       setIsCapitalModalOpen(false);
-      showToast(lang === 'ru' ? 'Капитал / касса успешно зачислены!' : 'Capital / cash float added successfully!');
+      showToast(lang === 'ru' ? 'Капитал / касса успешно зачислины!' : 'Capital / cash float added successfully!');
     } catch (err) {
       console.error('Error adding capital:', err);
       showToast(lang === 'ru' ? 'Не удалось зачислить капитал.' : 'Failed to save capital injection.');
@@ -1465,10 +1468,11 @@ export default function App() {
     }
   };
 
+  // --- NEW EXPENSE & REIMBURSEMENT HANDLERS ---
   const handleAddExpense = async (e) => {
     e.preventDefault();
-    const amountNum = Number(expenseAmount);
-    if (!amountNum || amountNum <= 0) {
+    const rawAmount = Number(expenseAmount);
+    if (!rawAmount || rawAmount <= 0) {
       showToast(lang === 'ru' ? 'Введите корректную сумму расхода.' : 'Please enter a valid expense amount.');
       return;
     }
@@ -1478,15 +1482,33 @@ export default function App() {
       ? `${descText} (${lang === 'ru' ? 'Ежемесячно' : 'Monthly Recurring'})` 
       : descText;
 
+    const activePayer = expensePaidBy === 'Custom' 
+      ? (customPayerName.trim() || 'Partner') 
+      : expensePaidBy;
+
+    let owedAmount = 0;
+    let splitDescription = 'N/A';
+    let expenseStatus = 'Settled';
+
+    if (activePayer !== 'Alena (Shop Account)') {
+      const ratio = (splitType === '50' ? 50 : splitType === 'custom' ? Number(customSplitPercent) || 100 : 100) / 100;
+      owedAmount = rawAmount * ratio;
+      splitDescription = splitType === '50' ? '50% Split (Half Owed)' : splitType === 'custom' ? `${customSplitPercent}% Split` : '100% Business Reimbursement';
+      expenseStatus = 'Pending Reimbursement';
+    }
+
     const newExpense = {
       createdAt: new Date().toISOString(),
       date: expenseDate,
       description: finalDescription,
       category: expenseCategory,
-      amount: amountNum,
+      amount: rawAmount,
       isRecurring: isRecurringMonthly,
       receiptUrl: expenseReceiptUrl || '',
-      paidBy: expensePaidBy || 'Alena'
+      paidBy: activePayer,
+      splitType: splitDescription,
+      owedAmount: owedAmount,
+      status: expenseStatus
     };
 
     try {
@@ -1495,31 +1517,60 @@ export default function App() {
       setExpenseAmount('');
       setIsRecurringMonthly(false);
       setExpenseReceiptUrl('');
-      setExpensePaidBy('Alena');
-      showToast(lang === 'ru' ? 'Расход и чек успешно записаны!' : 'Expense and receipt recorded successfully!');
+      setExpensePaidBy('Alena (Shop Account)');
+      setCustomPayerName('');
+      setSplitType('100');
+      showToast(lang === 'ru' ? 'Расход и статус возмещения успешно записаны!' : 'Expense and reimbursement rule recorded successfully!');
     } catch (error) {
       console.error('Error adding expense: ', error);
       showToast(lang === 'ru' ? 'Не удалось сохранить расход.' : 'Failed to save expense to cloud.');
     }
   };
 
+  const handleSettleReimbursement = async (docId) => {
+    try {
+      await updateDoc(doc(db, 'expenses', docId), {
+        status: 'Settled',
+        settledAt: new Date().toISOString()
+      });
+      showToast(lang === 'ru' ? 'Возмещение отмечено как выплаченное!' : 'Reimbursement marked as settled!');
+    } catch (err) {
+      console.error('Error settling reimbursement:', err);
+    }
+  };
+
   const handleUpdateExpense = async (e) => {
     e.preventDefault();
-    const amountNum = Number(editExpenseValues.amount);
-    if (!amountNum || amountNum <= 0 || !editExpenseValues.description.trim()) {
+    const rawAmount = Number(editExpenseValues.amount);
+    if (!rawAmount || rawAmount <= 0 || !editExpenseValues.description.trim()) {
       showToast(lang === 'ru' ? 'Введите корректное описание и сумму расхода.' : 'Please enter a valid description and amount.');
       return;
+    }
+
+    const activePayer = editExpenseValues.paidBy;
+    let owedAmount = 0;
+    let splitDescription = 'N/A';
+    let expenseStatus = 'Settled';
+
+    if (activePayer !== 'Alena (Shop Account)') {
+      const ratio = (editExpenseValues.splitType === '50' ? 50 : editExpenseValues.splitType === 'custom' ? Number(editExpenseValues.customSplitPercent) || 100 : 100) / 100;
+      owedAmount = rawAmount * ratio;
+      splitDescription = editExpenseValues.splitType === '50' ? '50% Split (Half Owed)' : editExpenseValues.splitType === 'custom' ? `${editExpenseValues.customSplitPercent}% Split` : '100% Business Reimbursement';
+      expenseStatus = 'Pending Reimbursement';
     }
 
     try {
       await updateDoc(doc(db, 'expenses', editingExpenseId), {
         description: editExpenseValues.description.trim(),
         category: editExpenseValues.category,
-        amount: amountNum,
+        amount: rawAmount,
         date: editExpenseValues.date,
         isRecurring: editExpenseValues.isRecurring,
         receiptUrl: editExpenseValues.receiptUrl || '',
-        paidBy: editExpenseValues.paidBy || 'Alena'
+        paidBy: activePayer,
+        splitType: splitDescription,
+        owedAmount: owedAmount,
+        status: expenseStatus
       });
       setEditingExpenseId(null);
       showToast(lang === 'ru' ? 'Расход успешно обновлен!' : 'Expense successfully updated!');
@@ -1714,10 +1765,21 @@ export default function App() {
       .reduce((sum, ex) => sum + ex.amount, 0);
   });
 
+  // Partner Reimbursement Pending Totals Breakdown
+  const partnerOwedSummary = useMemo(() => {
+    const summary = {};
+    expenses.forEach(ex => {
+      if (ex.status === 'Pending Reimbursement' && ex.paidBy !== 'Alena (Shop Account)') {
+        summary[ex.paidBy] = (summary[ex.paidBy] || 0) + (ex.owedAmount || 0);
+      }
+    });
+    return summary;
+  }, [expenses]);
+
   // Who Paid breakdown (Staff attribution for expenses)
   const paidByTotals = {};
   filteredExpensesByTimeframe.forEach(ex => {
-    const pBy = ex.paidBy || 'Alena';
+    const pBy = ex.paidBy || 'Alena (Shop Account)';
     if (!paidByTotals[pBy]) {
       paidByTotals[pBy] = { total: 0, items: [] };
     }
@@ -1750,12 +1812,15 @@ export default function App() {
   };
 
   const exportExpensesToCSV = () => {
-    const headers = ['Date', 'Description / Vendor', 'Category', 'Paid By', 'Amount (€)', 'Receipt URL'];
+    const headers = ['Date', 'Description / Vendor', 'Category', 'Paid By', 'Split Agreement', 'Owed Amount (€)', 'Status', 'Total (€)', 'Receipt URL'];
     const rows = filteredExpensesByTimeframe.map(ex => [
       ex.date || ex.createdAt?.split('T')[0],
       `"${ex.description || ''}"`,
       ex.category,
-      `"${ex.paidBy || 'Alena'}"`,
+      `"${ex.paidBy || 'Alena (Shop Account)'}"`,
+      `"${ex.splitType || 'N/A'}"`,
+      (ex.owedAmount || 0).toFixed(2),
+      ex.status || 'Settled',
       ex.amount.toFixed(2),
       ex.receiptUrl || ''
     ]);
@@ -2331,18 +2396,45 @@ export default function App() {
               <div>
                 <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{lang === 'ru' ? 'Кто оплатил / Тег (Paid By)' : 'Paid By / Staff Tag'}</label>
                 <select
-                  value={editExpenseValues.paidBy || 'Alena'}
+                  value={editExpenseValues.paidBy}
                   onChange={(e) => setEditExpenseValues({ ...editExpenseValues, paidBy: e.target.value })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-teal-500"
                 >
-                  <option value="Alena">Alena (Admin)</option>
+                  <option value="Alena (Shop Account)">Alena (Shop Account)</option>
                   {employees.map(emp => (
                     <option key={emp.docId} value={emp.name}>{emp.name} (Staff)</option>
                   ))}
                   <option value="Partner / Co-Owner">Partner / Co-Owner</option>
-                  <option value="Cash Drawer">Cash Drawer / Register</option>
                 </select>
               </div>
+
+              {editExpenseValues.paidBy !== 'Alena (Shop Account)' && (
+                <div className="grid grid-cols-2 gap-3 p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">Split Ratio</label>
+                    <select
+                      value={editExpenseValues.splitType}
+                      onChange={(e) => setEditExpenseValues({ ...editExpenseValues, splitType: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white"
+                    >
+                      <option value="100">100% Business Payback</option>
+                      <option value="50">50/50 Split (Half)</option>
+                      <option value="custom">Custom %</option>
+                    </select>
+                  </div>
+                  {editExpenseValues.splitType === 'custom' && (
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">Custom %</label>
+                      <input 
+                        type="number"
+                        value={editExpenseValues.customSplitPercent}
+                        onChange={(e) => setEditExpenseValues({ ...editExpenseValues, customSplitPercent: e.target.value })}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1">{translations.amountLabel}</label>
@@ -4239,6 +4331,7 @@ export default function App() {
           </div>
         )}
 
+        {/* UPDATED BOOKKEEPING & REIMBURSEMENT TAB */}
         {activeTab === 'bookkeeping' && isAdmin && (
           <div className="space-y-6">
             <div className={`border rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 ${t.cardBg}`}>
@@ -4261,6 +4354,33 @@ export default function App() {
                   >
                     <FileSpreadsheet className="w-4 h-4" /> {translations.exportExpensesBtn}
                   </button>
+                </div>
+              </div>
+
+              {/* LIVE PARTNER REIMBURSEMENT PENDING BALANCES CARD */}
+              <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-amber-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" /> {lang === 'ru' ? 'Текущие долги перед партнерами (К возврату)' : 'Pending Partner Payback Balances (Owed by Business)'}
+                  </h3>
+                  <span className="text-xs font-bold text-amber-300">
+                    Total Pending Payback: €{Object.values(partnerOwedSummary).reduce((a, b) => a + b, 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">
+                  {Object.keys(partnerOwedSummary).length === 0 ? (
+                    <p className="text-xs text-amber-200/80 italic col-span-full">{lang === 'ru' ? 'Нет невыплаченных долгов перед партнерами!' : 'No pending partner reimbursements outstanding!'}</p>
+                  ) : (
+                    Object.entries(partnerOwedSummary).map(([payer, balance]) => (
+                      <div key={payer} className="bg-slate-900/90 border border-amber-500/40 p-3 rounded-xl flex justify-between items-center text-xs">
+                        <div>
+                          <p className="font-bold text-white">{payer}</p>
+                          <p className="text-[10px] text-amber-400 font-semibold">{lang === 'ru' ? 'Оплачено личными средствами' : 'Owed to partner'}</p>
+                        </div>
+                        <span className="font-mono font-black text-amber-300 text-base">€{balance.toFixed(2)}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -4344,112 +4464,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* DEDICATED STAFF SPENDING ATTRIBUTION REPORT (WHO PAID FOR WHAT) */}
-              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
-                <h3 className="text-sm font-bold flex items-center gap-2">
-                  <Users className={`w-4 h-4 ${t.textAccent}`} /> {lang === 'ru' ? 'Отчет по расходам персонала (Кто что оплатил)' : 'Staff Expense Attribution Report (Who Paid For What)'}
-                </h3>
-                <p className="text-xs opacity-75">{lang === 'ru' ? 'Этот отчет виден только администратору и детализирует личные вклады в расходы без изменения общего баланса.' : 'This report is exclusively visible to Admin and details who incurred or paid for each business expense.'}</p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
-                  {Object.keys(paidByTotals).length === 0 ? (
-                    <p className="text-xs opacity-60 col-span-full">{lang === 'ru' ? 'Нет данных о расходах персонала.' : 'No expense attribution records found for this period.'}</p>
-                  ) : (
-                    Object.entries(paidByTotals).map(([staffName, data]) => {
-                      const sharePct = periodExpenses > 0 ? (data.total / periodExpenses) * 100 : 0;
-                      return (
-                        <div key={staffName} className="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold text-sm text-white flex items-center gap-1.5">
-                              <User className="w-4 h-4 text-teal-400" /> {staffName}
-                            </span>
-                            <span className="font-mono text-xs font-extrabold text-teal-400">€{data.total.toFixed(2)}</span>
-                          </div>
-
-                          <div className="space-y-1 text-[11px] text-slate-300 border-t border-slate-800 pt-2">
-                            <p className="text-[10px] text-slate-400 font-semibold">{lang === 'ru' ? 'Позиции (' : 'Items ('}{data.items.length}):</p>
-                            {data.items.slice(0, 3).map((it, idx) => (
-                              <div key={idx} className="flex justify-between truncate">
-                                <span className="truncate pr-2">• {it.description}</span>
-                                <span className="font-mono font-bold">€{it.amount.toFixed(2)}</span>
-                              </div>
-                            ))}
-                            {data.items.length > 3 && (
-                              <p className="text-[10px] text-teal-400 italic">+{data.items.length - 3} more items...</p>
-                            )}
-                          </div>
-
-                          <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                            <div className="bg-teal-500 h-full rounded-full" style={{ width: `${sharePct}%` }}></div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* CAPITAL & CASH FLOAT LOG */}
-              <div className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
-                <div className="flex justify-between items-center flex-wrap gap-2">
-                  <h3 className="text-sm font-bold flex items-center gap-2">
-                    <DollarSign className={`w-4 h-4 ${t.textAccent}`} /> {lang === 'ru' ? 'Журнал ввода капитала и кассы' : 'Capital & Cash Float Injection Log'}
-                  </h3>
-                  <span className="font-mono text-xs font-bold text-teal-400">
-                    Total Injected: €{filteredCapitalList.reduce((sum, c) => sum + c.total, 0).toFixed(2)}
-                  </span>
-                </div>
-                
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs min-w-[600px]">
-                    <thead>
-                      <tr className="border-b border-slate-700/50 opacity-70">
-                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Дата' : 'Date'}</th>
-                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Примечание' : 'Description / Note'}</th>
-                        <th className="py-2.5 px-3">{lang === 'ru' ? 'Сумма' : 'Amount'}</th>
-                        <th className="py-2.5 px-3 text-right">{translations.actions}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700/20">
-                      {filteredCapitalList.length === 0 ? (
-                        <tr>
-                          <td colSpan="4" className="text-center py-6 opacity-60">{lang === 'ru' ? 'За этот период вводов капитала нет.' : 'No capital or float entries for this period.'}</td>
-                        </tr>
-                      ) : (
-                        filteredCapitalList.map(cap => (
-                          <tr key={cap.docId} className="hover:bg-slate-500/5 transition-colors">
-                            <td className="py-3 px-3 font-mono">{cap.dueDate || cap.createdAt?.split('T')[0]}</td>
-                            <td className="py-3 px-3 font-semibold">{cap.notes || (lang === 'ru' ? 'Стартовый капитал' : 'Capital Injection')}</td>
-                            <td className="py-3 px-3 font-bold text-teal-400">€{cap.total.toFixed(2)}</td>
-                            <td className="py-3 px-3 text-right space-x-2">
-                              <button
-                                onClick={() => {
-                                  setEditingCapitalId(cap.docId);
-                                  setEditCapitalValues({
-                                    amount: cap.total || '',
-                                    notes: cap.notes || '',
-                                    date: cap.dueDate || new Date().toISOString().split('T')[0]
-                                  });
-                                }}
-                                className="px-3 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1"
-                              >
-                                <Edit2 className="w-3 h-3" /> {translations.editBtn}
-                              </button>
-                              <button
-                                onClick={() => deleteCapitalOrder(cap.docId)}
-                                className="px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px]"
-                              >
-                                {translations.delete}
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
+              {/* EXPENSE ENTRY FORM WITH CUSTOM PARTNER & REIMBURSEMENT RULES */}
               <form onSubmit={handleAddExpense} className={`p-6 rounded-2xl border space-y-4 ${t.subCardBg}`}>
                 <div className="flex justify-between items-center">
                   <h3 className="text-sm font-bold flex items-center gap-2">
@@ -4485,7 +4500,7 @@ export default function App() {
                       required
                       value={expenseDescription}
                       onChange={(e) => setExpenseDescription(e.target.value)}
-                      placeholder="e.g. Electric Ireland, Virgin Media, Rent"
+                      placeholder="e.g. Electric Ireland, Sewing Machine Maintenance, Thread"
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
@@ -4505,20 +4520,63 @@ export default function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 items-end">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Кто оплатил (Paid By)' : 'Paid By / Staff Tag'}</label>
+                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Кто оплатил (Paid By)' : 'Paid By / Payer Tag'}</label>
                     <select
                       value={expensePaidBy}
                       onChange={(e) => setExpensePaidBy(e.target.value)}
                       className={`w-full border rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     >
-                      <option value="Alena">Alena (Admin)</option>
+                      <option value="Alena (Shop Account)">Alena (Shop Account)</option>
                       {employees.map(emp => (
                         <option key={emp.docId} value={emp.name}>{emp.name} (Staff)</option>
                       ))}
-                      <option value="Partner / Co-Owner">Partner / Co-Owner</option>
-                      <option value="Cash Drawer">Cash Drawer / Register</option>
+                      <option value="Custom">Custom Partner Name...</option>
                     </select>
                   </div>
+
+                  {expensePaidBy === 'Custom' && (
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Имя партнера' : 'Partner Name *'}</label>
+                      <input 
+                        type="text"
+                        required
+                        value={customPayerName}
+                        onChange={(e) => setCustomPayerName(e.target.value)}
+                        placeholder="e.g. John / Partner A"
+                        className={`w-full border rounded-xl px-3 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                      />
+                    </div>
+                  )}
+
+                  {expensePaidBy !== 'Alena (Shop Account)' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Reimbursement Rule</label>
+                        <select
+                          value={splitType}
+                          onChange={(e) => setSplitType(e.target.value)}
+                          className={`w-full border rounded-xl px-2 py-2.5 text-xs font-semibold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                        >
+                          <option value="100">100% Payback</option>
+                          <option value="50">50/50 Split</option>
+                          <option value="custom">Custom %</option>
+                        </select>
+                      </div>
+                      {splitType === 'custom' && (
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">Split %</label>
+                          <input 
+                            type="number"
+                            value={customSplitPercent}
+                            onChange={(e) => setCustomSplitPercent(e.target.value)}
+                            placeholder="50"
+                            className={`w-full border rounded-xl px-2 py-2.5 text-xs font-semibold focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{translations.amountLabel}</label>
                     <input 
@@ -4531,17 +4589,7 @@ export default function App() {
                       className={`w-full border rounded-xl px-4 py-2.5 text-xs focus:outline-none ${t.borderFocus} ${t.innerInputBg}`}
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] uppercase tracking-wider opacity-75 mb-1">{lang === 'ru' ? 'Загрузить чек' : 'Attach Receipt'}</label>
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => uploadReceiptToImgBB(e.target.files[0], false)}
-                        className="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-2 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-teal-500 file:text-slate-950 hover:file:bg-teal-400 cursor-pointer"
-                      />
-                    </div>
-                  </div>
+
                   <div>
                     <button
                       type="submit"
@@ -4553,27 +4601,30 @@ export default function App() {
                 </div>
               </form>
 
+              {/* LOG TABLE OF EXPENSES & REIMBURSEMENTS */}
               <div className="pt-4 overflow-x-auto">
                 <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
                   <h3 className="text-sm font-bold">{translations.recordedExpensesLog}</h3>
                   <span className="font-mono text-sm font-extrabold text-rose-400">Total: €{periodExpenses.toFixed(2)}</span>
                 </div>
-                <table className="w-full text-left border-collapse text-xs min-w-[700px]">
+                <table className="w-full text-left border-collapse text-xs min-w-[750px]">
                   <thead>
                     <tr className="border-b border-slate-700/50 opacity-70">
                       <th className="py-3 px-3">{lang === 'ru' ? 'Дата' : 'Date'}</th>
                       <th className="py-3 px-3">{translations.vendorLabel}</th>
                       <th className="py-3 px-3">{translations.categoryLabel}</th>
-                      <th className="py-3 px-3">{lang === 'ru' ? 'Кто оплатил' : 'Paid By'}</th>
+                      <th className="py-3 px-3">{lang === 'ru' ? 'Оплатил' : 'Paid By'}</th>
+                      <th className="py-3 px-3">Agreement</th>
+                      <th className="py-3 px-3">Owed (€)</th>
                       <th className="py-3 px-3">{translations.amountLabel}</th>
-                      <th className="py-3 px-3">{lang === 'ru' ? 'Чек' : 'Receipt'}</th>
+                      <th className="py-3 px-3">Status</th>
                       <th className="py-3 px-3 text-right">{translations.actions}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/20">
                     {filteredExpensesByTimeframe.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="text-center py-10 opacity-60">{lang === 'ru' ? 'За этот период расходов не найдено.' : 'No expenses recorded for this timeframe.'}</td>
+                        <td colSpan="9" className="text-center py-10 opacity-60">{lang === 'ru' ? 'За этот период расходов не найдено.' : 'No expenses recorded for this timeframe.'}</td>
                       </tr>
                     ) : (
                       filteredExpensesByTimeframe.map(ex => (
@@ -4588,22 +4639,22 @@ export default function App() {
                             )}
                           </td>
                           <td className="py-3 px-3 opacity-80">{ex.category}</td>
-                          <td className="py-3 px-3">
-                            <span className="bg-slate-900 border border-slate-700 text-teal-400 px-2 py-0.5 rounded-md font-bold text-[11px]">
-                              {ex.paidBy || 'Alena'}
-                            </span>
-                          </td>
+                          <td className="py-3 px-3 font-bold text-teal-400">{ex.paidBy || 'Alena (Shop Account)'}</td>
+                          <td className="py-3 px-3 opacity-75">{ex.splitType || 'N/A'}</td>
+                          <td className="py-3 px-3 font-mono font-bold text-amber-400">€{(ex.owedAmount || 0).toFixed(2)}</td>
                           <td className="py-3 px-3 font-bold text-rose-400">€{ex.amount.toFixed(2)}</td>
                           <td className="py-3 px-3">
-                            {ex.receiptUrl ? (
+                            {ex.status === 'Pending Reimbursement' ? (
                               <button
-                                onClick={() => setPreviewReceiptUrl(ex.receiptUrl)}
-                                className="px-2.5 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 shadow-sm"
+                                onClick={() => handleSettleReimbursement(ex.docId)}
+                                className="px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg text-[10px] font-bold flex items-center gap-1"
                               >
-                                <Eye className="w-3 h-3" /> {lang === 'ru' ? 'Чек' : 'View'}
+                                <Clock className="w-3 h-3" /> Settle Payback
                               </button>
                             ) : (
-                              <span className="opacity-40 text-[11px]">—</span>
+                              <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-[10px] font-bold flex items-center gap-1 w-max">
+                                <CheckCircle className="w-3 h-3" /> Settled
+                              </span>
                             )}
                           </td>
                           <td className="py-3 px-3 text-right space-x-2">
@@ -4617,7 +4668,9 @@ export default function App() {
                                   date: ex.date || new Date().toISOString().split('T')[0],
                                   isRecurring: !!ex.isRecurring,
                                   receiptUrl: ex.receiptUrl || '',
-                                  paidBy: ex.paidBy || 'Alena'
+                                  paidBy: ex.paidBy || 'Alena (Shop Account)',
+                                  splitType: '100',
+                                  customSplitPercent: '50'
                                 });
                               }}
                               className="px-3 py-1 bg-teal-500/15 hover:bg-teal-500/25 text-teal-400 border border-teal-500/30 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1"
