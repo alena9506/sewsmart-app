@@ -534,7 +534,7 @@ export default function App() {
       newTicket: 'Новый заказ',
       orders: 'Заказы',
       reports: 'Отчеты',
-      bookkeeping: 'Бухгалтерия и Взаиморасчеты',
+      bookkeeping: 'Бухгалтерия и учет расходов',
       payroll: 'Персонал и Зарплата',
       inventory: 'Склад',
       loyalty: 'Клиенты',
@@ -640,8 +640,8 @@ export default function App() {
       cardPayments: 'Оплата картой',
       cashPayments: 'Наличные',
       capitalPayments: 'Капитал / Разменная касса',
-      bookkeepingTitle: 'Бухгалтерия и учет взаиморасчетов с партнерами',
-      bookkeepingDesc: 'Вносите расходы, учитывайте оплату партнерами и контролируйте баланс долга.',
+      bookkeepingTitle: 'Бухгалтерия и учет расходов',
+      bookkeepingDesc: 'Вносите и редактируйте расходы ниже.',
       exportExpensesBtn: 'Экспорт расходов (CSV)',
       customDateRange: 'Произвольный диапазон дат:',
       clearCustomRange: 'Сбросить даты',
@@ -4461,6 +4461,48 @@ export default function App() {
                   <p className={`text-xl font-extrabold ${profitMargin >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
                     {profitMargin.toFixed(1)}%
                   </p>
+                </div>
+              </div>
+
+              {/* RESTORED: STAFF & PARTNER SPENDING VISUAL BREAKDOWN SECTION */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                  <Users className={`w-4 h-4 ${t.textAccent}`} /> {lang === 'ru' ? 'Отчет по расходам персонала (Кто что оплатил)' : 'Staff & Partner Spending Report (Who Spent on What)'}
+                </h3>
+                <p className="text-xs opacity-75">{lang === 'ru' ? 'Этот отчет детализирует личные вклады в расходы без изменения общего баланса.' : 'This report details individual spending contributions without altering the total ledger balance.'}</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                  {Object.keys(paidByTotals).length === 0 ? (
+                    <div className={`p-6 rounded-2xl border text-center opacity-60 text-xs col-span-full ${t.subCardBg}`}>
+                      {lang === 'ru' ? 'Расходов пока нет.' : 'No expenses recorded yet.'}
+                    </div>
+                  ) : (
+                    Object.entries(paidByTotals).map(([payerName, data]) => {
+                      const sharePct = periodExpenses > 0 ? (data.total / periodExpenses) * 100 : 0;
+                      return (
+                        <div key={payerName} className={`p-5 rounded-2xl border space-y-3 ${t.subCardBg}`}>
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-sm flex items-center gap-1.5">
+                              <User className="w-4 h-4 text-teal-400" /> {payerName}
+                            </span>
+                            <span className="font-mono font-extrabold text-teal-400 text-base">€{data.total.toFixed(2)}</span>
+                          </div>
+                          <div className="space-y-1 text-xs">
+                            <p className="opacity-75 font-semibold">{lang === 'ru' ? `Позиции (${data.items.length}):` : `Items (${data.items.length}):`}</p>
+                            {data.items.map((it, idx) => (
+                              <div key={idx} className="flex justify-between items-center pl-2 border-l-2 border-teal-500/40 text-[11px]">
+                                <span className="truncate pr-2">• {it.description}</span>
+                                <span className="font-mono font-bold">€{it.amount.toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="w-full bg-slate-900/40 rounded-full h-2 overflow-hidden border border-slate-700/40 mt-2">
+                            <div className="bg-teal-400 h-full rounded-full transition-all duration-500" style={{ width: `${sharePct}%` }}></div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
